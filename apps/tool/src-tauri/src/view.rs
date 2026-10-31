@@ -45,10 +45,31 @@ pub fn tile_kind(k: maze_core::TileKind) -> ipc::TileKind {
     }
 }
 
-fn matches(filter: &ipc::TileFilter, tile: &ipc::TileView) -> bool {
+/// The filter's side kinds use the same matching as exceptions do (DR-0024),
+/// so `floor_wall` means a wall at any end in both places.
+fn side_match(f: ipc::SideFilter) -> maze_core::SideMatch {
+    match f {
+        ipc::SideFilter::Hedge => maze_core::SideMatch::Hedge,
+        ipc::SideFilter::Passage => maze_core::SideMatch::Passage,
+        ipc::SideFilter::Door => maze_core::SideMatch::Door,
+        ipc::SideFilter::Floor => maze_core::SideMatch::Floor,
+        ipc::SideFilter::FloorWall => maze_core::SideMatch::FloorWall,
+    }
+}
+
+/// `side` is the tile's side on the shared edge (DR-0027), or `None` when
+/// the request has no single direction; then a side filter can't match, but
+/// `table_view` rejects that request before it gets here.
+fn matches(
+    filter: &ipc::TileFilter,
+    tile: &ipc::TileView,
+    side: Option<maze_core::SideKind>,
+) -> bool {
     (filter.kinds.is_empty() || filter.kinds.contains(&tile.kind))
         && (filter.tile_ids.is_empty() || filter.tile_ids.contains(&tile.id))
         && (filter.tags.is_empty() || filter.tags.iter().any(|t| tile.tags.contains(t)))
+        && (filter.sides.is_empty()
+            || side.is_some_and(|s| filter.sides.iter().any(|&f| side_match(f).matches(s))))
 }
 
 /// The slice of `items` the window covers, clamped so any start and count
@@ -67,9 +88,36 @@ fn finite(v: f64) -> f64 {
     if v.is_finite() { v } else { 0.0 }
 }
 
-pub fn table_view(loaded: &Loaded, request: &ipc::TableViewRequest) -> ipc::TableView {
+/// Fails with `bad_request` if a side filter is set and the request doesn't
+/// name exactly one direction (DR-0027): which side is "on the shared edge"
+/// depends on the direction.
+pub fn table_view(
+    loaded: &Loaded,
+    request: &ipc::TableViewRequest,
+) -> Result<ipc::TableView, ipc::ToolError> {
     let set = &loaded.tile_set;
     let table = &loaded.table;
+
+    // N, E, S, W order, each once, whatever order the request used.
+    let directions: Vec<maze_core::Direction> = maze_core::Direction::ALL
+        .into_iter()
+        .filter(|d| request.directions.is_empty() || request.directions.contains(&direction(*d)))
+        .collect();
+    let side_direction = match directions.as_slice() {
+        [d] => Some(*d),
+        _ => None,
+    };
+    let filters_sides =
+        !request.row_filter.sides.is_empty() || !request.column_filter.sides.is_empty();
+    if filters_sides && side_direction.is_none() {
+        return Err(ipc::ToolError {
+            kind: ipc::ToolErrorKind::BadRequest,
+            messages: vec![format!(
+                "Filtering by side needs exactly one direction, but the request covers {}.",
+                directions.len()
+            )],
+        });
+    }
 
     let tiles: Vec<ipc::TileView> = set
         .variants
@@ -88,23 +136,25 @@ pub fn table_view(loaded: &Loaded, request: &ipc::TableViewRequest) -> ipc::Tabl
         })
         .collect();
 
-    let filtered = |filter: &ipc::TileFilter| -> Vec<u32> {
+    // `edge` is which of a tile's sides is on the shared edge: the row's side
+    // facing the direction, the column's side facing back.
+    let filtered = |filter: &ipc::TileFilter, edge: Option<maze_core::Direction>| -> Vec<u32> {
         (0..tiles.len() as u32)
-            .filter(|&i| matches(filter, &tiles[i as usize]))
+            .filter(|&i| {
+                let side = edge.map(|d| set.variants[i as usize].sides[d.index()]);
+                matches(filter, &tiles[i as usize], side)
+            })
             .collect()
     };
-    let all_rows = filtered(&request.row_filter);
-    let all_columns = filtered(&request.column_filter);
+    let all_rows = filtered(&request.row_filter, side_direction);
+    let all_columns = filtered(
+        &request.column_filter,
+        side_direction.map(maze_core::Direction::opposite),
+    );
     let total_rows = all_rows.len() as u32;
     let total_columns = all_columns.len() as u32;
     let rows = window(all_rows, request.rows);
     let columns = window(all_columns, request.columns);
-
-    // N, E, S, W order, each once, whatever order the request used.
-    let directions: Vec<maze_core::Direction> = maze_core::Direction::ALL
-        .into_iter()
-        .filter(|d| request.directions.is_empty() || request.directions.contains(&direction(*d)))
-        .collect();
 
     let mut entries = Vec::with_capacity(directions.len() * rows.len() * columns.len());
     for &d in &directions {
@@ -140,7 +190,7 @@ pub fn table_view(loaded: &Loaded, request: &ipc::TableViewRequest) -> ipc::Tabl
         }
     }
 
-    ipc::TableView {
+    Ok(ipc::TableView {
         revision: loaded.revision,
         tile_set_path: loaded.tile_set_path.clone(),
         loaded_at: loaded.loaded_at.clone(),
@@ -165,13 +215,17 @@ pub fn table_view(loaded: &Loaded, request: &ipc::TableViewRequest) -> ipc::Tabl
             })
             .collect(),
         entries,
-    }
+    })
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ipc::{TableViewRequest, TileFilter, TileKind, Window};
+    use crate::ipc::{SideFilter, SideKind, TableViewRequest, TileFilter, TileKind, Window};
+
+    fn ok_view(loaded: &Loaded, request: &TableViewRequest) -> ipc::TableView {
+        table_view(loaded, request).expect("a valid request")
+    }
 
     const CORE: &str = include_str!("../../../../data/tile-sets/core.toml");
 
@@ -210,7 +264,7 @@ mod tests {
 
     #[test]
     fn everything_is_29_by_29_by_4() {
-        let view = table_view(&loaded(CORE), &TableViewRequest::everything());
+        let view = ok_view(&loaded(CORE), &TableViewRequest::everything());
         assert_eq!(view.tiles.len(), 29);
         assert_eq!((view.total_rows, view.total_columns), (29, 29));
         assert_eq!(view.directions.len(), 4);
@@ -221,7 +275,7 @@ mod tests {
     #[test]
     fn filtering_never_changes_a_probability() {
         let core = loaded(CORE);
-        let full = table_view(&core, &TableViewRequest::everything());
+        let full = ok_view(&core, &TableViewRequest::everything());
         let mut request = TableViewRequest::everything();
         request.row_filter = TileFilter {
             kinds: vec![TileKind::Corridor],
@@ -232,7 +286,7 @@ mod tests {
             ..Default::default()
         };
         request.directions = vec![ipc::Direction::West, ipc::Direction::North];
-        let part = table_view(&core, &request);
+        let part = ok_view(&core, &request);
         assert_eq!((part.total_rows, part.total_columns), (15, 12));
         assert_eq!(
             part.directions,
@@ -260,11 +314,11 @@ mod tests {
             tags: vec!["fallback".into()],
             sides: vec![],
         };
-        let view = table_view(&core, &request);
+        let view = ok_view(&core, &request);
         // Crossroads (1) and dead end (4).
         assert_eq!(view.total_rows, 5);
         request.row_filter.tile_ids = vec!["corridor_crossroads".into()];
-        assert_eq!(table_view(&core, &request).total_rows, 1);
+        assert_eq!(ok_view(&core, &request).total_rows, 1);
     }
 
     #[test]
@@ -279,7 +333,7 @@ mod tests {
             start: 100,
             count: u32::MAX,
         };
-        let view = table_view(&core, &request);
+        let view = ok_view(&core, &request);
         assert_eq!(view.rows, vec![27, 28]);
         assert!(view.columns.is_empty());
         assert_eq!(view.total_columns, 29);
@@ -288,12 +342,12 @@ mod tests {
             start: u32::MAX,
             count: u32::MAX,
         };
-        assert!(table_view(&core, &request).columns.is_empty());
+        assert!(ok_view(&core, &request).columns.is_empty());
     }
 
     #[test]
     fn a_zero_explains_its_clash() {
-        let view = table_view(&loaded(CORE), &TableViewRequest::everything());
+        let view = ok_view(&loaded(CORE), &TableViewRequest::everything());
         // A room wall (wall N) east of an E-W straight: passage meets floor_wall_n.
         let e = find(
             &view,
@@ -318,7 +372,7 @@ mod tests {
         let text = format!(
             "{CORE}\n[[exception]]\nname = \"Test\"\na = {{ tile = \"corridor_straight\", side = \"passage\" }}\nb = {{ tile = \"corridor_corner\", side = \"passage\" }}\nmultiplier = 0.5\n"
         );
-        let view = table_view(&loaded(&text), &TableViewRequest::everything());
+        let view = ok_view(&loaded(&text), &TableViewRequest::everything());
         let e = find(
             &view,
             ipc::Direction::East,
@@ -342,14 +396,241 @@ mod tests {
 
     #[test]
     fn same_data_gives_byte_identical_views() {
-        let a = serde_json::to_string(&table_view(&loaded(CORE), &TableViewRequest::everything()))
+        let a = serde_json::to_string(&ok_view(&loaded(CORE), &TableViewRequest::everything()))
             .unwrap();
-        let b = serde_json::to_string(&table_view(&loaded(CORE), &TableViewRequest::everything()))
+        let b = serde_json::to_string(&ok_view(&loaded(CORE), &TableViewRequest::everything()))
             .unwrap();
         assert_eq!(a, b);
         // serde_json writes NaN and infinity as null. Core sets noise, so
         // nothing in this view should be null.
         assert!(!a.contains("null"));
+    }
+
+    const SIDE_FILTERS: [SideFilter; 5] = [
+        SideFilter::Hedge,
+        SideFilter::Passage,
+        SideFilter::Door,
+        SideFilter::Floor,
+        SideFilter::FloorWall,
+    ];
+
+    /// DR-0027's meaning of each side filter, written out independently of
+    /// `side_match` so a slip there fails here.
+    fn means(f: SideFilter, s: SideKind) -> bool {
+        match f {
+            SideFilter::Hedge => s == SideKind::Hedge,
+            SideFilter::Passage => s == SideKind::Passage,
+            SideFilter::Door => s == SideKind::Door,
+            SideFilter::Floor => s == SideKind::Floor,
+            SideFilter::FloorWall => matches!(
+                s,
+                SideKind::FloorWallN
+                    | SideKind::FloorWallE
+                    | SideKind::FloorWallS
+                    | SideKind::FloorWallW
+            ),
+        }
+    }
+
+    fn sides_request(
+        d: ipc::Direction,
+        rows: &[SideFilter],
+        cols: &[SideFilter],
+    ) -> TableViewRequest {
+        let mut request = TableViewRequest::everything();
+        request.directions = vec![d];
+        request.row_filter.sides = rows.to_vec();
+        request.column_filter.sides = cols.to_vec();
+        request
+    }
+
+    fn index(view: &ipc::TableView, id: &str, k: u32) -> u32 {
+        view.tiles
+            .iter()
+            .position(|t| t.id == id && t.orientation == k)
+            .unwrap() as u32
+    }
+
+    /// Every side kind in every direction, rows and columns, checked against
+    /// the table's own `facing` (the sides that touch), so a filter that
+    /// looked at the wrong side of the column would fail.
+    #[test]
+    fn side_filters_match_the_sides_that_touch() {
+        let core = loaded(CORE);
+        let full = ok_view(&core, &TableViewRequest::everything());
+        for d in [
+            ipc::Direction::North,
+            ipc::Direction::East,
+            ipc::Direction::South,
+            ipc::Direction::West,
+        ] {
+            for f in SIDE_FILTERS {
+                let in_d = full.entries.iter().filter(|e| e.direction == d);
+                let mut rows: Vec<u32> = in_d
+                    .clone()
+                    .filter(|e| means(f, e.facing.row))
+                    .map(|e| e.row)
+                    .collect();
+                let mut columns: Vec<u32> = in_d
+                    .filter(|e| means(f, e.facing.column))
+                    .map(|e| e.column)
+                    .collect();
+                rows.sort();
+                rows.dedup();
+                columns.sort();
+                columns.dedup();
+                assert!(!rows.is_empty() && !columns.is_empty(), "{d:?} {f:?}");
+
+                let view = ok_view(&core, &sides_request(d, &[f], &[f]));
+                assert_eq!(view.rows, rows, "rows {d:?} {f:?}");
+                assert_eq!(view.columns, columns, "columns {d:?} {f:?}");
+                assert_eq!(view.total_rows as usize, rows.len());
+                assert_eq!(view.entries.len(), rows.len() * columns.len());
+            }
+        }
+    }
+
+    #[test]
+    fn floor_wall_matches_a_wall_at_any_end() {
+        let core = loaded(CORE);
+        // A west side's wall is at its N or S end, a north side's at its E
+        // or W end; wall ends turn with the tile, so both ends turn up, and
+        // `floor_wall` takes every one.
+        let ends_on = |d: ipc::Direction, side: usize| -> Vec<SideKind> {
+            let view = ok_view(&core, &sides_request(d, &[SideFilter::FloorWall], &[]));
+            let floor = ok_view(&core, &sides_request(d, &[SideFilter::Floor], &[]));
+            assert!(floor.rows.iter().all(|r| !view.rows.contains(r)));
+            let mut ends: Vec<SideKind> = view
+                .rows
+                .iter()
+                .map(|&r| view.tiles[r as usize].sides[side])
+                .collect();
+            ends.sort_by_key(|s| *s as u8);
+            ends.dedup();
+            ends
+        };
+        assert_eq!(
+            ends_on(ipc::Direction::West, 3),
+            vec![SideKind::FloorWallN, SideKind::FloorWallS]
+        );
+        assert_eq!(
+            ends_on(ipc::Direction::North, 0),
+            vec![SideKind::FloorWallE, SideKind::FloorWallW]
+        );
+    }
+
+    /// Yew's test (DR-0027): one tile checked both ways round. The corridor
+    /// corner (turn 0) has passage N and E, hedge S and W. To the east, as
+    /// a row it shows its east side (passage); as a column, its west side
+    /// facing back (hedge).
+    #[test]
+    fn row_uses_its_side_column_uses_the_side_facing_back() {
+        let core = loaded(CORE);
+        let east = ipc::Direction::East;
+        let full = ok_view(&core, &TableViewRequest::everything());
+        let corner = index(&full, "corridor_corner", 0);
+
+        let passage = ok_view(
+            &core,
+            &sides_request(east, &[SideFilter::Passage], &[SideFilter::Passage]),
+        );
+        assert!(passage.rows.contains(&corner));
+        assert!(!passage.columns.contains(&corner));
+
+        let hedge = ok_view(
+            &core,
+            &sides_request(east, &[SideFilter::Hedge], &[SideFilter::Hedge]),
+        );
+        assert!(!hedge.rows.contains(&corner));
+        assert!(hedge.columns.contains(&corner));
+
+        // The same pair from the entry's own facing sides.
+        let e = find(&full, east, "corridor_corner", 0, "corridor_corner", 0);
+        assert_eq!(
+            (e.facing.row, e.facing.column),
+            (SideKind::Passage, SideKind::Hedge)
+        );
+    }
+
+    #[test]
+    fn side_filters_or_within_and_across_fields() {
+        let core = loaded(CORE);
+        let mut request = sides_request(
+            ipc::Direction::North,
+            &[SideFilter::Door, SideFilter::Hedge],
+            &[],
+        );
+        request.row_filter.kinds = vec![TileKind::Room];
+        let view = ok_view(&core, &request);
+        assert!(!view.rows.is_empty());
+        for &r in &view.rows {
+            let t = &view.tiles[r as usize];
+            assert_eq!(t.kind, TileKind::Room);
+            assert!(matches!(t.sides[0], SideKind::Door | SideKind::Hedge));
+        }
+    }
+
+    #[test]
+    fn side_filter_needs_exactly_one_direction() {
+        let core = loaded(CORE);
+        // All four (empty), two, and none in the row filter but one in the
+        // column filter.
+        for (directions, rows, cols) in [
+            (vec![], vec![SideFilter::Door], vec![]),
+            (
+                vec![ipc::Direction::North, ipc::Direction::South],
+                vec![],
+                vec![SideFilter::Hedge],
+            ),
+        ] {
+            let mut request = TableViewRequest::everything();
+            request.directions = directions;
+            request.row_filter.sides = rows;
+            request.column_filter.sides = cols;
+            let err = table_view(&core, &request).unwrap_err();
+            assert_eq!(err.kind, ipc::ToolErrorKind::BadRequest);
+            assert_eq!(err.messages.len(), 1);
+        }
+        // The same direction twice is one direction.
+        let mut request = sides_request(ipc::Direction::East, &[SideFilter::Door], &[]);
+        request.directions.push(ipc::Direction::East);
+        assert!(table_view(&core, &request).is_ok());
+        // No side filter: any number of directions is fine, as before.
+        assert!(table_view(&core, &TableViewRequest::everything()).is_ok());
+    }
+
+    #[test]
+    fn no_match_is_an_empty_view_not_an_error() {
+        let core = loaded(CORE);
+        // No corridor has a door.
+        let mut request = sides_request(ipc::Direction::North, &[SideFilter::Door], &[]);
+        request.row_filter.kinds = vec![TileKind::Corridor];
+        let view = ok_view(&core, &request);
+        assert_eq!(view.total_rows, 0);
+        assert!(view.rows.is_empty());
+        assert!(view.entries.is_empty());
+        assert_eq!(view.total_columns, 29);
+        assert_eq!(view.tiles.len(), 29);
+    }
+
+    #[test]
+    fn request_without_sides_still_parses() {
+        let json = r#"{"rowFilter":{"kinds":["room"],"tileIds":[],"tags":[]},"columnFilter":{"tags":["junction"]},
+            "directions":["east"],"rows":{"start":0,"count":4294967295},"columns":{"start":0,"count":4294967295}}"#;
+        let request: TableViewRequest = serde_json::from_str(json).unwrap();
+        assert!(request.row_filter.sides.is_empty());
+        assert!(request.column_filter.sides.is_empty());
+        let json = r#"{"rowFilter":{"sides":["floor_wall","door"]},"columnFilter":{},
+            "directions":["east"],"rows":{"start":0,"count":1},"columns":{"start":0,"count":1}}"#;
+        let request: TableViewRequest = serde_json::from_str(json).unwrap();
+        assert_eq!(
+            request.row_filter.sides,
+            vec![SideFilter::FloorWall, SideFilter::Door]
+        );
+        assert!(
+            serde_json::from_str::<TableViewRequest>(&json.replace("floor_wall", "floor_wall_n"))
+                .is_err()
+        );
     }
 
     #[test]

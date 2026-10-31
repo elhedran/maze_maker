@@ -77,7 +77,7 @@ impl ToolState {
     /// loaded yet.
     pub fn table_view(&self, request: &TableViewRequest) -> Result<TableView, ToolError> {
         match &self.current {
-            Some(loaded) => Ok(view::table_view(loaded, request)),
+            Some(loaded) => view::table_view(loaded, request),
             None => Err(ToolError {
                 kind: ToolErrorKind::NotLoaded,
                 messages: if self.last_errors.is_empty() {

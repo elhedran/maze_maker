@@ -17,10 +17,12 @@ One file per decision ([DR-0001](/decisions/0001-record-every-decision.md)). Onl
 - [DR-0011 TypeScript and Vite for the Lit frontend](/decisions/0011-typescript-and-vite.md) - The Lit frontend is written in TypeScript and built with Vite.
 - [DR-0013 Table entries come from tile sides, as probabilities](/decisions/0013-table-entries-from-tile-sides.md) - The adjacency table's entries are worked out mainly from the tiles' sides, with probability 0 where sides don't pair up and slightly varied probabilities for what is allowed.
 - [DR-0016 Wren designs the tile set, with crossroads and dead ends as rare fallbacks](/decisions/0016-wren-designs-the-tile-set.md) - Wren designs the tile set from Ian's vocabulary, and crossroads and dead ends are in it at very low probability, to fix issues where nothing else fits.
+- [DR-0015 The core tile set](/decisions/0015-tile-set.md) - Ten tiles in three kinds (corridor, room, hedge), giving 29 (tile, orientation) pairs, built on five kinds of side that say which tiles may sit next to each other.
+- [DR-0017 Tile glyphs and colours in the tool](/decisions/0017-tile-glyphs-and-colours.md) - Each (tile, orientation) shows as one Unicode box-drawing or block character, with corridors in blue single lines, rooms in amber double-line walls on a floor tint, and hedge as texture.
 
 ## Proposed
 
-_None._
+- [DR-0014 Square grid with four neighbours](/decisions/0014-square-grid.md) - The maze is a square grid; each cell has four neighbours (north, east, south, west) and tiles turn in 90-degree steps. Waiting on Ian (Q-0009).
 
 ## Archived
 

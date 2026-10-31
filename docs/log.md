@@ -2,6 +2,13 @@
 
 ## 2026-10-31
 
+- **Decision** DR-0015 accepted (Wren, Marram): the core tile set, 10 tiles and 29 (tile, orientation) pairs on five kinds of side, folding in Ian's Q-0007 answers. A two-way door, per Ian's direction.
+- **Decision** DR-0017 accepted (Damson, Marram): tile glyphs and colours in the tool. A two-way door.
+- **Decision** DR-0014 proposed: square grid with four neighbours and 90-degree rotations. Yew judges it a one-way door, so it goes to Ian; Ash has reviewed it.
+- **Question** Q-0008 raised by Yew: which global properties a maze must have, and how they are enforced. Waiting on Wren and Yew.
+- **Question** Q-0009 raised: approve DR-0014. Waiting on Ian.
+- **Creation** `design/tile-set-preview.html` (outside the bundle): a self-contained preview of every glyph, hand-placed arrangements checked against the side rules, and join tests, built by Ash.
+
 - **Question** Q-0006 resolved: Ian expects about 30 rows and columns in the short term, and millions of cells eventually.
 - **Question** Q-0010 resolved: Marram decided it as a two-way door, after Ian's direction that the team makes reversible decisions. Editing goes into Phase 2 at 2.3.
 - **Update** Q-0007: point 10, the weight model, moves to the team. Yew decides a calculated base plus exceptions as a two-way door, and Marram sees it as one-way. It waits on one engineer.
@@ -23,6 +30,7 @@
 - **Question** Q-0006 raised: how big will the table get? Waiting on Ian; blocks 1.5, so not urgent.
 - **Creation** Roadmap drafted by Marram (`product-manager/1`), with input from Yew, Wren and Damson. Phase 1 is sliced into 1.0 to 1.5, and Phase 2 and the game are outlined. Draft, waiting on Ian's approval.
 - **Update** Ian's input recorded in the roadmap: the demo he most wants is the tool exploring the probability table, and he suggests Unicode glyphs for tile shape and colour for room vs hallway. These are suggestions for Damson and Wren, not decisions yet.
+
 
 - **Decision** DR-0001 to DR-0010 accepted: Ian approved them as written. Q-0001 resolved.
 - **Decision** DR-0011 accepted: the Lit frontend uses TypeScript and Vite. Q-0002 resolved.

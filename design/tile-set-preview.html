@@ -1,0 +1,870 @@
+<!doctype html>
+<html lang="en" class="theme-light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tile Set Preview</title>
+<!--
+  Maze Maker: tile set preview.
+  A throwaway design artefact for judging how the proposed tiles read. Not app code.
+  Tiles: Wren (game designer). Glyphs, colours and page layout: Damson (UX designer).
+  Self-contained: inline CSS and JS, no network, no web fonts.
+-->
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+:root { color-scheme: light dark; }
+
+/* Colour tokens. Tile colours are Damson's; the UI greys, red (problems) and magenta
+   (selection / focus) are not tile colours. */
+.theme-light {
+  color-scheme: light;
+  --bg: #FFFFFF; --fg: #1F2328; --muted: #5B6370; --line: #E3E5E8; --line-strong: #C8CCD2;
+  --corridor: #1D5FA6; --wall: #8A4100; --tint: #F2D0A6;
+  --hedge-bg: #EEF2EC; --hedge-fg: #6F8A6A; --frame: #C8CCD2;
+  --problem: #C62828; --select: #C2188B;
+}
+.theme-dark {
+  color-scheme: dark;
+  --bg: #15171C; --fg: #E6E8EB; --muted: #9AA3AE; --line: #262A31; --line-strong: #3A3F48;
+  --corridor: #7CB8F2; --wall: #F2A65A; --tint: #4A3420;
+  --hedge-bg: #1C241D; --hedge-fg: #5A785A; --frame: #3A3F48;
+  --problem: #FF6B6B; --select: #FF6FD0;
+}
+
+html, body { margin: 0; background: var(--bg); color: var(--fg); }
+body { font: 14px/1.45 system-ui, "Segoe UI", sans-serif; }
+code { font-family: var(--font); font-variant-ligatures: none; font-synthesis: none; }
+
+/* Top bar */
+.bar {
+  position: sticky; top: 0; z-index: 5;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px;
+  padding: 10px 16px; background: var(--bg); border-bottom: 1px solid var(--line);
+}
+.bar h1 { margin: 0; font-size: 16px; font-weight: 600; }
+.ctl { display: flex; align-items: center; gap: 8px; }
+.ctl .lbl { color: var(--muted); }
+.seg { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 6px; overflow: hidden; }
+.seg label { position: relative; cursor: pointer; }
+.seg input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.seg span { display: block; padding: 3px 10px; }
+.seg label + label span { border-left: 1px solid var(--line-strong); }
+.seg input:checked + span { background: var(--fg); color: var(--bg); }
+.seg input:focus-visible + span { outline: 2px solid var(--select); outline-offset: -2px; }
+select {
+  font: inherit; color: var(--fg); background: var(--bg);
+  border: 1px solid var(--line-strong); border-radius: 6px; padding: 2px 6px;
+}
+input[type=range] { accent-color: var(--fg); width: 140px; }
+.size-val { font-variant-numeric: tabular-nums; min-width: 3.5em; }
+.size-warn { color: var(--problem); }
+
+.intro { padding: 12px 16px 0; max-width: 100ch; }
+.intro p { margin: 0 0 4px; }
+.status { color: var(--muted); }
+.status .bad-text { color: var(--problem); }
+
+/* Panes: one per theme ("Both" shows two side by side). */
+.panes { display: flex; align-items: flex-start; }
+.pane { flex: 1 1 0; min-width: 0; padding: 4px 16px 40px; background: var(--bg); color: var(--fg); }
+.panes.both .pane + .pane { border-left: 1px solid var(--line); }
+@media (max-width: 1000px) {
+  .panes.both { flex-direction: column; }
+  .panes.both .pane + .pane { border-left: 0; border-top: 1px solid var(--line); }
+}
+.pane-name { margin: 12px 0 0; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+section { margin-top: 26px; }
+h2 { font-size: 18px; margin: 0 0 4px; }
+h3 { font-size: 15px; margin: 18px 0 4px; }
+.cap { margin: 0 0 10px; color: var(--muted); max-width: 78ch; }
+.scroll { overflow-x: auto; padding: 4px; margin: -4px; }
+.row-of { display: flex; flex-wrap: wrap; gap: 16px 40px; align-items: flex-start; }
+.sub { color: var(--muted); font-size: 12px; margin: 0 0 4px; }
+
+/* Glyph cells. Every cell is a fixed box 1ch wide and --lh tall; --lh is measured from the
+   font so that │ and ║ reach both edges of the box (see metrics() in the script). */
+.map, .gbox, .hdr-grid {
+  font-family: var(--font); font-size: var(--fs);
+  font-weight: 400; font-style: normal;
+  font-variant-ligatures: none; font-synthesis: none;
+  letter-spacing: 0; word-spacing: 0;
+}
+.map { display: grid; grid-auto-rows: var(--lh); width: max-content; }
+.gbox { display: inline-block; vertical-align: middle; }
+.g {
+  box-sizing: content-box; display: block;
+  width: 1ch; height: var(--lh); line-height: var(--lh);
+  text-align: center; white-space: pre; overflow: visible;
+  background-color: var(--bg); color: var(--corridor);
+}
+.g.k-room { color: var(--wall); }
+.g.k-hedge { color: var(--hedge-fg); background-color: var(--hedge-bg); }
+/* Floor tint: a solid block on the floor side, split at the measured centre of the
+   wall glyph (--mid down, --midx across) so the tint meets the double line. */
+.g[data-tint] { background-image: linear-gradient(var(--tint), var(--tint)); background-repeat: no-repeat; }
+.g[data-tint="full"] { background-size: 100% 100%; }
+.g[data-tint="lower"] { background-size: 100% calc(100% - var(--mid)); background-position: left bottom; }
+.g[data-tint="upper"] { background-size: 100% var(--mid); background-position: left top; }
+.g[data-tint="left"] { background-size: var(--midx) 100%; background-position: left top; }
+.g[data-tint="right"] { background-size: calc(100% - var(--midx)) 100%; background-position: right top; }
+.g[data-tint="lower-left"] { background-size: var(--midx) calc(100% - var(--mid)); background-position: left bottom; }
+.g[data-tint="lower-right"] { background-size: calc(100% - var(--midx)) calc(100% - var(--mid)); background-position: right bottom; }
+.g[data-tint="upper-left"] { background-size: var(--midx) var(--mid); background-position: left top; }
+.g[data-tint="upper-right"] { background-size: calc(100% - var(--midx)) var(--mid); background-position: right top; }
+.tile2 { display: flex; }
+.hdr { border: 1px solid var(--frame); }
+.hdr.fallback { border-style: dashed; }
+[data-label] { cursor: default; }
+[data-label]:focus { outline: none; }
+[data-label]:focus-visible { outline: 2px solid var(--select); outline-offset: 1px; position: relative; z-index: 2; }
+.g.bad, .tile2.bad .g { box-shadow: inset 0 0 0 2px var(--problem); }
+
+/* Glyph sheet */
+.sheet { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 8px; }
+.card { border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; }
+.card .glyphs { display: flex; align-items: center; gap: 16px; margin-bottom: 6px; min-height: 64px; }
+.card .name { font-weight: 600; }
+.card .meta { color: var(--muted); font-size: 12px; }
+.card .meta code { font-size: 12px; }
+
+/* Header strip: laid out as a table's column headers (across) and row headers (down). */
+.hdr-grid { display: grid; gap: 3px; width: max-content; }
+.contents { display: contents; }
+
+/* Validation */
+.valid { margin: 8px 0 0; color: var(--muted); }
+.invalid { margin: 8px 0 0; color: var(--problem); }
+.invalid ul { margin: 4px 0 0; padding-left: 20px; }
+
+/* Join test */
+.join { display: grid; grid-template-columns: repeat(6, max-content); gap: 16px 28px; align-items: start; }
+.join-head { color: var(--muted); font-size: 12px; }
+.join-lbl { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.join-lbl b { color: var(--fg); font-weight: 600; font-size: 14px; }
+
+#tip {
+  position: fixed; z-index: 20; pointer-events: none;
+  padding: 4px 8px; border-radius: 4px; font-size: 13px;
+  background: var(--fg); color: var(--bg); white-space: nowrap;
+}
+#tip[hidden] { display: none; }
+</style>
+</head>
+<body>
+<!-- Colour-vision simulation (Machado, Oliveira and Fernandes 2009, severity 1.0), applied in
+     linear RGB. Greyscale uses Rec. 709 luminance. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="f-greyscale" color-interpolation-filters="linearRGB">
+      <feColorMatrix type="matrix" values="0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0 0 0 1 0"/>
+    </filter>
+    <filter id="f-protan" color-interpolation-filters="linearRGB">
+      <feColorMatrix type="matrix" values="0.152286 1.052583 -0.204868 0 0  0.114503 0.786281 0.099216 0 0  -0.003882 -0.048116 1.051998 0 0  0 0 0 1 0"/>
+    </filter>
+    <filter id="f-deutan" color-interpolation-filters="linearRGB">
+      <feColorMatrix type="matrix" values="0.367322 0.860646 -0.227968 0 0  0.280085 0.672501 0.047413 0 0  -0.011820 0.042940 0.968881 0 0  0 0 0 1 0"/>
+    </filter>
+    <filter id="f-tritan" color-interpolation-filters="linearRGB">
+      <feColorMatrix type="matrix" values="1.255528 -0.076749 -0.178779 0 0  -0.078411 0.930809 0.147602 0 0  0.004733 0.691367 0.303900 0 0  0 0 0 1 0"/>
+    </filter>
+  </defs>
+</svg>
+
+<header class="bar">
+  <h1>Tile set preview</h1>
+  <div class="ctl" role="radiogroup" aria-label="Theme">
+    <span class="lbl">Theme</span>
+    <span class="seg">
+      <label><input type="radio" name="theme" value="light"><span>Light</span></label>
+      <label><input type="radio" name="theme" value="dark"><span>Dark</span></label>
+      <label><input type="radio" name="theme" value="both"><span>Both</span></label>
+    </span>
+  </div>
+  <div class="ctl">
+    <label class="lbl" for="size">Map size</label>
+    <input id="size" type="range" min="14" max="32" step="1" value="16">
+    <span class="size-val" id="size-val">16px</span>
+  </div>
+  <div class="ctl">
+    <label class="lbl" for="view">View as</label>
+    <select id="view">
+      <option value="normal">Normal</option>
+      <option value="greyscale">Greyscale</option>
+      <option value="deutan">Deutan</option>
+      <option value="protan">Protan</option>
+      <option value="tritan">Tritan</option>
+    </select>
+  </div>
+  <div class="ctl" role="radiogroup" aria-label="Font">
+    <span class="lbl">Font</span>
+    <span class="seg">
+      <label><input type="radio" name="font" value="cascadia" checked><span>Cascadia Mono</span></label>
+      <label><input type="radio" name="font" value="consolas"><span>Consolas</span></label>
+    </span>
+  </div>
+</header>
+
+<div class="intro">
+  <p>The proposed tile set (Wren), drawn with Damson's glyphs and colours: 10 tiles, 29 (tile, orientation) pairs. Hover over or focus any cell to see its name. In a map, arrow keys move between cells.</p>
+  <p class="status" id="status"></p>
+</div>
+<main class="panes" id="panes"></main>
+<div id="tip" role="tooltip" hidden></div>
+
+<script>
+(function () {
+'use strict';
+
+// ===================== Tile data =====================
+// Edge kinds: H hedge (closed), P passage, D door, F room floor open across the side,
+// wN/wE/wS/wW room floor with the room's wall reaching this side at the named end
+// (written F·wN etc.). Sides are listed N, E, S, W.
+const SIDES = ['N', 'E', 'S', 'W'];
+
+// A quarter turn clockwise moves each side N→E→S→W→N, so the new N side is the old W side.
+// The end letter of F·wX turns the same way.
+function rotateKind(k) {
+  return k[0] === 'w' ? 'w' + SIDES[(SIDES.indexOf(k[1]) + 1) % 4] : k;
+}
+function rotateEdges(e) {
+  return [e[3], e[0], e[1], e[2]].map(rotateKind);
+}
+function kindLabel(k) {
+  return k[0] === 'w' ? 'F·' + k : k;
+}
+
+// Base tiles, in display order (fallback tiles last within their kind). Each orientation
+// entry is [glyph, orientation name, floor tint] for 0, 1, 2, 3 quarter turns clockwise;
+// the edges for each turn are generated by rotateEdges(), not written out.
+const TILES = [
+  { kind: 'Corridor', name: 'Corridor straight', edges: 'P H P H', tags: [], orients: [
+    ['│', 'open N and S'], ['─', 'open E and W']] },
+  { kind: 'Corridor', name: 'Corridor corner', edges: 'P P H H', tags: [], orients: [
+    ['└', 'open N and E'], ['┌', 'open E and S'], ['┐', 'open S and W'], ['┘', 'open W and N']] },
+  { kind: 'Corridor', name: 'Corridor T intersection', edges: 'P P H P', tags: ['junction'], orients: [
+    ['┴', 'closed S'], ['├', 'closed W'], ['┬', 'closed N'], ['┤', 'closed E']] },
+  { kind: 'Corridor', name: 'Corridor crossroads', edges: 'P P P P', tags: ['junction', 'fallback'], orients: [
+    ['┼', 'open on all sides']] },
+  { kind: 'Corridor', name: 'Corridor dead end', edges: 'P H H H', tags: ['fallback'], orients: [
+    ['╵', 'open N'], ['╶', 'open E'], ['╷', 'open S'], ['╴', 'open W']] },
+  { kind: 'Room', name: 'Open room', edges: 'F F F F', tags: [], orients: [
+    ['·', '', 'full']] },
+  { kind: 'Room', name: 'Room wall', edges: 'H wN F wN', tags: ['room edge'], orients: [
+    ['═', 'wall along N', 'lower'], ['║', 'wall along E', 'left'],
+    ['═', 'wall along S', 'upper'], ['║', 'wall along W', 'right']] },
+  { kind: 'Room', name: 'Room corner', edges: 'H H wE wN', tags: ['room edge'], orients: [
+    ['╗', 'NE', 'lower-left'], ['╝', 'SE', 'upper-left'],
+    ['╚', 'SW', 'upper-right'], ['╔', 'NW', 'lower-right']] },
+  { kind: 'Room', name: 'Room doorway', edges: 'D wN F wN', tags: ['room edge'], orients: [
+    ['╧', 'door in N wall', 'lower'], ['╟', 'door in E wall', 'left'],
+    ['╤', 'door in S wall', 'upper'], ['╢', 'door in W wall', 'right']] },
+  { kind: 'Hedge', name: 'Hedge', edges: 'H H H H', tags: [], orients: [
+    ['░', '']] },
+];
+
+// One entry per (tile, orientation).
+const ORIENTS = [];
+for (const tile of TILES) {
+  let edges = tile.edges.split(' ');
+  tile.entries = tile.orients.map(([glyph, dir, tint], r) => {
+    const o = {
+      tile, r, glyph, edges, tint: tint || null,
+      label: dir ? `${tile.name}, ${dir}` : tile.name,
+      fallback: tile.tags.includes('fallback'),
+    };
+    edges = rotateEdges(edges);
+    return o;
+  });
+  ORIENTS.push(...tile.entries);
+}
+const WALL = TILES.find(t => t.name === 'Room wall');
+const DEAD_END = TILES.find(t => t.name === 'Corridor dead end');
+
+// Lines each glyph draws out from its centre: [single-line sides, double-line sides].
+// Used only to check the tables above against each other.
+const ARMS = {
+  '│': ['NS', ''], '─': ['EW', ''], '└': ['NE', ''], '┌': ['ES', ''], '┐': ['SW', ''], '┘': ['NW', ''],
+  '┴': ['NEW', ''], '├': ['NES', ''], '┬': ['ESW', ''], '┤': ['NSW', ''], '┼': ['NESW', ''],
+  '╵': ['N', ''], '╶': ['E', ''], '╷': ['S', ''], '╴': ['W', ''],
+  '·': ['', ''], '░': ['', ''],
+  '═': ['', 'EW'], '║': ['', 'NS'], '╗': ['', 'SW'], '╝': ['', 'NW'], '╚': ['', 'NE'], '╔': ['', 'ES'],
+  '╧': ['N', 'EW'], '╟': ['E', 'NS'], '╤': ['S', 'EW'], '╢': ['W', 'NS'],
+};
+
+// The drawing rule says a pair fits when the drawing carries across the shared edge. So a
+// glyph's single lines must go exactly to its P and D sides, and its double lines exactly
+// to the sides its wall reaches (F·wX). This catches a glyph assigned to the wrong turn.
+function checkTileData() {
+  const problems = [];
+  if (ORIENTS.length !== 29) problems.push(`Expected 29 (tile, orientation) pairs, found ${ORIENTS.length}.`);
+  for (const o of ORIENTS) {
+    const single = SIDES.filter((s, i) => o.edges[i] === 'P' || o.edges[i] === 'D').join('');
+    const double = SIDES.filter((s, i) => o.edges[i][0] === 'w').join('');
+    const arms = ARMS[o.glyph];
+    if (!arms) { problems.push(`${o.label}: no line data for ${o.glyph}.`); continue; }
+    if (arms[0] !== single || arms[1] !== double) {
+      problems.push(`${o.label}: ${o.glyph} draws single lines to ${arms[0] || 'no side'} and double lines to ` +
+        `${arms[1] || 'no side'}, but its edges ${edgesText(o.edges)} need ${single || 'none'} and ${double || 'none'}.`);
+    }
+  }
+  return problems;
+}
+
+function edgesText(edges) {
+  return edges.map((k, i) => `${SIDES[i]} ${kindLabel(k)}`).join(', ');
+}
+
+// ===================== Matching and validation =====================
+// H–H, P–P, P–D, D–P, D–D, F–F, and F·wX–F·wX with the same X. Nothing else.
+function compatible(a, b) {
+  const open = k => k === 'P' || k === 'D';
+  return (open(a) && open(b)) || a === b;
+}
+
+const BY_GLYPH = new Map();
+for (const o of ORIENTS) {
+  if (!BY_GLYPH.has(o.glyph)) BY_GLYPH.set(o.glyph, []);
+  BY_GLYPH.get(o.glyph).push(o);
+}
+
+// ═ is a wall along N or along S, and ║ a wall along E or along W. A run of them takes its
+// side from the corner or doorway that ends it: ╔ ╗ ╧ end a north wall and ╚ ╝ ╤ a south
+// wall; ╔ ╚ ╢ end a west wall and ╗ ╝ ╟ an east wall. Look left (up) first, then right
+// (down). The validator still checks the result, so a badly drawn run shows up as a problem.
+const WALL_RUNS = {
+  '═': { dx: 1, dy: 0, ends: { '╔': 0, '╗': 0, '╧': 0, '╚': 2, '╝': 2, '╤': 2 } },
+  '║': { dx: 0, dy: 1, ends: { '╔': 3, '╚': 3, '╢': 3, '╗': 1, '╝': 1, '╟': 1 } },
+};
+function resolveWall(glyphs, x, y) {
+  const g = glyphs[y][x];
+  const { dx, dy, ends } = WALL_RUNS[g];
+  for (const dir of [-1, 1]) {
+    let i = x, j = y;
+    do { i += dx * dir; j += dy * dir; } while (glyphs[j] && glyphs[j][i] === g);
+    const r = ends[glyphs[j] && glyphs[j][i]];
+    if (r !== undefined) return WALL.entries[r];
+  }
+  return null;
+}
+
+function at(x, y, glyphs) {
+  return `row ${y + 1}, col ${x + 1} (${glyphs[y][x]})`;
+}
+
+// Turn a character grid into (tile, orientation) entries. `extra` maps further glyphs
+// (the heavy stubs) to entries.
+function parseGrid(rows, extra) {
+  const glyphs = rows.map(r => Array.from(r));
+  const cols = Math.max(...glyphs.map(r => r.length));
+  const problems = [];
+  glyphs.forEach((r, y) => {
+    if (r.length !== cols) problems.push({ cells: [], text: `Row ${y + 1} has ${r.length} cells, not ${cols}.` });
+    while (r.length < cols) r.push(' ');
+  });
+  const cells = glyphs.map((r, y) => r.map((g, x) => {
+    const options = (extra && extra.get(g)) || BY_GLYPH.get(g);
+    if (!options) {
+      problems.push({ cells: [[x, y]], text: `${at(x, y, glyphs)}: not a tile glyph.` });
+      return null;
+    }
+    if (options.length === 1) return options[0];
+    const o = resolveWall(glyphs, x, y);
+    if (!o) problems.push({ cells: [[x, y]], text: `${at(x, y, glyphs)}: no corner or doorway ends this wall, so its side is unknown.` });
+    return o;
+  }));
+  return { glyphs, cols, cells, problems };
+}
+
+// Check every shared edge once (each cell against its east and south neighbours). The outer
+// border is unconstrained.
+function validate(parsed) {
+  const { cells, glyphs } = parsed;
+  const problems = [];
+  let checked = 0;
+  cells.forEach((row, y) => row.forEach((a, x) => {
+    if (!a) return;
+    for (const [dx, dy, side] of [[1, 0, 1], [0, 1, 2]]) {
+      const b = cells[y + dy] && cells[y + dy][x + dx];
+      if (!b) continue; // outer border, or a cell that couldn't be read (already reported)
+      checked++;
+      const facing = (side + 2) % 4;
+      const ka = a.edges[side], kb = b.edges[facing];
+      if (!compatible(ka, kb)) {
+        problems.push({
+          cells: [[x, y], [x + dx, y + dy]],
+          text: `${at(x, y, glyphs)} ${SIDES[side]} side ${kindLabel(ka)} meets ` +
+                `${at(x + dx, y + dy, glyphs)} ${SIDES[facing]} side ${kindLabel(kb)}.`,
+        });
+      }
+    }
+  }));
+  return { checked, problems: parsed.problems.concat(problems) };
+}
+
+// ===================== Arrangements =====================
+const ARRANGEMENTS = [
+  {
+    title: 'Room with two doors',
+    grid: [
+      '░░░░░░░░░░░░',
+      '░┌──┬──╴░░░░',
+      '░│░░│░░░░░░░',
+      '░│╔═╧═╗░░░░░',
+      '░╵║···╟──┐░░',
+      '░░║···║░░│░░',
+      '░░╚═══╝░░╵░░',
+    ],
+    caption: 'Look at whether the doors `╧` and `╟` read as gaps in the double wall, whether the tint ' +
+      'marks the floor clearly, and whether the stubs `╵` and `╴` read as ends rather than missing pieces.',
+  },
+  {
+    title: 'Corridor knot',
+    grid: [
+      '┌──┬─╴░╶──┐░',
+      '│░░│░░░░░╷│░',
+      '├──┼──┐░░│├╴',
+      '│░╶┤░░└──┴┘░',
+      '└─┬┘░╷░┌──┐░',
+      '░░└──┴─┘░░╵░',
+    ],
+    caption: 'Every corridor glyph at least once, including all four dead ends. Top row: `─╴░╶─` is two ' +
+      'dead ends facing each other across a hedge, and must read as not connected; so must `╷` under `─` ' +
+      '(column 10). Crossroads and dead ends are rare fallbacks in play; they are crowded here to test them.',
+  },
+  {
+    title: 'Rooms meeting rooms',
+    grid: [
+      '┌───────┬──┐',
+      '│╔═══╗╔═╧═╗│',
+      '│║···║║···╟┤',
+      '│╚═╤═╝╚═══╝│',
+      '│╔═╧═╗░░░░░│',
+      '├╢···╟╴░░░░│',
+      '│╚═══╝░░░░░│',
+      '└──────────┘',
+    ],
+    caption: 'Room A (top left) sits on room B, door to door: `╤` over `╧`. Room C sits against A, wall to ' +
+      'wall: `║║`. Doors open onto T junctions (`┬`, `┤`, `├`) and one dead end (`╟╴`). The corridor runs along ' +
+      'the rooms’ closed sides, so `│` sits beside `║` and `─` beside `═`. Walls along N, E, S and W and doors ' +
+      'in N, E, S and W walls all appear.',
+  },
+];
+
+// Arrangement 4 draws each cell as two characters: the glyph, then a filler that carries the
+// cell's east side. The filler is tinted where the cell's floor reaches its east side: all of
+// it for open floor (F), the lower or upper half under a wall running east (F·wN, F·wS). For
+// wall N/S cells that is the same tint as the glyph; for walls along E/W and corners, copying
+// the glyph's half or quarter tint would put floor outside the wall or leave a gap in it.
+function filler(o) {
+  const e = o.edges[1];
+  if (e === 'P' || e === 'D') return { glyph: '─', tint: null };
+  if (e === 'wN') return { glyph: '═', tint: 'lower' };
+  if (e === 'wS') return { glyph: '═', tint: 'upper' };
+  return { glyph: ' ', tint: e === 'F' ? 'full' : null };
+}
+
+// Heavy dead-end stubs: an alternative Damson wants compared with the light ones. Not tiles.
+const HEAVY = { '╵': '╹', '╶': '╺', '╷': '╻', '╴': '╸' };
+const HEAVY_ENTRIES = new Map(DEAD_END.entries.map(o => [HEAVY[o.glyph], [{
+  ...o, glyph: HEAVY[o.glyph], label: `${o.label} (heavy alternative)`,
+}]]));
+
+globalThis.TilePreview = {
+  SIDES, TILES, ORIENTS, ARRANGEMENTS, HEAVY, HEAVY_ENTRIES,
+  rotateEdges, compatible, parseGrid, validate, checkTileData, filler, edgesText,
+};
+if (typeof document === 'undefined') return;
+
+// ===================== Page =====================
+const FONTS = {
+  cascadia: { name: 'Cascadia Mono', stack: '"Cascadia Mono", Consolas, monospace' },
+  consolas: { name: 'Consolas', stack: 'Consolas, monospace' },
+};
+const darkQuery = matchMedia('(prefers-color-scheme: dark)');
+const state = {
+  theme: darkQuery.matches ? 'dark' : 'light',
+  themeChosen: false,
+  size: 16,
+  view: 'normal',
+  font: 'cascadia',
+};
+
+function h(tag, attrs, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k === 'class') el.className = v;
+    else el.setAttribute(k, v === true ? '' : String(v));
+  }
+  el.append(...kids.flat(Infinity).filter(k => k != null && k !== false));
+  return el;
+}
+// Text with `backticked` glyphs set in the map font.
+function richText(tag, cls, text) {
+  return h(tag, { class: cls }, text.split('`').map((part, i) => (i % 2 ? h('code', {}, part) : part)));
+}
+function codePoint(g) {
+  return 'U+' + g.codePointAt(0).toString(16).toUpperCase().padStart(4, '0');
+}
+
+// ---------- Cell metrics ----------
+// Row height: rows join only if │ and ║ reach both the top and the bottom of the cell. The
+// browser centres the font's content area (ascent A + descent D) in the line box, so with a
+// line box L the baseline sits at (L - A - D)/2 + A. Solving "ink top <= 0" and
+// "ink bottom >= L" gives the largest L that still joins. Take whole pixels so rows sit on
+// pixel boundaries, less a small overlap so rounding can't open a hairline gap.
+const JOIN_OVERLAP = 0.5;
+const metricCache = new Map();
+let measureCtx = null;
+function metrics(px) {
+  const key = state.font + '|' + px;
+  if (metricCache.has(key)) return metricCache.get(key);
+  measureCtx = measureCtx || document.createElement('canvas').getContext('2d');
+  measureCtx.font = `${px}px ${FONTS[state.font].stack}`;
+  const t = g => measureCtx.measureText(g);
+  const ref = t('│');
+  const A = ref.fontBoundingBoxAscent, D = ref.fontBoundingBoxDescent;
+  let limit = Infinity;
+  for (const g of ['│', '║']) {
+    const m = t(g);
+    limit = Math.min(limit, 2 * m.actualBoundingBoxAscent - A + D, A - D + 2 * m.actualBoundingBoxDescent);
+  }
+  let lh = Math.floor(limit - JOIN_OVERLAP);
+  if (!(lh >= px * 0.8 && lh <= px * 2)) lh = Math.round(px * 1.15); // measuring failed
+  const baseline = (lh - A - D) / 2 + A;
+  const eq = t('═'), bars = t('║');
+  const m = {
+    px, lh, natural: A + D, width: t('0').width,
+    // Centre of the double lines, from the cell's top and left edges.
+    mid: baseline + (eq.actualBoundingBoxDescent - eq.actualBoundingBoxAscent) / 2,
+    midx: (bars.actualBoundingBoxRight - bars.actualBoundingBoxLeft) / 2,
+  };
+  metricCache.set(key, m);
+  return m;
+}
+function setVars(el, m) {
+  el.style.setProperty('--fs', m.px + 'px');
+  el.style.setProperty('--lh', m.lh + 'px');
+  el.style.setProperty('--mid', m.mid.toFixed(2) + 'px');
+  el.style.setProperty('--midx', m.midx.toFixed(2) + 'px');
+  return el;
+}
+
+// ---------- Cells ----------
+function charBox(glyph, kind, tint, extra) {
+  return h('span', { class: `g k-${kind}${extra ? ' ' + extra : ''}`, 'data-tint': tint }, glyph);
+}
+function labelled(el, label) {
+  el.setAttribute('role', 'img');
+  el.setAttribute('aria-label', label);
+  el.dataset.label = label;
+  el.tabIndex = -1;
+  return el;
+}
+function tileEl(o, opts) {
+  const { wide = false, header = false } = opts || {};
+  const kind = o.tile.kind.toLowerCase();
+  if (!wide) {
+    const extra = header ? 'hdr' + (o.fallback ? ' fallback' : '') : '';
+    return labelled(charBox(o.glyph, kind, o.tint, extra), o.label);
+  }
+  const f = filler(o);
+  return labelled(h('span', { class: 'tile2' }, charBox(o.glyph, kind, o.tint), charBox(f.glyph, kind, f.tint)), o.label);
+}
+function rawEl(glyph) {
+  const isDouble = ARMS[glyph] && ARMS[glyph][1];
+  return labelled(charBox(glyph, isDouble ? 'room' : 'corridor', null), `Join test: ${glyph} ${codePoint(glyph)}`);
+}
+
+// One tab stop per group; arrow keys move within it (by rows when the group is a grid).
+function makeRoving(container, cols) {
+  container.addEventListener('keydown', e => {
+    const items = [...container.querySelectorAll('[data-label]')];
+    const i = items.indexOf(document.activeElement);
+    if (i < 0) return;
+    const step = {
+      ArrowRight: 1, ArrowLeft: -1, ArrowDown: cols || 1, ArrowUp: -(cols || 1),
+      Home: -i, End: items.length - 1 - i,
+    }[e.key];
+    if (step === undefined) return;
+    const j = i + step;
+    e.preventDefault();
+    if (j < 0 || j >= items.length) return;
+    items[i].tabIndex = -1;
+    items[j].tabIndex = 0;
+    items[j].focus();
+  });
+  const first = container.querySelector('[data-label]');
+  if (first) first.tabIndex = 0;
+  return container;
+}
+
+function mapEl(parsed, px, opts) {
+  const { wide = false, label, roving = true, problems = [] } = opts || {};
+  const el = setVars(h('div', { class: 'map', role: 'group', 'aria-label': label }), metrics(px));
+  el.style.gridTemplateColumns = `repeat(${parsed.cols}, ${wide ? 2 : 1}ch)`;
+  const bad = new Set(problems.flatMap(p => p.cells).map(([x, y]) => x + ',' + y));
+  parsed.cells.forEach((row, y) => row.forEach((o, x) => {
+    const cell = o ? tileEl(o, { wide }) : rawEl(parsed.glyphs[y][x]);
+    if (bad.has(x + ',' + y)) cell.classList.add('bad');
+    el.append(cell);
+  }));
+  return roving ? makeRoving(el, parsed.cols) : el;
+}
+function rawMapEl(rows, px, label) {
+  const el = setVars(h('div', { class: 'map', role: 'group', 'aria-label': label }), metrics(px));
+  el.style.gridTemplateColumns = `repeat(${Array.from(rows[0]).length}, 1ch)`;
+  for (const r of rows) for (const g of r) el.append(rawEl(g));
+  return el;
+}
+function validationEl(result) {
+  if (!result.problems.length) {
+    return h('p', { class: 'valid' }, `Valid: all ${result.checked} shared edges match.`);
+  }
+  const n = result.problems.length;
+  return h('div', { class: 'invalid' },
+    h('strong', {}, `${n} problem${n === 1 ? '' : 's'}:`),
+    h('ul', {}, result.problems.map(p => h('li', {}, p.text))));
+}
+
+// ---------- Sections ----------
+function sheetSection() {
+  const card = o => {
+    const big = setVars(h('span', { class: 'gbox' }, tileEl(o)), metrics(48));
+    const hdr = setVars(h('span', { class: 'gbox' }, tileEl(o, { header: true })), metrics(20));
+    const dir = o.label.slice(o.tile.name.length + 2);
+    return h('div', { class: 'card' },
+      h('div', { class: 'glyphs' }, big, hdr),
+      h('div', { class: 'name' }, o.tile.name),
+      h('div', {}, dir || ' '),
+      h('div', { class: 'meta' }, h('code', {}, o.glyph), ' ', codePoint(o.glyph),
+        o.tile.tags.length ? ' · ' + o.tile.tags.join(', ') : ''),
+      h('div', { class: 'meta' }, edgesText(o.edges)));
+  };
+  const groups = ['Corridor', 'Room', 'Hedge'].map(kind => {
+    const list = ORIENTS.filter(o => o.tile.kind === kind);
+    return [h('h3', {}, `${kind} (${list.length})`), h('div', { class: 'sheet' }, list.map(card))];
+  });
+  const heavy = [...HEAVY_ENTRIES.values()].map(([o]) => card(o));
+  const knot = ARRANGEMENTS[1].grid;
+  const knotHeavy = knot.map(r => r.replace(/[╵╶╷╴]/g, c => HEAVY[c]));
+  const px = state.size;
+  return makeRoving(h('section', {},
+    h('h2', {}, 'Glyph sheet'),
+    h('p', { class: 'cap' }, 'One card per (tile, orientation): the glyph at 48px, the same glyph at header size (20px) ' +
+      'in a framed cell, then name, orientation, code point, tags and edges. Fallback tiles have a dashed frame and come last within their kind.'),
+    groups,
+    h('h3', {}, 'Alternative: heavy dead-end stubs (not in the set)'),
+    richText('p', 'cap', 'Heavy stubs `╹ ╺ ╻ ╸` instead of light `╵ ╶ ╷ ╴`, for comparison. Below, the corridor knot drawn both ways at map size.'),
+    h('div', { class: 'sheet' }, heavy),
+    h('div', { class: 'row-of', style: 'margin-top:12px' },
+      h('div', {}, h('p', { class: 'sub' }, 'Light stubs (proposed)'),
+        mapEl(parseGrid(knot), px, { label: 'Corridor knot, light stubs', roving: false })),
+      h('div', {}, h('p', { class: 'sub' }, 'Heavy stubs (alternative)'),
+        mapEl(parseGrid(knotHeavy, HEAVY_ENTRIES), px, { label: 'Corridor knot, heavy stubs', roving: false })))));
+}
+
+function headerSection() {
+  const px = Math.max(20, state.size);
+  const grid = setVars(h('div', { class: 'hdr-grid' }), metrics(px));
+  const across = h('div', { class: 'contents', role: 'group', 'aria-label': 'All 29 as column headers' });
+  const down = h('div', { class: 'contents', role: 'group', 'aria-label': 'All 29 as row headers' });
+  ORIENTS.forEach((o, i) => {
+    const a = tileEl(o, { header: true });
+    const d = tileEl(o, { header: true });
+    a.style.gridRow = '1'; a.style.gridColumn = String(i + 2);
+    d.style.gridColumn = '1'; d.style.gridRow = String(i + 2);
+    if (i > 0 && o.tile.kind !== ORIENTS[i - 1].tile.kind) { a.style.marginLeft = '8px'; d.style.marginTop = '8px'; }
+    across.append(a);
+    down.append(d);
+  });
+  grid.append(makeRoving(across), makeRoving(down));
+  return h('section', {},
+    h('h2', {}, 'Header strip'),
+    h('p', { class: 'cap' }, `All 29 the way they would sit as table headers: across the top as column headers, and down ` +
+      `the side as row headers. Header size is ${px}px (the map size, but never below 20px). Kinds are separated by a small gap.`),
+    h('div', { class: 'scroll' }, grid));
+}
+
+function arrangementsSection() {
+  const px = state.size;
+  const blocks = ARRANGEMENTS.map((a, i) => {
+    const parsed = parseGrid(a.grid);
+    const result = validate(parsed);
+    const size = `${parsed.cols} × ${parsed.glyphs.length}`;
+    return h('div', {},
+      h('h3', {}, `${i + 1}. ${a.title} (${size})`),
+      richText('p', 'cap', a.caption),
+      h('div', { class: 'scroll' }, mapEl(parsed, px, { label: `${a.title}, ${size} cells`, problems: result.problems })),
+      validationEl(result));
+  });
+  const first = parseGrid(ARRANGEMENTS[0].grid);
+  const firstResult = validate(first);
+  blocks.push(h('div', {},
+    h('h3', {}, `4. ${ARRANGEMENTS[0].title}, two characters per cell`),
+    richText('p', 'cap', 'Monospace cells are about twice as tall as wide, so two characters per cell gives roughly square ' +
+      'cells and true proportions. The second character carries the cell’s east side: `─` for a passage or door, ' +
+      '`═` for a wall running east, otherwise a space. It is tinted where the cell’s floor reaches its east side.'),
+    h('div', { class: 'scroll' }, mapEl(first, px, { wide: true, label: `${ARRANGEMENTS[0].title}, two characters per cell`, problems: firstResult.problems })),
+    h('p', { class: 'valid' }, `Same tiles as arrangement 1: ${firstResult.problems.length ? 'see its problems' : 'valid'}.`)));
+  return h('section', {},
+    h('h2', {}, 'Arrangements'),
+    h('p', { class: 'cap' }, `At map size ${px}px. Each is checked against the matching rules, with the outer border unconstrained. ` +
+      `Cells in a problem get a red frame.`),
+    blocks);
+}
+
+function joinSection() {
+  const samples = [
+    ['││ column', ['││', '││', '││', '││']],
+    ['║║ column', ['║║', '║║', '║║', '║║']],
+    ['── row', ['──────']],
+    ['══ row', ['══════']],
+    ['Room box', ['╔═╗', '║·║', '╚═╝'], true],
+  ];
+  const table = h('div', { class: 'join', role: 'group', 'aria-label': 'Join test' },
+    h('div', { class: 'join-head' }, 'Size'), samples.map(([name]) => h('div', { class: 'join-head' }, name)));
+  for (const px of [14, 16, 20, 24]) {
+    const m = metrics(px);
+    table.append(h('div', { class: 'join-lbl' }, h('b', {}, `${px}px`), h('br'),
+      `cell ${m.width.toFixed(2)} × ${m.lh}px`, h('br'), `font line ${m.natural.toFixed(2)}px`));
+    for (const [name, rows, tiles] of samples) {
+      table.append(tiles ? mapEl(parseGrid(rows), px, { label: `${name}, ${px}px`, roving: false }) : rawMapEl(rows, px, `${name}, ${px}px`));
+    }
+  }
+  return h('section', {},
+    h('h2', {}, 'Join test'),
+    richText('p', 'cap', 'Rows must join with no gap (`││`, `║║`) and cells must join with no gap (`──`, `══`). ' +
+      'The cell height is measured from the font so that `│` and `║` reach both edges of the cell.'),
+    h('div', { class: 'scroll' }, makeRoving(table)));
+}
+
+function renderPane(theme, showName) {
+  return h('div', { class: `pane theme-${theme}` },
+    showName ? h('p', { class: 'pane-name' }, theme === 'light' ? 'Light' : 'Dark') : null,
+    sheetSection(), headerSection(), arrangementsSection(), joinSection());
+}
+
+// ---------- Font checks (best effort) ----------
+// Installed: a test string measures differently with the font than with the fallback alone.
+// Glyph present: drawn with two different fallbacks behind the font, it comes out identical.
+const ALL_GLYPHS = [...new Set(ORIENTS.map(o => o.glyph).concat(Object.values(HEAVY)))];
+const coverageCache = new Map();
+function fontReport(family) {
+  if (coverageCache.has(family)) return coverageCache.get(family);
+  const c = document.createElement('canvas');
+  c.width = c.height = 48;
+  const ctx = c.getContext('2d', { willReadFrequently: true });
+  let installed = false;
+  for (const base of ['monospace', 'serif']) {
+    ctx.font = `40px ${base}`;
+    const w0 = ctx.measureText('mwil01│═░').width;
+    ctx.font = `40px "${family}", ${base}`;
+    if (ctx.measureText('mwil01│═░').width !== w0) installed = true;
+  }
+  const draw = (font, g) => {
+    ctx.clearRect(0, 0, 48, 48);
+    ctx.font = `32px ${font}`;
+    ctx.textBaseline = 'middle';
+    ctx.fillText(g, 8, 24);
+    return ctx.getImageData(0, 0, 48, 48).data;
+  };
+  const same = (a, b) => a.every((v, i) => v === b[i]);
+  const missing = installed ? ALL_GLYPHS.filter(g =>
+    !same(draw(`"${family}", "Segoe UI Symbol"`, g), draw(`"${family}", "MS Gothic"`, g))) : [];
+  const report = { installed, missing };
+  coverageCache.set(family, report);
+  return report;
+}
+
+function renderStatus() {
+  const el = document.getElementById('status');
+  const dataProblems = checkTileData();
+  const parts = [];
+  if (dataProblems.length) {
+    parts.push(h('span', { class: 'bad-text' }, 'Tile data problems: ' + dataProblems.join(' ')));
+  } else {
+    parts.push(`Tile data: ${ORIENTS.length} orientations of ${TILES.length} tiles, generated by rotation; every glyph's lines match its edges.`);
+  }
+  for (const f of Object.values(FONTS)) {
+    const r = fontReport(f.name);
+    let text;
+    if (!r.installed) text = `${f.name}: not installed, so a fallback font is used.`;
+    else if (!r.missing.length) text = `${f.name}: installed, has all ${ALL_GLYPHS.length} glyphs.`;
+    else text = `${f.name}: installed, missing ${r.missing.join(' ')} (drawn from a fallback font).`;
+    parts.push(' ', r.installed && !r.missing.length ? text : h('span', { class: 'bad-text' }, text));
+  }
+  el.replaceChildren(...parts);
+}
+
+// ---------- Tooltip ----------
+const tip = document.getElementById('tip');
+function showTip(el) {
+  tip.textContent = el.dataset.label;
+  tip.hidden = false;
+  const r = el.getBoundingClientRect(), t = tip.getBoundingClientRect();
+  let top = r.bottom + 6;
+  if (top + t.height > innerHeight - 4) top = r.top - t.height - 6;
+  const left = Math.min(Math.max(4, r.left + r.width / 2 - t.width / 2), innerWidth - t.width - 4);
+  tip.style.top = top + 'px';
+  tip.style.left = left + 'px';
+}
+function settleTip() {
+  const f = document.activeElement;
+  if (f && f.dataset && f.dataset.label && f.matches(':focus-visible')) showTip(f);
+  else tip.hidden = true;
+}
+document.addEventListener('pointerover', e => {
+  const el = e.target.closest && e.target.closest('[data-label]');
+  if (el) showTip(el); else settleTip();
+});
+document.addEventListener('focusin', e => {
+  if (e.target.dataset && e.target.dataset.label) showTip(e.target); else tip.hidden = true;
+});
+document.addEventListener('focusout', () => { tip.hidden = true; });
+addEventListener('scroll', settleTip, { passive: true });
+
+// ---------- Controls ----------
+const panes = document.getElementById('panes');
+function render() {
+  document.documentElement.style.setProperty('--font', FONTS[state.font].stack);
+  const themes = state.theme === 'both' ? ['light', 'dark'] : [state.theme];
+  const chrome = state.theme === 'both' ? (darkQuery.matches ? 'dark' : 'light') : state.theme;
+  document.documentElement.className = 'theme-' + chrome;
+  panes.classList.toggle('both', themes.length === 2);
+  panes.style.filter = state.view === 'normal' ? '' : `url(#f-${state.view})`;
+  panes.replaceChildren(...themes.map(t => renderPane(t, themes.length === 2)));
+  document.querySelectorAll('input[name=theme]').forEach(i => { i.checked = i.value === state.theme; });
+  document.getElementById('size-val').replaceChildren(`${state.size}px`,
+    state.size < 16 ? h('span', { class: 'size-warn' }, ' below the 16px minimum') : '');
+  tip.hidden = true;
+}
+
+document.querySelectorAll('input[name=theme]').forEach(i => i.addEventListener('change', () => {
+  state.theme = i.value;
+  state.themeChosen = true;
+  render();
+}));
+document.querySelectorAll('input[name=font]').forEach(i => i.addEventListener('change', () => {
+  state.font = i.value;
+  render();
+}));
+document.getElementById('size').addEventListener('input', e => {
+  state.size = Number(e.target.value);
+  render();
+});
+document.getElementById('view').addEventListener('change', e => {
+  state.view = e.target.value;
+  render();
+});
+darkQuery.addEventListener('change', () => {
+  if (!state.themeChosen) state.theme = darkQuery.matches ? 'dark' : 'light';
+  render();
+});
+
+renderStatus();
+render();
+})();
+</script>
+</body>
+</html>

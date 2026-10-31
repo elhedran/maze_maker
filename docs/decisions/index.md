@@ -28,6 +28,7 @@ One file per decision ([DR-0001](/decisions/0001-record-every-decision.md)). Onl
 - [DR-0024 The tile set file is TOML in data/, reloaded by the tool on request](/decisions/0024-tile-set-file-format.md) - The tile set, side-pair bases, tile weights, exceptions and seeded noise live in one TOML file, parsed and validated by maze-core and reloaded by the tool; the table view command takes filters and a window and returns entries with probabilities and explanations.
 - [DR-0025 How the table is laid out and how an entry explains itself](/decisions/0025-table-view-design.md) - One 29 by 29 grid per direction with a direction switcher, rows grouped by kind, each cell a shade plus a row percentage, and a side panel that explains the selected entry.
 - [DR-0026 How exploring one tile works](/decisions/0026-explore-one-tile-design.md) - One tile in the middle with a list of neighbours on each side, sorted by likelihood, facing sides on the shared edge, DR-0025's explanation panel, a step-to-centre action with a trail back, and one entry point that takes any tile and orientation.
+- [DR-0027 How filtering the table works](/decisions/0027-filter-table-design.md) - A filter bar with one group for the tile (rows) and one for its neighbour (columns), by kind, tile type, tag and side on the shared edge; OR within a facet, AND across; a "showing N of 29" count and one Clear all; Rust filters through DR-0024's view request, plus one `sides` field.
 
 ## Proposed
 

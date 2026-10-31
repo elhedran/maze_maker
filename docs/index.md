@@ -7,7 +7,7 @@ Project documentation, written in [Open Knowledge Format v0.2](https://github.co
 
 ## Roadmap
 
-- [Roadmap](/roadmap.md) - Phases, deliverables and demos for Maze Maker, with Phase 1 sliced into small steps that each end in a demo. Approved by Ian on 2026-10-31.
+- [Roadmap](/roadmap.md) - Phases, deliverables and demos for Maze Maker. Phase 1 closed with slice 1.1; maze generation, starting with slice 2.1, is next. Approved by Ian on 2026-10-31; the 2026-11-01 revision waits on his approval.
 
 ## Decisions
 

@@ -2,6 +2,14 @@
 
 ## 2026-11-01
 
+- **Update** Roadmap revised by Marram for Ian's "the data side is good enough to start leveraging in maze generation"; approved by Ian ("Approve, start 2.1"). Maze generation is next, starting with 2.1, the first sample maze.
+  - Phase 1 closes with 1.1, which is done and on `main`. Phase 1's "done when" shrinks to 1.1's demo, which is Ian's to approve.
+  - Marram moved slices, a two-way door: 1.2 (explore one tile) folds into 2.2; 1.3 (filtering) moves to later, unscheduled, with DR-0027 kept; 1.5 (full tile set v1) is dropped, its basic check moving into 2.1, with tiles added when samples need them and paging waiting until the table grows.
+  - 2.1 now has a goal, demo tasks and done-when points. It waits on three items, settled at the start of the build rather than in planning rounds: the WFC approach (Yew, with an engineer), which Q-0008 measures 2.1 shows (Wren, with Marram), and a small generation view design (Damson, with Marram).
+  - Stale lines fixed: Q-0008 is parked and its first part is now due; the 1.1 gates are done.
+
+- **Decision** DR-0027 accepted (written by Damson; approved by Marram; Yew accepted the `sides` addition to DR-0024): the design for slice 1.3, filtering the table. A bar above the grid has one group for the tile (rows) and one for its neighbour (columns), each filtering by kind, tile type, tag and the side on the shared edge; direction stays the 1.1 switcher. OR within a facet, AND across facets. A "showing N of 29 rows, M of 29 columns" line with one Clear all. Rust filters through DR-0024's `rowFilter`/`columnFilter`, plus a `sides` field that needs exactly one direction. The 1.3 design gate is met; index and roadmap updated.
+
 - **Update** Slice 1.1, first look at the table, is built on branch `claude/slice-1-1-4a2272`, waiting to land on `main`.
   - Rowan built the Rust side: the tile set model, loader and validation, seeded noise and the table in `maze-core`; the `table_view` and `reload_tile_set` commands; ts-rs bindings. There are 45 Rust tests.
   - Ash built the Lit table view and explanation panel to DR-0025, with 24 Vitest tests.

@@ -15,7 +15,7 @@ related:
   - /decisions/0008-adjacency-tool-first.md
   - /decisions/0013-table-entries-from-tile-sides.md
   - /questions/resolved/0005-what-to-find-out-from-the-table.md
-  - /questions/open/0007-open-details-of-table-probabilities.md
+  - /questions/resolved/0007-open-details-of-table-probabilities.md
 tags: [tool, scope, editing, probabilities, roadmap]
 generated:
   by: product-manager/1
@@ -29,10 +29,10 @@ You want to change probabilities to fix problems you see in mazes. Should the to
 # Context
 
 - In your answer to [Q-0005](/questions/resolved/0005-what-to-find-out-from-the-table.md), you said problems "will be bits of maze I don't think works well and would be improved by changing the probabilities".
-- In your answers to [Q-0007](/questions/open/0007-open-details-of-table-probabilities.md), you said: "the idea of the tool is to fix this by review, not perfect ahead of time."
+- In your answers to [Q-0007](/questions/resolved/0007-open-details-of-table-probabilities.md), you said: "the idea of the tool is to fix this by review, not perfect ahead of time."
 - [DR-0008](/decisions/0008-adjacency-tool-first.md) makes Phase 1 "view and filter", and makes Phase 2 generating sample mazes. Neither includes editing. Adding it changes a phase's scope, which is your call.
 - [DR-0013](/decisions/0013-table-entries-from-tile-sides.md) computes the table from the tile set. Whatever sets the probabilities lives in the tile set data, so changing a probability without in-tool editing means editing that data and reloading it in the tool. The roadmap requires this to work from slice 1.1, with no code change.
-- How much editing you'd need depends on two points already with you in [Q-0007](/questions/open/0007-open-details-of-table-probabilities.md). This question doesn't ask them again:
+- How much editing you'd need depends on two points already with you in [Q-0007](/questions/resolved/0007-open-details-of-table-probabilities.md). This question doesn't ask them again:
   - **The weight model.** Set by hand on every pair would mean well over a thousand numbers once the set is full size, which really needs editing in the tool. A computed base plus a few exceptions in the tile set data, which Yew (`architect/1`) recommends, keeps edits few and small.
   - **Randomness.** Whether the table's numbers carry noise.
 - Your loop is: see a problem in a maze, look at the probabilities behind it, change them. In the [roadmap](/roadmap.md), seeing a maze is 2.1, opening the table from a spot in the maze is 2.2, and tuning and comparing with the same seed is 2.3.

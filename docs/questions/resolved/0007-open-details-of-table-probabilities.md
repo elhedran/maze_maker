@@ -2,18 +2,21 @@
 type: Open Question
 title: Open details of the table's probabilities and the tile set
 description: Settle the points that DR-0013 (table entries) and DR-0016 (tile set) leave open, about doors, paths and rooms, variation, what else sets entries, room walls, maze character and fallbacks.
-status: draft
+status: stable
 question_id: Q-0007
-question_status: open
-waiting_on: [engineer-rowan/1, engineer-ash/1]
+question_status: resolved
+waiting_on: [engineer-rowan/1]
 raised_by: facilitator/1
 raised_at: 2026-10-31T15:10:00+01:00
+resolved_by: architect/1
+resolved_at: 2026-10-31T19:45:00+01:00
 related:
   - /decisions/0013-table-entries-from-tile-sides.md
   - /decisions/0016-wren-designs-the-tile-set.md
   - /questions/resolved/0003-where-table-entries-come-from.md
   - /questions/resolved/0004-where-the-tile-set-comes-from.md
   - /questions/resolved/0006-expected-table-size.md
+  - /decisions/0022-weight-model.md
   - /roadmap.md
 tags: [adjacency-table, probabilities, tile-sides, tile-set, phase-1]
 generated:
@@ -34,9 +37,9 @@ Ian's answers to Q-0003 and Q-0004 are recorded in [DR-0013](/decisions/0013-tab
 7. **Room wall:** the ordinary, common piece of a room, or one of the rare "variations"? _Answered._
 8. **Maze character:** paths through solid hedge, or a dense labyrinth with walls only between cells? _Answered: the team's call._
 9. **Fallbacks:** rare but possible anywhere (a low tile weight), or a strict last resort used only when nothing else fits (a different mechanism, inside contradiction handling)? _Answered: the team's call._
-10. **The weight model:** how is "should we see it often in that place" expressed? (a) weights set by hand on every pair, or (b) a computed base plus a few exceptions for particular pairs in the tile set data?
+10. **The weight model:** how is "should we see it often in that place" expressed? (a) weights set by hand on every pair, or (b) a computed base plus a few exceptions for particular pairs in the tile set data? _Answered: (b), [DR-0022](/decisions/0022-weight-model.md)._
 
-Ian has answered points 1 to 9 (see Context). Point 10 is still with him; the main facilitator session relays his answers, so don't ask him separately.
+Ian answered points 1 to 9 (see Context). The team decided point 10 as a two-way door (see Resolution).
 
 # Context
 
@@ -99,8 +102,9 @@ On point 10, Yew (`architect/1`) recommends (b): a computed base plus a few exce
 
 # Resolution
 
-_Open, now with the team._ Following Ian's direction on 2026-10-31 that the team makes two-way-door decisions itself ("too many details in the maze came to me and the intent of the tool was to be able to defer those. The whole team needs to learn about two way door decisions (they make) versus one way door decisions (I make)."), point 10 no longer goes to Ian.
+_Resolved._ Following Ian's direction on 2026-10-31 that the team makes two-way-door decisions itself ("too many details in the maze came to me and the intent of the tool was to be able to defer those. The whole team needs to learn about two way door decisions (they make) versus one way door decisions (I make)."), point 10 no longer goes to Ian.
 
 - **Yew (`architect/1`):** two-way, because the table is calculated from the tile set data and nothing saved depends on it yet. Yew decides (b): a calculated base plus a few exceptions for particular pairs. The tool shows each final weight and where it came from. Zones come later as extra sets of weights over the same base. At millions of cells (Q-0006), setting every pair by hand isn't workable.
 - **Marram (`product-manager/1`):** sees it as one-way, because it is the table's data model and the tile set format builds on it.
-- Yew can overrule Marram on architecture ([DR-0002](/decisions/archive/0002-approval-and-escalation.md)). As an architecture decision it still needs one engineer's approval. Once an engineer agrees, it gets its own record and this question is resolved. If the engineer agrees with Marram that it's one-way, it goes back to Ian.
+- **Rowan (`engineer-rowan/1`):** two-way, because nothing is built on it yet; reversing it today means editing one record. Rowan approves (b), with conditions: side rules always win, exceptions keyed by tile type or tag, bad data rejected, the same data gives the same table, and the tool shows where each entry comes from.
+- Yew overrules Marram, as the architect can on architecture ([DR-0018](/decisions/0018-one-way-doors-go-to-ian.md)). Recorded in [DR-0022](/decisions/0022-weight-model.md), approved by Yew and Rowan, with Marram's concern in it. Points 1 to 10 are now all answered.

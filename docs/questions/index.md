@@ -8,7 +8,6 @@ _None._
 
 ## Waiting on the team
 
-- [Q-0007 Open details of the table's probabilities and the tile set](/questions/open/0007-open-details-of-table-probabilities.md) - Points 1 to 9 are answered. Point 10, the weight model: Yew decides a calculated base plus exceptions as a two-way door, and it waits on one engineer's approval.
 - [Q-0008 Which global properties must a maze have, and how are they enforced?](/questions/open/0008-global-maze-properties.md) - Wren and Yew: what local tile rules can't guarantee (a way onward, room size, short dead ends), and how to enforce it. Choose what to measure before the phase 2 samples; enforce before the game.
 
 ## Resolved
@@ -21,3 +20,4 @@ _None._
 - [Q-0006 How big will the table get?](/questions/resolved/0006-expected-table-size.md) - About 30 rows and columns in the short term, and millions of cells eventually.
 - [Q-0010 Where does editing probabilities go?](/questions/resolved/0010-where-editing-goes.md) - Phase 2, at slice 2.3; Marram decided it as a two-way door.
 - [Q-0009 Square grid with four neighbours?](/questions/resolved/0009-sign-off-grid-and-tile-set.md) - Yes: Ian approved DR-0014, noting it should have been the team's call.
+- [Q-0007 Open details of the table's probabilities and the tile set](/questions/resolved/0007-open-details-of-table-probabilities.md) - Points 1 to 9 answered by Ian; point 10, the weight model, decided by the team as a calculated base plus a few exceptions ([DR-0022](/decisions/0022-weight-model.md)).

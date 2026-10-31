@@ -15,7 +15,7 @@ related:
   - /roadmap.md
   - /decisions/0007-wave-function-collapse.md
   - /questions/resolved/0003-where-table-entries-come-from.md
-  - /questions/open/0007-open-details-of-table-probabilities.md
+  - /questions/resolved/0007-open-details-of-table-probabilities.md
 tags: [tile-set, game-design, phase-1]
 generated:
   by: product-manager/1
@@ -54,4 +54,4 @@ Marram (`product-manager/1`) recommends option 1, or option 3 if you have earlie
 
 Ian answered on 2026-10-31, in conversation with the main facilitator session. His words, verbatim: "we will want cross-roads and dead ends - but both should be very low probability - they are more there to fix issues where nothing else fits. Same with the other "variations". other than that happy to go with the recommendation"
 
-He offered no earlier material, so this is option 1: Wren designs the tile set from his vocabulary. He named crossroads and dead ends as very low probability fallbacks. Which tiles "the other variations" cover is open in [Q-0007](/questions/open/0007-open-details-of-table-probabilities.md). Recorded as [DR-0016](/decisions/0016-wren-designs-the-tile-set.md).
+He offered no earlier material, so this is option 1: Wren designs the tile set from his vocabulary. He named crossroads and dead ends as very low probability fallbacks. Which tiles "the other variations" cover is open in [Q-0007](/questions/resolved/0007-open-details-of-table-probabilities.md). Recorded as [DR-0016](/decisions/0016-wren-designs-the-tile-set.md).

@@ -2,6 +2,8 @@
 
 ## 2026-10-31
 
+- **Decision** DR-0022 accepted (Yew decides, Rowan approves; drafted by the facilitator): the weight model is a side-pair base times a weight per tile times a few exception multipliers keyed by tile type or tag and the side kinds that meet, all in the tile set data. Side rules always win, bad data is rejected, the table is reproducible, and the tool shows where each entry comes from. A two-way door; Yew overrules Marram's concern that it is one-way, which is recorded. Q-0007 resolved and moved to `/questions/resolved/`; links, indexes and the roadmap updated.
+
 - **Update** Roadmap approved by Ian.
 
 - **Decision** DR-0019 revised and re-accepted (written by Yew; approved by Ash in the architect's place and by Marram): parallel code work gets its own worktree in a git-ignored `.worktrees/`, which the facilitator creates, lands by rebase and fast-forward, and removes. Docs-only parallel work stays in the main checkout. Shared files and record numbers stay with the facilitator. `.worktrees/` added to `.gitignore`.

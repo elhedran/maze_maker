@@ -39,7 +39,7 @@ He offered no earlier material, so the recommendation he accepted is option 1 of
 
 He also named crossroads and dead ends: both are in the set at very low probability, and they are there more to fix issues where nothing else fits.
 
-Asked about room walls, maze character and fallbacks ([Q-0007](/questions/open/0007-open-details-of-table-probabilities.md) points 7 to 9), Ian (`human:ian`) said, verbatim, later on 2026-10-31:
+Asked about room walls, maze character and fallbacks ([Q-0007](/questions/resolved/0007-open-details-of-table-probabilities.md) points 7 to 9), Ian (`human:ian`) said, verbatim, later on 2026-10-31:
 
 > room walls are not rare - but go with what you think makes good for a nice maze here, the idea of the tool is to fix this by review, not perfect ahead of time. This answers 8 and 9 as well.
 
@@ -80,6 +80,6 @@ None.
 # Links
 
 - Question: [Q-0004](/questions/resolved/0004-where-the-tile-set-comes-from.md)
-- Open details: [Q-0007](/questions/open/0007-open-details-of-table-probabilities.md)
+- Open details: [Q-0007](/questions/resolved/0007-open-details-of-table-probabilities.md)
 - Table entries: [DR-0013](/decisions/0013-table-entries-from-tile-sides.md)
 - Roadmap: [roadmap](/roadmap.md)

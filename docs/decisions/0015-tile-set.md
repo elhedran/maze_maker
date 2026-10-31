@@ -130,7 +130,7 @@ Considered for after phase 2's sample mazes, each at low probability:
 ## Not decided here
 
 - How tiles are drawn in the tool: [DR-0017](/decisions/0017-tile-glyphs-and-colours.md).
-- How probabilities are produced (tile weights, per-pair exceptions, the variation Ian wants to see in the table, and future zones) and the numbers: the weight model, with [Q-0007](/questions/open/0007-open-details-of-table-probabilities.md).
+- How probabilities are produced (tile weights, per-pair exceptions, the variation Ian wants to see in the table, and future zones) and the numbers: the weight model, with [Q-0007](/questions/resolved/0007-open-details-of-table-probabilities.md).
 - Tile IDs, the format of the tile set definition, and which way rotation 0 faces in the data: Yew's data-format record.
 - Global properties and how they are enforced: [Q-0008](/questions/open/0008-global-maze-properties.md).
 
@@ -176,6 +176,6 @@ Wren (`game-designer/1`):
 - Grid: [DR-0014](/decisions/0014-square-grid.md)
 - Who designs the set, and fallbacks: [DR-0016](/decisions/0016-wren-designs-the-tile-set.md)
 - How tiles are drawn: [DR-0017](/decisions/0017-tile-glyphs-and-colours.md)
-- Open probability details: [Q-0007](/questions/open/0007-open-details-of-table-probabilities.md)
+- Open probability details: [Q-0007](/questions/resolved/0007-open-details-of-table-probabilities.md)
 - Global properties: [Q-0008](/questions/open/0008-global-maze-properties.md)
 - Preview: `design/tile-set-preview.html` at the repository root, outside this bundle.

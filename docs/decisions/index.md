@@ -23,6 +23,7 @@ One file per decision ([DR-0001](/decisions/0001-record-every-decision.md)). Onl
 - [DR-0019 Parallel code work gets its own worktree; shared files stay with the facilitator](/decisions/0019-parallel-work-in-one-checkout.md) - Each engineer changing code in parallel works in their own git worktree on a short-lived local branch, which the facilitator rebases and fast-forwards onto main. Docs-only parallel work stays in the main checkout, with separate files per agent and commits by path.
 - [DR-0020 Vitest and happy-dom for frontend tests](/decisions/0020-vitest-for-frontend-tests.md) - The Lit frontend is tested with Vitest in a happy-dom environment, with the Tauri backend faked by mockIPC from @tauri-apps/api/mocks.
 - [DR-0021 Work lands on main; local branches and worktrees are allowed](/decisions/0021-work-lands-on-main.md) - Work is committed to main and there is no remote yet; local branches and worktrees may be used, as long as the work lands on main. Supersedes DR-0009.
+- [DR-0022 The weight model, a calculated base plus a few exceptions](/decisions/0022-weight-model.md) - Each table entry is a side-pair base times a weight per tile, with a few exceptions for particular pairs, all kept in the tile set data; side rules always win, and the tool shows where every number came from.
 
 ## Proposed
 

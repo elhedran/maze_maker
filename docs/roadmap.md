@@ -24,7 +24,7 @@ Revised 2026-10-31 for [DR-0012](/decisions/0012-code-layout-and-core-crate.md),
 
 - **Now:**
   - 1.0 is done: all four "done when" points checked by Rowan on 2026-10-31.
-  - The weight model, point 10 of [Q-0007](/questions/open/0007-open-details-of-table-probabilities.md): Yew chose a calculated base plus a few exceptions, as a two-way door. It needs one engineer's approval, then Yew's record. This is the critical path to 1.1.
+  - The weight model is decided: a calculated base plus a few exceptions ([DR-0022](/decisions/0022-weight-model.md)), resolving [Q-0007](/questions/resolved/0007-open-details-of-table-probabilities.md).
   - Damson brings the design for the table and for exploring one tile. How tiles look is settled ([DR-0017](/decisions/0017-tile-glyphs-and-colours.md)).
   - Yew brings the Phase 1 plan, how Rust and TypeScript types stay in step, and then the tile set file format.
   - Wren and Yew work on [Q-0008](/questions/open/0008-global-maze-properties.md) (global maze properties). It doesn't block Phase 1.
@@ -53,7 +53,7 @@ Ian, verbatim, on what he wants from the table ([Q-0005](/questions/resolved/000
 
 > For the Q-0005 - what I want from the table - is I want to explore what is written down for probabilities, filter by tile type (room, corridor, corridor corner) so I can understand what leads into the maze generation. from the options, 1, 2, 3 are important, 4 is not, 5 is not, 6 is important. Basically I expect to "see" problems in the maze, and I'll want to look at the probabilities to understand a bit more of why they are there. A problem is hard to define, it will be bits of maze I don't think works well and would be improved by changing the probabilities.
 
-Ian, verbatim, answering [Q-0007](/questions/open/0007-open-details-of-table-probabilities.md) (extracts that bear on the roadmap):
+Ian, verbatim, answering [Q-0007](/questions/resolved/0007-open-details-of-table-probabilities.md) (extracts that bear on the roadmap):
 
 > I want to see the variation in the table of probabilities. I plan on having in future different "zones" with different probabilities.
 
@@ -128,7 +128,7 @@ How the team took it:
   - every cell shows its probability, variation included, and any entry can be explained;
   - Wren has checked a few entries by hand and they match.
 - **Waits on**, in roughly this order. All are two-way doors, decided by the team:
-  1. the weight model: Yew's choice on [Q-0007](/questions/open/0007-open-details-of-table-probabilities.md) point 10 needs one engineer's approval, then Yew's record;
+  1. the weight model: done ([DR-0022](/decisions/0022-weight-model.md));
   2. how the table is drawn and explained (Damson, approved with Marram);
   3. how Rust and TypeScript types stay in step (Yew, with an engineer);
   4. the tile set file format, which comes last (Yew, with an engineer);
@@ -246,7 +246,7 @@ These views belong in the records and questions that will settle them. The roadm
   - [DR-0013](/decisions/0013-table-entries-from-tile-sides.md) settles that the table holds probabilities, with 0 where sides don't pair up.
   - Ian, verbatim, on what else sets them: "probabilities are mainly "if it can work" and "should we see it often in that place" - and some randomness for to add flavour. I'm expecting a big table."
   - Ian, verbatim: "I want to see the variation in the table of probabilities."
-  - Yew chose a calculated base plus a few exceptions for particular pairs, in the tile set data, as a two-way door ([Q-0007](/questions/open/0007-open-details-of-table-probabilities.md) point 10). It needs one engineer's approval, then Yew's record.
+  - Yew chose a calculated base plus a few exceptions for particular pairs, in the tile set data, as a two-way door ([Q-0007](/questions/resolved/0007-open-details-of-table-probabilities.md) point 10). It needs one engineer's approval, then Yew's record.
   - Wren notes that "in that place" may mean next to this neighbour, or a location in the world. [DR-0015](/decisions/0015-tile-set.md) lists Wren's "in that place" intents for the weight model to test against.
   - Damson needs every number to stay explainable.
 - **Fallback tiles and room walls:** settled in [DR-0015](/decisions/0015-tile-set.md) and [DR-0016](/decisions/0016-wren-designs-the-tile-set.md): crossroads and dead ends are very low probability, and hedge is common. Ian, verbatim, on room walls: "room walls are not rare - but go with what you think makes good for a nice maze here". The numbers come from the weight model and get tuned by review.
@@ -272,7 +272,7 @@ Already settled:
 
 | Gate | Source | Brought by; approved by | Ian? | First blocks |
 |---|---|---|---|---|
-| The weight model: where weights live, symmetry, explainable; how neighbours combine can wait for 2.1 | [Q-0007](/questions/open/0007-open-details-of-table-probabilities.md) point 10, [DR-0013](/decisions/0013-table-entries-from-tile-sides.md) | Yew, with Wren; Yew and one engineer | no | 1.1; 2.1 for how neighbours combine |
+| The weight model: where weights live, symmetry, explainable; how neighbours combine can wait for 2.1 | [Q-0007](/questions/resolved/0007-open-details-of-table-probabilities.md) point 10, [DR-0013](/decisions/0013-table-entries-from-tile-sides.md) | Yew, with Wren; Yew and one engineer | no | 1.1; 2.1 for how neighbours combine |
 | How the table is drawn and explained | design | Damson, Wren reviews; Damson and Marram | no | 1.1 |
 | How Rust and TypeScript types stay in step | architecture | Yew; Yew and one engineer | no | 1.1 |
 | Tile set file format | architecture | Yew; Yew and one engineer | no | 1.1 (last) |

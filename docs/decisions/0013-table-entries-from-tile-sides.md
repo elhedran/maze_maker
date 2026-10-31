@@ -46,7 +46,7 @@ Yew asked what else, besides the sides, sets entries. Ian (`human:ian`), verbati
 
 > For Yews additional question to Q-0003 - probabilities are mainly "if it can work" and "should we see it often in that place" - and some randomness for to add flavour. I'm expecting a big table.
 
-Ian's answers to the open details ([Q-0007](/questions/open/0007-open-details-of-table-probabilities.md), points 1 to 9), verbatim, later on 2026-10-31:
+Ian's answers to the open details ([Q-0007](/questions/resolved/0007-open-details-of-table-probabilities.md), points 1 to 9), verbatim, later on 2026-10-31:
 
 > rooms can only join at a door. We will add some game logic on not "doubling up" the doors in these scenarios at play time, not map generation time. A path can only lead into a room via a door - the open side of a room (i.e. not the wall) can only be to other open room. 3. is a good question. Lets allow for rooms we can't get into for now. We will revisit if and how we fix this later. for 4. its more that paths are more likely to be near other paths. Rooms should be rare. Although I guess the closed side of a room is equally likely to be another room or a path.
 >
@@ -66,7 +66,7 @@ Ian's approval covers only what is above. Everything below is either open or the
 
 ## Not decided here
 
-- **The weight model for "should we see it often in that place":** (a) weights set by hand on every pair, which would partly supersede this record and needs table editing, or (b) a computed base plus a few exceptions for particular pairs in the tile set data, which Yew recommends. Ian's future "zones" are new input. Still with Ian in [Q-0007](/questions/open/0007-open-details-of-table-probabilities.md). (Yew, Wren)
+- **The weight model for "should we see it often in that place":** (a) weights set by hand on every pair, which would partly supersede this record and needs table editing, or (b) a computed base plus a few exceptions for particular pairs in the tile set data, which Yew recommends. Ian's future "zones" are new input. (Yew, Wren) _Facilitator addition: since decided by the team as (b), in [DR-0022](/decisions/0022-weight-model.md)._
 - **Guaranteeing rooms a door:** deferred by Ian. It is a global property of the maze, which the tile set session tracks in Q-0008.
 - **The numbers:** the actual probabilities aren't set here. Whoever proposes them brings them back to Ian.
 - **The team's reading of point 5:** the main facilitator session reads "I want to see the variation in the table" as noise in the table's numbers, which Yew says must be reproducible, stored or seeded ([DR-0007](/decisions/0007-wave-function-collapse.md) determinism follow-up). This reading is not part of Ian's approval.
@@ -106,6 +106,6 @@ No disagreement. On "slight variation", Yew and Wren both favour values set by h
 # Links
 
 - Question: [Q-0003](/questions/resolved/0003-where-table-entries-come-from.md)
-- Open details: [Q-0007](/questions/open/0007-open-details-of-table-probabilities.md)
+- Open details: [Q-0007](/questions/resolved/0007-open-details-of-table-probabilities.md)
 - Generation approach: [DR-0007](/decisions/0007-wave-function-collapse.md)
 - Roadmap: [roadmap](/roadmap.md)

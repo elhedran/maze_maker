@@ -17,6 +17,7 @@ _None yet._
 - [DR-0007 Generate mazes with Wave Function Collapse](/decisions/0007-wave-function-collapse.md) - Mazes are generated around the player with Wave Function Collapse over a tile set and an adjacency table.
 - [DR-0008 Adjacency-table tool first, separate from the game](/decisions/0008-adjacency-tool-first.md) - Phase 1 builds the adjacency table and a separate tool to inspect and test it; the game comes later.
 - [DR-0009 Commit straight to main](/decisions/0009-commit-straight-to-main.md) - Work is committed directly to main, with no branches and no remote for now.
+- [DR-0010 The facilitator manages context](/decisions/0010-facilitator-manages-context.md) - The facilitator's main job is managing context, giving each task fresh team sessions and telling Ian when to clear his session.
 
 ## Archived
 

@@ -7,7 +7,7 @@ A game with an endless maze generated around the player as they move, using Wave
 ## Who's who
 
 - **Ian** (`human:ian`) owns the project and has the final say.
-- **Facilitator** (`facilitator/1`) is the main Claude session. Ian talks to the facilitator. It convenes the team, relays each position attributed to whoever holds it, drafts records, and brings decisions and questions to Ian. It never approves decisions.
+- **Facilitator** (`facilitator/1`) is the main Claude session. Ian talks to the facilitator. Its main job is managing context (see below). It also convenes the team, relays each position attributed to whoever holds it, drafts records, and brings decisions and questions to Ian. It never approves decisions.
 - **Team agents** in `.claude/agents/`. Each agent's actor ID is its file name plus a persona version.
 
 | Role | Name | Agent / actor ID |
@@ -26,6 +26,21 @@ The team argues with each other, not with Ian. Concerns about Ian's calls get wr
 - Damson (UX designer) can overrule the engineers on user experience.
 
 Any other dispute the team can't settle goes to Ian. Marram takes minor and two-way-door product decisions alone. Ian has an architecture background: on anything architectural, if in doubt, defer to him.
+
+## Facilitator: managing context (DR-0010)
+
+The facilitator's main job is managing context, for the team and for Ian's session.
+
+- **Fresh team sessions for each task.** Start each task's agents with a new session. Within a task, keep talking to the same agent if that helps. Never carry an agent session over from an earlier task.
+- **Complete briefs.** A fresh agent knows nothing. Give it the task, the records, plan and questions that apply, and where things stand.
+- **Write it down.** Durable state lives in the repo: decisions, questions, plans, the roadmap, `docs/log.md` and commits. Anything a later session needs gets written down before a session is dropped.
+- **Keep this session lean.** Hand reading, exploring and building to the team. Bring back summaries, not file contents.
+- **Tell Ian when to clear this session:**
+  - when a task is finished and committed;
+  - before switching to unrelated work;
+  - when the conversation has grown long or been compacted.
+
+  First make sure everything worth keeping is written down and committed, or say what isn't. Then say what the next session should start with.
 
 ## Before you change anything
 

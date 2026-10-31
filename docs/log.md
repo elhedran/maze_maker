@@ -2,6 +2,8 @@
 
 ## 2026-10-31
 
+- **Decision** DR-0010 proposed: the facilitator manages context, with fresh team sessions per task and reminders for Ian to clear his session. Added to Q-0001 for sign-off.
+
 - **Update** DR-0002 (still proposed): the product manager can overrule the engineers and the UX designer on product matters, and takes minor and two-way-door product decisions alone.
 - **Update** DR-0003 (still proposed): added `roadmap.md` (`type: Roadmap`) to the layout.
 

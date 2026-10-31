@@ -9,7 +9,7 @@ _None._
 ## Waiting on the team
 
 - [Q-0007 Open details of the table's probabilities and the tile set](/questions/open/0007-open-details-of-table-probabilities.md) - Points 1 to 9 are answered. Point 10, the weight model: Yew decides a calculated base plus exceptions as a two-way door, and it waits on one engineer's approval.
-- [Q-0008 Which global properties must a maze have, and how are they enforced?](/questions/open/0008-global-maze-properties.md) - Wren and Yew: what local tile rules can't guarantee (a way onward, room size, short dead ends), and how to enforce it. Choose what to measure before the phase 2 samples; enforce before the game.
+- [Q-0008 Which global properties must a maze have, and how are they enforced?](/questions/open/0008-global-maze-properties.md) - Wren and Yew: what local tile rules can't guarantee (a way onward, room size, short dead ends), and how to enforce it. Parked: revisit before slice 2.1, when what to measure is chosen; enforce before the game.
 
 ## Resolved
 

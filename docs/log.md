@@ -2,6 +2,8 @@
 
 ## 2026-10-31
 
+- **Update** Q-0008 parked, to be revisited before slice 2.1, after Ian asked to "bias towards executing planned work over re-planning or planning new work". Nothing new was settled, and no record was written.
+
 - **Update** Roadmap approved by Ian.
 
 - **Decision** DR-0019 revised and re-accepted (written by Yew; approved by Ash in the architect's place and by Marram): parallel code work gets its own worktree in a git-ignored `.worktrees/`, which the facilitator creates, lands by rebase and fast-forward, and removes. Docs-only parallel work stays in the main checkout. Shared files and record numbers stay with the facilitator. `.worktrees/` added to `.gitignore`.

@@ -2,6 +2,7 @@
 
 ## 2026-10-31
 
+- **Update** DR-0013 and Q-0007: added the open points Wren and Yew raised (whether every room is guaranteed a door; side pairs or tile kinds for "paths match paths, rooms other rooms"), their door-to-door reading, and Yew's note that any variation must be reproducible. All still with Ian.
 - **Decision** DR-0013 accepted: the adjacency table's entries come mainly from the tiles' sides, as probabilities, with 0 where sides don't pair up. It records Ian's answer to Q-0003 verbatim. Q-0003 resolved.
 - **Question** Q-0007 raised: the open details of DR-0013 (slight variation, paths meeting rooms, doors, what "mainly" covers). Waiting on Ian; the main session is putting them to him together.
 - **Update** Roadmap: Q-0003 links point to DR-0013, and the "weights vs allowed/forbidden" gate becomes "the weight model" (Yew).

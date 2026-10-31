@@ -46,7 +46,9 @@ These go back to Ian. The main facilitator session is putting them to him togeth
 
 - **"Slight variation":** fixed in the tile set data, generated when the table is built, or different from place to place or maze to maze.
 - **Paths and rooms:** can a path meet a room side that has no door, at a low probability, or is that 0? (Wren)
-- **"Could match a room":** another room's door only, or any room edge? Can a door meet a door? (Wren, and the main facilitator session)
+- **"Rooms will need doors":** are door tiles available to rooms, or is every room guaranteed at least one door? A guarantee is a property of the whole room, which side probabilities alone can't deliver. (Wren, Yew)
+- **"Paths are more likely to match paths, rooms other rooms":** pairs of sides (passage to passage, floor to floor), or kinds of tile (rooms tend to sit beside rooms)? Kinds of tile can't be expressed from sides as proposed so far, because a room's outer wall and a hallway's closed side are the same kind of side. (Wren, Yew)
+- **"Could match a room":** another room's door only, or any room edge? Wren and Yew both read it as door to door. (Wren, Yew, and the main facilitator session)
 - **"Mainly":** what else sets entries besides the sides? If it means exceptions for particular pairs, the tile set format has to carry them. (Yew)
 - **The numbers:** the actual probabilities aren't set here. Whoever proposes them brings them back to Ian.
 
@@ -67,14 +69,14 @@ From [Q-0003](/questions/resolved/0003-where-table-entries-come-from.md):
   - how the weights of several collapsed neighbours combine.
 
   Propagation only needs "probability above 0", so the last point can wait for slice 2.1.
-- The tile set's sides need types that tell paths, rooms and doors apart. Wren (`game-designer/1`) proposes four side types: wall, path, room and door. That is Wren's call as part of the tile set; the tile set session builds on this record.
+- The tile set's sides need kinds that tell paths, rooms and doors apart. The tile set session defines them and builds on this record. Wren and Yew propose that a doorway's outer side is its own kind, Door. It meets a passage (likely) or another room's door (less likely), and never a hedge or a room floor, which keeps rooms rectangular. That is their proposal, not part of Ian's approval.
 
 # Concerns raised
 
 No disagreement. On "slight variation", Yew and Wren both favour values set by hand in the tile set data over generated noise. Neither position is part of Ian's approval.
 
 - **Wren (`game-designer/1`):** base weights from the sides, with small deliberate changes on top, such as making long straight runs rarer than turns. Pacing should come from choices someone made, and collapse is already random. Seeded noise adds biases nobody chose, which are hard to tune or explain. Variation from place to place would help discovery, but it is a separate idea.
-- **Yew (`architect/1`):** set per tile, not per pair, since per pair is hand-writing the table again. Each entry is a base weight for the two facing side types times a per-tile weight, so the tool can explain every number (slices 1.2 and 1.4), and the table needs no seed. If Ian does mean jitter, seed it when the table is built and keep the seed in the tile set.
+- **Yew (`architect/1`):** set per tile, not per pair, since per pair is hand-writing the table again. Each entry is a base weight for the two facing side types times a per-tile weight, so the tool can explain every number (slices 1.2 and 1.4), and the table needs no seed. If Ian does mean jitter, seed it when the table is built and keep the seed in the tile set. Either way the variation must be reproducible, stored or seeded, which ties into the determinism follow-up in [DR-0007](/decisions/0007-wave-function-collapse.md). Don't write that weights come only from the sides: Ian said "mainly".
 
 # AI guidance
 

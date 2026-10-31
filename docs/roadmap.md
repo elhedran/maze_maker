@@ -18,7 +18,7 @@ Draft by Marram (product manager), waiting on Ian's approval. It reflects input 
 ## Now and next
 
 - **Now:**
-  - Ian answers [Q-0003](/questions/open/0003-where-table-entries-come-from.md), [Q-0004](/questions/open/0004-where-the-tile-set-comes-from.md) and [Q-0005](/questions/open/0005-what-to-find-out-from-the-table.md), which block the first demo. [Q-0006](/questions/open/0006-expected-table-size.md) can wait.
+  - Ian answers [Q-0004](/questions/open/0004-where-the-tile-set-comes-from.md), [Q-0005](/questions/open/0005-what-to-find-out-from-the-table.md) and [Q-0007](/questions/open/0007-open-details-of-table-probabilities.md), which block the first demo. Q-0003 is answered in [DR-0013](/decisions/0013-table-entries-from-tile-sides.md). [Q-0006](/questions/open/0006-expected-table-size.md) can wait.
   - Yew and Wren bring the grid geometry record.
   - Ian approves [DR-0012](/decisions/0012-code-layout-and-core-crate.md) (code layout), and then 1.0 starts.
 - **Next:** 1.1 and 1.2. Together they are the "exploring the table" demo Ian asked for.
@@ -80,8 +80,8 @@ How the team took it:
   - Wren has checked a few entries by hand and they match.
 - **Waits on**, in roughly this order (see the table at the end):
   1. grid geometry: grid shape, how a neighbour's direction is represented, and orientation;
-  2. where the table's entries come from ([Q-0003](/questions/open/0003-where-table-entries-come-from.md));
-  3. weights vs allowed/forbidden;
+  2. where the table's entries come from: settled in [DR-0013](/decisions/0013-table-entries-from-tile-sides.md), with details open in [Q-0007](/questions/open/0007-open-details-of-table-probabilities.md);
+  3. the weight model (Yew: DR-0013 settles weights over allowed/forbidden);
   4. where the tile set comes from ([Q-0004](/questions/open/0004-where-the-tile-set-comes-from.md)), then the starter tile set;
   5. what Ian wants to find out ([Q-0005](/questions/open/0005-what-to-find-out-from-the-table.md));
   6. how tiles and the table are drawn (Damson);
@@ -119,7 +119,7 @@ How the team took it:
 - **Which checks:** Wren and Yew agree on them within the slice. One example is a tile with nothing allowed on one side. One-way pairs are another, but only if the geometry record allows them: if each pair is stored once, they can't happen (Yew).
 - **Waits on:**
   - the geometry record;
-  - the weights record;
+  - the weight model record;
   - Damson's design for how problems are shown.
 - **Status:** not started.
 
@@ -141,7 +141,7 @@ How the team took it:
 
 ### Not in Phase 1
 
-- Editing the table in the tool. DR-0008 says view and filter. If [Q-0003](/questions/open/0003-where-table-entries-come-from.md) says the table is written by hand, that changes, and editing comes back to Ian as scope.
+- Editing the table in the tool. DR-0008 says view and filter. [DR-0013](/decisions/0013-table-entries-from-tile-sides.md) has the table worked out from the tiles' sides, not written by hand, so editing stays out.
 - Generating mazes (that's Phase 2), and anything in the game.
 
 ## Phase 2: sample mazes (outline)
@@ -178,7 +178,7 @@ These views belong in the records that will settle them. The roadmap takes no po
   - Wren favours a square grid for a hedge-maze feel: straight paths, clear turns, and four directions to hold in your head. Wren would change their mind only if Yew finds that hex handles infinite-maze seams much better.
   - Damson's glyphs assume a square grid.
 - **Orientation:** whether symmetric tiles keep one row per orientation or merge their repeats (`─` at 0° and 180°). Damson asks that the geometry record says which.
-- **Weights:** Wren will argue for weights, because frequencies set a maze's pacing.
+- **Weights:** [DR-0013](/decisions/0013-table-entries-from-tile-sides.md) settles that the table holds probabilities. On how "slight variation" is produced, Wren and Yew favour values set by hand in the tile set data, and Yew would set them per tile. Open in [Q-0007](/questions/open/0007-open-details-of-table-probabilities.md).
 - **Drawing:** Wren suggests showing side types, because they explain why an entry is allowed.
 
 ## What gates each slice
@@ -189,8 +189,8 @@ These views belong in the records that will settle them. The roadmap takes no po
 |---|---|---|---|---|
 | Code layout and core crate | [DR-0012](/decisions/0012-code-layout-and-core-crate.md), proposed | Yew; Rowan reviews | yes | 1.0 |
 | Grid geometry: shape, neighbour direction, orientation | DR-0007 | Yew, with Wren | yes | 1.1 (first) |
-| Where the table's entries come from | [Q-0003](/questions/open/0003-where-table-entries-come-from.md) | Ian | yes | 1.1 |
-| Weights vs allowed/forbidden | DR-0007 | Yew, with Wren | yes | 1.1 |
+| Where the table's entries come from | [DR-0013](/decisions/0013-table-entries-from-tile-sides.md), accepted; details open in [Q-0007](/questions/open/0007-open-details-of-table-probabilities.md) | Ian | yes | 1.1 |
+| The weight model: per pair or per tile, where base weights live, symmetry (how neighbours combine can wait for 2.1) | DR-0007, [DR-0013](/decisions/0013-table-entries-from-tile-sides.md) | Yew, with Wren | yes | 1.1 |
 | Where the tile set comes from | [Q-0004](/questions/open/0004-where-the-tile-set-comes-from.md) | Ian | yes | 1.1 |
 | Starter tile set | game design | Wren | no, unless Q-0004 says so | 1.1 |
 | What Ian wants to find out | [Q-0005](/questions/open/0005-what-to-find-out-from-the-table.md) | Ian | yes | 1.1, 1.2 |

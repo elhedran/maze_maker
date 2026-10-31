@@ -15,6 +15,7 @@ One file per decision ([DR-0001](/decisions/0001-record-every-decision.md)). Onl
 - [DR-0009 Commit straight to main](/decisions/0009-commit-straight-to-main.md) - Work is committed directly to main, with no branches and no remote for now.
 - [DR-0010 The facilitator manages context](/decisions/0010-facilitator-manages-context.md) - The facilitator's main job is managing context, giving each task fresh team sessions and telling Ian when to clear his session.
 - [DR-0011 TypeScript and Vite for the Lit frontend](/decisions/0011-typescript-and-vite.md) - The Lit frontend is written in TypeScript and built with Vite.
+- [DR-0013 Table entries come from tile sides, as probabilities](/decisions/0013-table-entries-from-tile-sides.md) - The adjacency table's entries are worked out mainly from the tiles' sides, with probability 0 where sides don't pair up and slightly varied probabilities for what is allowed.
 
 ## Proposed
 

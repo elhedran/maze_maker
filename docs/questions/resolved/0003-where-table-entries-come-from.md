@@ -2,17 +2,21 @@
 type: Open Question
 title: Where do the adjacency table's entries come from?
 description: Choose how the table is produced, whether worked out from tile sides, written by hand, learned from example maps, or a mix.
-status: draft
+status: stable
 question_id: Q-0003
-question_status: open
+question_status: resolved
 waiting_on: [human:ian]
 raised_by: product-manager/1
 raised_at: 2026-10-31T15:05:00+01:00
+resolved_by: human:ian
+resolved_at: 2026-10-31T15:05:00+01:00
+resolution_record: /decisions/0013-table-entries-from-tile-sides.md
 related:
   - /roadmap.md
   - /decisions/0007-wave-function-collapse.md
   - /decisions/0008-adjacency-tool-first.md
   - /questions/open/0004-where-the-tile-set-comes-from.md
+  - /questions/open/0007-open-details-of-table-probabilities.md
 tags: [adjacency-table, data-model, phase-1]
 generated:
   by: product-manager/1
@@ -56,4 +60,6 @@ Marram (`product-manager/1`) recommends option 1 for what's allowed, with likeli
 
 # Resolution
 
-_Open._
+Ian answered on 2026-10-31, in conversation with the main facilitator session. His words, verbatim: "They will mainly come from the tiles sides, if it doesn't work or pair up the probability is 0. Paths are more likely to match paths, rooms other rooms. Rooms will need doors so that a room door is more likely to match a path but could match a room. For what is allowed, there should be slight variation in the probabilities."
+
+Recorded as [DR-0013](/decisions/0013-table-entries-from-tile-sides.md). The points his answer leaves open are tracked in [Q-0007](/questions/open/0007-open-details-of-table-probabilities.md).

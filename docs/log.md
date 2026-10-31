@@ -2,6 +2,10 @@
 
 ## 2026-10-31
 
+- **Decision** DR-0013 accepted: the adjacency table's entries come mainly from the tiles' sides, as probabilities, with 0 where sides don't pair up. It records Ian's answer to Q-0003 verbatim. Q-0003 resolved.
+- **Question** Q-0007 raised: the open details of DR-0013 (slight variation, paths meeting rooms, doors, what "mainly" covers). Waiting on Ian; the main session is putting them to him together.
+- **Update** Roadmap: Q-0003 links point to DR-0013, and the "weights vs allowed/forbidden" gate becomes "the weight model" (Yew).
+
 - **Question** Q-0003 raised: where do the adjacency table's entries come from? Waiting on Ian; blocks roadmap slice 1.1.
 - **Question** Q-0004 raised: where does the tile set come from? Waiting on Ian; blocks 1.1.
 - **Question** Q-0005 raised: what do you want to find out from the table? Waiting on Ian; blocks 1.1 and 1.2.

@@ -11,7 +11,7 @@ raised_at: 2026-10-31T15:05:00+01:00
 related:
   - /roadmap.md
   - /decisions/0007-wave-function-collapse.md
-  - /questions/open/0003-where-table-entries-come-from.md
+  - /questions/resolved/0003-where-table-entries-come-from.md
 tags: [tile-set, game-design, phase-1]
 generated:
   by: product-manager/1

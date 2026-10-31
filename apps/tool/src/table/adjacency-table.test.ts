@@ -491,6 +491,21 @@ describe("adjacency-table", () => {
       expect(root(el).querySelector("td.selected")).toBeNull();
     });
 
+    test("two changes before a render both count", async () => {
+      const ipc = backend();
+      const el = await mount();
+      // No await between the clicks: the bar hasn't re-rendered with the first.
+      bar(el).querySelector<HTMLInputElement>('[data-group="row"] input[data-value="corridor_corner"]')!.click();
+      toggle(el, "column", "kind", "room").click();
+      toggle(el, "column", "kind", "hedge").click();
+
+      await vi.waitFor(() => expect(columnGlyphs(el)).toEqual(["═", "░"]));
+      expect(rowGlyphs(el)).toEqual(["┐"]);
+      const last = ipc.requests.at(-1)!;
+      expect(last.rowFilter).toEqual({ ...ANY, tileIds: ["corridor_corner"] });
+      expect(last.columnFilter).toEqual({ ...ANY, kinds: ["room", "hedge"] });
+    });
+
     test("a selected cell that is still shown stays selected", async () => {
       backend();
       const el = await mount();

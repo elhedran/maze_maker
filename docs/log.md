@@ -2,6 +2,8 @@
 
 ## 2026-10-31
 
+- **Creation** Code scaffold per DR-0012, built by Rowan: root Cargo workspace, an empty `crates/maze-core`, and the Tauri v2 tool in `apps/tool/` (Lit, TypeScript, Vite) with one command that shows maze-core's version on screen. README updated with the layout and build, run and test commands.
+
 - **Decision** DR-0018 accepted (Ian, reviewed by Yew and Marram): one test for what goes to Ian. If a decision can be reversed without a lot of extra work, the team decides it; only one-way doors and disputes on them go to Ian. When unclear, Yew decides for technical decisions and Marram for product. Supersedes DR-0002, now archived. `CLAUDE.md` and every agent in `.claude/agents/` updated to match.
 
 - **Decision** DR-0014 accepted (Yew, Ian): square grid with four neighbours. Ian noted it should not have been blocked on him. Q-0009 resolved.

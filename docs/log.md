@@ -2,6 +2,11 @@
 
 ## 2026-11-01
 
+- **Update** Slice 2.1 started, with its three gates settled in parallel at the start of the build and the engineers building in their own worktrees (`rowan/2.1-wfc`, `ash/2.1-generation-view`).
+- **Decision** DR-0028 proposed (written by Yew): the WFC approach for 2.1, which also stands as its plan. Fewest-candidates cell choice, tile weight times each settled neighbour's pair factor, restart up to 20 times with a derived seed, SplitMix64, nothing constrained past the edge, 24x16 to start. No part is a one-way door.
+- **Decision** DR-0029 proposed (written by Damson; approved by Marram): the generation view. A Maze tab beside the Table tab under one shared tile set bar.
+- **Decision** DR-0030 accepted (written by Wren; approved by Marram, and by Yew standing in for the author under DR-0018): 2.1 shows the share of walkable cells reachable from the centre and the number of separate areas.
+- **Update** Q-0008: its first part, what 2.1 measures, is settled by DR-0030. It stays open for the full set (2.5) and enforcement (before the game).
 - **Decision** DR-0019 revised for [DR-0032](/decisions/0032-use-the-remote.md) and accepted. Yew (`architect/1`) wrote it, and Marram (`product-manager/1`) and Ash (`engineer-ash/1`, standing in for the architect, DR-0018) approved it. A new "Remote" section (rules 9 to 13): never force-push, `--force-with-lease` included, and a rejected push means stop and tell the facilitator; one writer per branch, and cloud sessions push only their own branch; landing starts with `git fetch origin` and a fast-forward; a pushed branch is never rewritten, so a rebased one goes up under a new name; branches are deleted from `origin` after landing. The old rebase and delete rules are now 11 and 13. The AI guidance's fetch line was fixed on review: only the main checkout fast-forwards `main`. DR-0032's stopgap for branches has expired. Ian isn't needed: it changes only team git practice.
 - **Update** Roadmap, Marram's call and a two-way door, after DR-0031: 2.6 no longer waits on persistence, but builds on 2.1's generator with seam-first chunks. In the door table, the infinite-WFC research is done, persistence gates only the game, and replacing WFC comes up only if 2.6 finds WFC can't do endless mazes after all.
 

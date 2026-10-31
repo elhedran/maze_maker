@@ -8,7 +8,7 @@ _None._
 
 ## Waiting on the team
 
-- [Q-0008 Which global properties must a maze have, and how are they enforced?](/questions/open/0008-global-maze-properties.md) - Wren and Yew: what local tile rules can't guarantee (a way onward, room size, short dead ends), and how to enforce it. Parked: revisit before slice 2.1, when what to measure is chosen; enforce before the game.
+- [Q-0008 Which global properties must a maze have, and how are they enforced?](/questions/open/0008-global-maze-properties.md) - Wren and Yew: what local tile rules can't guarantee (a way onward, room size, short dead ends), and how to enforce it. What 2.1 measures is settled by DR-0030; the full set waits for 2.5 and enforcement for the game.
 
 ## Resolved
 

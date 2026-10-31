@@ -50,5 +50,5 @@ Ian (`human:ian`), 2026-10-31: "make sure we bias towards executing planned work
 
 # Resolution
 
-_Open._
+**Partly settled, 2026-11-01.** What 2.1 measures is settled by [DR-0030](/decisions/0030-measures-for-2-1.md): the share of walkable cells reachable from the centre, and the number of separate walkable areas. Still open: the full set of measures (slice 2.5) and how properties are enforced (before the game).
 

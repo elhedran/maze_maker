@@ -19,6 +19,7 @@ One file per decision ([DR-0001](/decisions/0001-record-every-decision.md)). Onl
 - [DR-0016 Wren designs the tile set, with crossroads and dead ends as rare fallbacks](/decisions/0016-wren-designs-the-tile-set.md) - Wren designs the tile set from Ian's vocabulary, and crossroads and dead ends are in it at very low probability, to fix issues where nothing else fits.
 - [DR-0015 The core tile set](/decisions/0015-tile-set.md) - Ten tiles in three kinds (corridor, room, hedge), giving 29 (tile, orientation) pairs, built on five kinds of side that say which tiles may sit next to each other.
 - [DR-0017 Tile glyphs and colours in the tool](/decisions/0017-tile-glyphs-and-colours.md) - Each (tile, orientation) shows as one Unicode box-drawing or block character, with corridors in blue single lines, rooms in amber double-line walls on a floor tint, and hedge as texture.
+- [DR-0012 Code layout, with a shared core crate and self-contained apps](/decisions/0012-code-layout-and-core-crate.md) - One Cargo workspace at the repository root, with the UI-free maze-core library in crates/ and each app, starting with the tool, self-contained in apps/.
 
 ## Proposed
 

@@ -2,6 +2,8 @@
 
 ## 2026-10-31
 
+- **Decision** DR-0012 accepted (Yew, Rowan, Ian): the code layout. Ian approved it but said it should not have waited on him; decisions like it now go to the architect and an engineer.
+
 - **Decision** DR-0015 accepted (Wren, Marram): the core tile set, 10 tiles and 29 (tile, orientation) pairs on five kinds of side, folding in Ian's Q-0007 answers. A two-way door, per Ian's direction.
 - **Decision** DR-0017 accepted (Damson, Marram): tile glyphs and colours in the tool. A two-way door.
 - **Decision** DR-0014 proposed: square grid with four neighbours and 90-degree rotations. Yew judges it a one-way door, so it goes to Ian; Ash has reviewed it.
@@ -31,6 +33,7 @@
 - **Creation** Roadmap drafted by Marram (`product-manager/1`), with input from Yew, Wren and Damson. Phase 1 is sliced into 1.0 to 1.5, and Phase 2 and the game are outlined. Draft, waiting on Ian's approval.
 - **Update** Ian's input recorded in the roadmap: the demo he most wants is the tool exploring the probability table, and he suggests Unicode glyphs for tile shape and colour for room vs hallway. These are suggestions for Damson and Wren, not decisions yet.
 
+- **Decision** DR-0012 proposed: the code layout, with one Cargo workspace at the root, a UI-free `maze-core` crate in `crates/`, and self-contained apps in `apps/`, starting with the tool. Waiting on Rowan's review, then Ian.
 
 - **Decision** DR-0001 to DR-0010 accepted: Ian approved them as written. Q-0001 resolved.
 - **Decision** DR-0011 accepted: the Lit frontend uses TypeScript and Vite. Q-0002 resolved.

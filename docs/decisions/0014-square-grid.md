@@ -2,13 +2,14 @@
 type: Decision Record
 title: Square grid with four neighbours
 description: The maze is a square grid; each cell has four neighbours (north, east, south, west) and tiles turn in 90-degree steps.
-status: draft
+status: stable
 decision_id: DR-0014
-decision_status: proposed
+decision_status: accepted
 decision_kind: architecture
 major: true
 owners: [architect/1]
 approvers: [architect/1, human:ian]
+decided_at: 2026-10-31T19:00:00+01:00
 supersedes: []
 tags: [generation, wfc, grid, adjacency-table]
 generated:
@@ -17,6 +18,10 @@ generated:
 verified:
   - by: engineer-ash/1
     at: 2026-10-31T16:30:00+01:00
+  - by: architect/1
+    at: 2026-10-31T19:00:00+01:00
+  - by: human:ian
+    at: 2026-10-31T18:58:00+01:00
 ---
 
 # Context

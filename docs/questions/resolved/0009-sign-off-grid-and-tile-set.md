@@ -2,12 +2,15 @@
 type: Open Question
 title: Square grid with four neighbours?
 description: Approve DR-0014, a square grid with four neighbours and 90-degree rotations, which everything else is built on.
-status: draft
+status: stable
 question_id: Q-0009
-question_status: open
+question_status: resolved
 waiting_on: [human:ian]
 raised_by: facilitator/1
 raised_at: 2026-10-31T15:16:00+01:00
+resolved_by: human:ian
+resolved_at: 2026-10-31T18:58:00+01:00
+resolution_record: /decisions/0014-square-grid.md
 related:
   - /decisions/0014-square-grid.md
   - /decisions/0015-tile-set.md
@@ -39,4 +42,6 @@ Square (`architect/1`). Wren (`game-designer/1`) needs no diagonal rules.
 
 # Resolution
 
-_Open._
+Ian approved DR-0014 on 2026-10-31, in conversation with the main facilitator session. His words, verbatim: "approve both, but neither decision should have been blocked on me" (both: DR-0014 and DR-0012).
+
+His point: the grid was the team's call too. Decisions like it are made by the team, not brought to him.

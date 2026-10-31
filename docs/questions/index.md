@@ -4,7 +4,7 @@ Questions waiting on a decision, and how they were answered ([DR-0004](/decision
 
 ## Waiting on Ian
 
-- [Q-0009 Square grid with four neighbours?](/questions/open/0009-sign-off-grid-and-tile-set.md) - Approve DR-0014, the one-way door from the tile-set work; the tile set and glyphs are two-way doors the team approved.
+_None._
 
 ## Waiting on the team
 
@@ -20,3 +20,4 @@ Questions waiting on a decision, and how they were answered ([DR-0004](/decision
 - [Q-0005 What do you want to find out from the table?](/questions/resolved/0005-what-to-find-out-from-the-table.md) - Explore the probabilities, filter by tile type, and trace problems seen in mazes back to them; recorded in the roadmap.
 - [Q-0006 How big will the table get?](/questions/resolved/0006-expected-table-size.md) - About 30 rows and columns in the short term, and millions of cells eventually.
 - [Q-0010 Where does editing probabilities go?](/questions/resolved/0010-where-editing-goes.md) - Phase 2, at slice 2.3; Marram decided it as a two-way door.
+- [Q-0009 Square grid with four neighbours?](/questions/resolved/0009-sign-off-grid-and-tile-set.md) - Yes: Ian approved DR-0014, noting it should have been the team's call.

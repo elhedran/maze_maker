@@ -2,6 +2,8 @@
 
 ## 2026-10-31
 
+- **Decision** DR-0014 accepted (Yew, Ian): square grid with four neighbours. Ian noted it should not have been blocked on him. Q-0009 resolved.
+
 - **Decision** DR-0012 accepted (Yew, Rowan, Ian): the code layout. Ian approved it but said it should not have waited on him; decisions like it now go to the architect and an engineer.
 
 - **Decision** DR-0015 accepted (Wren, Marram): the core tile set, 10 tiles and 29 (tile, orientation) pairs on five kinds of side, folding in Ian's Q-0007 answers. A two-way door, per Ian's direction.

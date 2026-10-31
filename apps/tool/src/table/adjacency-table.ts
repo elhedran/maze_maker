@@ -128,6 +128,9 @@ export class AdjacencyTable extends LitElement {
       .corner { text-align: left; vertical-align: bottom; max-width: 10rem; color: var(--muted); }
       .kind { font-weight: 600; text-align: left; vertical-align: top; padding: 0.2rem 0.4rem; }
       th.lit .glyph { background-color: var(--highlight); }
+      /* Tile headers stay in view while the grid scrolls, so a cell's row and column are always readable. */
+      th[scope="col"] { position: sticky; top: 0; z-index: 1; background: var(--page); }
+      th[scope="row"] { position: sticky; left: 0; z-index: 1; background: var(--page); }
       td {
         position: relative;
         min-width: 2.6rem;

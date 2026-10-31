@@ -21,6 +21,7 @@ One file per decision ([DR-0001](/decisions/0001-record-every-decision.md)). Onl
 - [DR-0017 Tile glyphs and colours in the tool](/decisions/0017-tile-glyphs-and-colours.md) - Each (tile, orientation) shows as one Unicode box-drawing or block character, with corridors in blue single lines, rooms in amber double-line walls on a floor tint, and hedge as texture.
 - [DR-0012 Code layout, with a shared core crate and self-contained apps](/decisions/0012-code-layout-and-core-crate.md) - One Cargo workspace at the repository root, with the UI-free maze-core library in crates/ and each app, starting with the tool, self-contained in apps/.
 - [DR-0018 Easily reversed decisions are the team's; only one-way doors go to Ian](/decisions/0018-one-way-doors-go-to-ian.md) - If a decision can be reversed without a lot of extra work, the team decides it; only decisions that would be costly to reverse, and disputes on them, go to Ian.
+- [DR-0019 Parallel work shares one checkout, with rules](/decisions/0019-parallel-work-in-one-checkout.md) - Agents and sessions working at the same time share the main checkout; only one changes code at a time, parallel work gets separate files, and only the facilitator commits, by path.
 
 ## Proposed
 

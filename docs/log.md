@@ -2,6 +2,8 @@
 
 ## 2026-10-31
 
+- **Decision** DR-0019 accepted (Yew, Marram; drafted by the facilitator): parallel work shares one checkout with rules. One agent changes code at a time, parallel briefs name each agent's files, shared files and new record numbers belong to the facilitator, and commits are by path, never `git add -A`. Revisit when two engineers need to build code at once, on another collision, or when Ian adds a remote.
+
 - **Update** Roadmap revised by Marram for DR-0012 and DR-0014 to DR-0018, and the resolved Q-0006, Q-0009 and Q-0010: gates are the team's two-way doors except three one-way doors kept with Ian (replacing WFC, new game technology, anything costing Ian money or time); 1.0 is built and being checked against its done-when. No phase or deliverable changed.
 
 - **Creation** Code scaffold per DR-0012, built by Rowan: root Cargo workspace, an empty `crates/maze-core`, and the Tauri v2 tool in `apps/tool/` (Lit, TypeScript, Vite) with one command that shows maze-core's version on screen. README updated with the layout and build, run and test commands.

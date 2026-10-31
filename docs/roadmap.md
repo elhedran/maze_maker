@@ -154,6 +154,7 @@ Until 2026-11-01 this also needed 1.2 and 1.3 on full tile set v1. Ian judged th
   4. the tile set file format (Yew, with an engineer: [DR-0024](/decisions/0024-tile-set-file-format.md));
   5. Yew's [Phase 1 plan](/plans/phase-1.md), with 1.1 as its first step.
 - **Status:** done (2026-11-01), on `main` (ae9a6c3). Ian has seen it and said it "looks good".
+  - Ian ran both demo tasks himself from `main` (4e51f6e), 2026-11-01. Ian (`human:ian`), verbatim: "demo approved - looks good.  I tried the east, tried the blank cell, also did a bit of an explore around how paths and rooms were represented".
   - the table is built in Rust from `data/tile-sets/core.toml`, with Wren's first numbers;
   - changing a number is an edit and a Reload, with no rebuild;
   - every cell shows its share of the row, and seeded noise is included and shown in each explanation;

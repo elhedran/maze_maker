@@ -2,6 +2,8 @@
 
 ## 2026-11-01
 
+- **Update** Ian ran slice 1.1's two demo tasks himself from `main` and approved them: "demo approved - looks good.  I tried the east, tried the blank cell, also did a bit of an explore around how paths and rooms were represented". Roadmap 1.1 status and the Phase 1 plan updated; the plan's points 9 and 10 are checked.
+
 - **Update** Roadmap revised by Marram for Ian's "the data side is good enough to start leveraging in maze generation"; approved by Ian ("Approve, start 2.1"). Maze generation is next, starting with 2.1, the first sample maze.
   - Phase 1 closes with 1.1, which is done and on `main`. Phase 1's "done when" shrinks to 1.1's demo, which is Ian's to approve.
   - Marram moved slices, a two-way door: 1.2 (explore one tile) folds into 2.2; 1.3 (filtering) moves to later, unscheduled, with DR-0027 kept; 1.5 (full tile set v1) is dropped, its basic check moving into 2.1, with tiles added when samples need them and paging waiting until the table grows.

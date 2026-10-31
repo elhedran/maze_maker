@@ -1,8 +1,9 @@
 import { LitElement, css, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { invoke } from "@tauri-apps/api/core";
+import { coreVersion, errorText } from "./ipc.ts";
+import "./table/adjacency-table.ts";
 
-/** The tool's root component. For now it only proves the frontend -> Tauri -> core path. */
+/** The tool's root component: the title, the core version and the table view (slice 1.1). */
 @customElement("maze-tool-app")
 export class MazeToolApp extends LitElement {
   @state() private coreVersion?: string;
@@ -11,8 +12,21 @@ export class MazeToolApp extends LitElement {
   static styles = css`
     :host {
       display: block;
-      padding: 1.5rem;
+      padding: 1rem 1.5rem;
       font-family: system-ui, sans-serif;
+    }
+    header {
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+    }
+    h1 {
+      font-size: 1.25rem;
+      margin: 0 0 0.75rem;
+    }
+    .status {
+      color: #6d737d;
+      font-size: 0.85rem;
     }
     .error {
       color: #b00020;
@@ -21,22 +35,22 @@ export class MazeToolApp extends LitElement {
 
   connectedCallback(): void {
     super.connectedCallback();
-    invoke<string>("core_version")
+    coreVersion()
       .then((version) => (this.coreVersion = version))
-      .catch((e: unknown) => (this.error = String(e)));
+      .catch((e: unknown) => (this.error = errorText(e)));
   }
 
   render() {
     let status;
     if (this.error) {
-      status = html`<p class="error">Could not reach maze-core: ${this.error}</p>`;
+      status = html`<span class="status error">Could not reach maze-core: ${this.error}</span>`;
     } else if (this.coreVersion) {
-      status = html`<p>maze-core <span id="core-version">${this.coreVersion}</span></p>`;
+      status = html`<span class="status">maze-core <span id="core-version">${this.coreVersion}</span></span>`;
     } else {
-      status = html`<p>Connecting to maze-core…</p>`;
+      status = html`<span class="status">Connecting to maze-core…</span>`;
     }
-    return html`<h1>Maze Maker — Adjacency Tool</h1>
-      ${status}`;
+    return html`<header><h1>Maze Maker — Adjacency Tool</h1>${status}</header>
+      <adjacency-table></adjacency-table>`;
   }
 }
 

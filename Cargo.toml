@@ -1,0 +1,11 @@
+# Workspace root (DR-0012). Run cargo from here.
+# Profiles go here only: cargo ignores [profile.*] in members.
+[workspace]
+resolver = "3"
+members = ["crates/maze-core", "apps/tool/src-tauri"]
+
+[workspace.package]
+edition = "2024"
+
+[workspace.dependencies]
+maze-core = { path = "crates/maze-core" }

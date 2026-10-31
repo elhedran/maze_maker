@@ -1,0 +1,21 @@
+[package]
+name = "maze-tool"
+version = "0.1.0"
+edition.workspace = true
+description = "Maze Maker adjacency tool"
+publish = false
+
+# Desktop only. The Tauri template also builds `staticlib` and `cdylib` for
+# mobile, and names the lib `maze_tool_lib` to dodge a Windows PDB clash that
+# only cdylib triggers (rust-lang/cargo#8519). Neither is needed here: the
+# extra crate types made each incremental build ~4s -> ~7s and wrote a
+# ~680 MB .lib on every debug build. Adding mobile would need its own record.
+[lib]
+name = "maze_tool"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+maze-core.workspace = true

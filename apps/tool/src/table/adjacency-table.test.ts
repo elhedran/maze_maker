@@ -140,7 +140,7 @@ describe("adjacency-table", () => {
     await mount();
     expect(ipc.requests).toHaveLength(1);
     expect(ipc.requests[0].directions).toEqual(["east"]);
-    expect(ipc.requests[0].rowFilter).toEqual({ kinds: [], tileIds: [], tags: [] });
+    expect(ipc.requests[0].rowFilter).toEqual({ kinds: [], tileIds: [], tags: [], sides: [] });
   });
 
   test("draws a row and a column per tile, grouped by kind, with glyph headers", async () => {

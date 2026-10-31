@@ -2,6 +2,10 @@
 
 ## 2026-11-01
 
+- **Update** Slice 2.1 paused for the evening at a green point, with the work on two branches. Rowan's `rowan/2.1-wfc` (c036edb) has WFC, the measures, `generate_maze` and the bindings, with Rust tests passing. Ash's `ash/2.1-generation-view` (e9314b1) has the Maze tab and view against a stub, with 54 tests passing. Next: join them, run the demo in Tauri, and have Wren review mazes. Status is in the roadmap under 2.1.
+- **Decision** DR-0028 accepted (written by Yew; approved by Rowan, and by Ash standing in for the author under DR-0018). Its IPC section now matches the built contract (`centre`, string `Measure.value`).
+- **Decision** DR-0029 accepted (written by Damson; approved by Marram, and by Ash standing in for the author), with Ash's build notes.
+
 - **Update** Slice 2.1 started, with its three gates settled in parallel at the start of the build and the engineers building in their own worktrees (`rowan/2.1-wfc`, `ash/2.1-generation-view`).
 - **Decision** DR-0028 proposed (written by Yew): the WFC approach for 2.1, which also stands as its plan. Fewest-candidates cell choice, tile weight times each settled neighbour's pair factor, restart up to 20 times with a derived seed, SplitMix64, nothing constrained past the edge, 24x16 to start. No part is a one-way door.
 - **Decision** DR-0029 proposed (written by Damson; approved by Marram): the generation view. A Maze tab beside the Table tab under one shared tile set bar.

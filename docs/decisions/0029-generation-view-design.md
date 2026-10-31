@@ -2,9 +2,9 @@
 type: Decision Record
 title: How the generation view shows one sample maze
 description: A Maze tab next to the Table tab under one shared tile set bar; a seed field with Generate and Random seed; the maze drawn two characters per cell; a hover readout, the restart note and Wren's measures beside it; Reload regenerates the shown seed.
-status: draft
+status: stable
 decision_id: DR-0029
-decision_status: proposed
+decision_status: accepted
 decision_kind: design
 major: false
 owners: [ux-designer/1]
@@ -17,6 +17,9 @@ generated:
 verified:
   - by: product-manager/1
     at: 2026-11-01T10:45:00+01:00
+  - by: engineer-ash/1
+    at: 2026-11-01T00:22:09+01:00
+    note: "Stands in for the UX designer (DR-0018: the author is a required approver)."
 ---
 
 # Context
@@ -75,6 +78,8 @@ Damson (`ux-designer/1`), a two-way door: one view in the tool, nothing builds o
 - The demo is: Maze tab, Generate; Generate again; Random seed; edit, Reload, look.
 - `adjacency-table` loses its own Reload and banner; its tests for them move to the app.
 - Not in 2.1: keyboard movement over cells, a fallback overlay (DR-0017 rule 8), marking unreachable cells, stepping, batches, links to the table.
+
+**Build notes** (Ash, `engineer-ash/1`): after a reload the status line keeps the size and restarts, "Seed 48213 · regenerated after reload · 24×16 · first try"; the hover readout counts columns and rows from 0, as DR-0030 does; a seed above the largest u32 reads "A seed is a whole number up to 4294967295."; the gave-up message shows the real restart count (20 under DR-0028), not the 10 in the example.
 
 # Concerns raised
 

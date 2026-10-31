@@ -2,9 +2,9 @@
 type: Decision Record
 title: The WFC approach for the first sample maze
 description: Fewest-candidates cell choice with seeded tie-breaks, a weighted draw of tile weight times each settled neighbour's pair factor, restart with a derived seed on contradiction up to 20 times, a hand-rolled SplitMix64, an unconstrained edge, and a generate_maze command; it also stands as slice 2.1's plan.
-status: draft
+status: stable
 decision_id: DR-0028
-decision_status: proposed
+decision_status: accepted
 decision_kind: architecture
 major: false
 owners: [architect/1]
@@ -17,6 +17,9 @@ generated:
 verified:
   - by: engineer-rowan/1
     at: 2026-11-01T13:00:00+01:00
+  - by: engineer-ash/1
+    at: 2026-11-01T00:22:09+01:00
+    note: "Stands in for the architect (DR-0018: the author is a required approver). Approves rules 1-8. The IPC contract section still needs the final contract written in: GeneratedMaze gains centre (CellPos {x, y}), and Measure.value is a ready-to-show string, not a number."
 ---
 
 # Context
@@ -45,7 +48,7 @@ All in a new `maze-core` module, `wfc.rs`, over the existing `TileSet` and `Tabl
 `generate_maze(request: GenerateRequest) -> Result<GeneratedMaze, ToolError>`, using the loaded tile set from state (a load failure returns the existing `LoadFailed`/`NotLoaded` errors; a bad size adds a `BadRequest` kind).
 
 - **`GenerateRequest`:** `seed: u32`, `width: u32`, `height: u32`.
-- **`GeneratedMaze`:** `revision` (the tile set revision used); `seed`, `width`, `height`; `cells: Array<number | null>`, row-major from the north-west, each an index into table order, the same index as `table_view`'s `tiles` at that `revision` (`null` only in a failed maze's unfilled cells); `restarts: u32`; `failed: bool`; `measures: Measure[]`, each `{ name, value: number, explanation }`, empty until Wren's measures record, then computed in `maze-core`.
+- **`GeneratedMaze`:** `revision` (the tile set revision used); `seed`, `width`, `height`; `cells: Array<number | null>`, row-major from the north-west, each an index into table order, the same index as `table_view`'s `tiles` at that `revision` (`null` only in a failed maze's unfilled cells); `centre: CellPos { x, y }`, the centre cell [DR-0030](/decisions/0030-measures-for-2-1.md) uses after its hedge fallback; `restarts: u32`; `failed: bool`; `measures: Measure[]`, each `{ name, value, explanation }` with `value` a ready-to-show string worded as DR-0030 words it, computed in `maze-core`. (Facilitator, 2026-11-01: brought in line with the contract agreed for the build, as Rowan and Ash asked in their approvals.)
 
 The frontend draws cells from the `tiles` it already has, and refetches `table_view` if `revision` differs.
 

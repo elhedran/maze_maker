@@ -2,18 +2,21 @@
 type: Roadmap
 title: Maze Maker roadmap
 description: Phases, deliverables and demos for Maze Maker, with Phase 1 sliced into small steps that each end in a demo.
-status: draft
+status: stable
 owners: [product-manager/1]
 approvers: [human:ian]
 tags: [roadmap, phase-1, phase-2, adjacency-table, tooling, demos]
 generated:
   by: product-manager/1
   at: 2026-10-31T19:10:00+01:00
+verified:
+  - by: human:ian
+    at: 2026-10-31T19:25:00+01:00
 ---
 
 # Roadmap
 
-Draft by Marram (product manager). Ian approves its phases and deliverables; Marram reorders and resizes slices within them ([DR-0018](/decisions/0018-one-way-doors-go-to-ian.md)). It reflects input from Yew, Wren and Damson, and Ian's answers to Q-0003 to Q-0007, all given on 2026-10-31.
+By Marram (product manager), approved by Ian on 2026-10-31. Ian approves its phases and deliverables; Marram reorders and resizes slices within them ([DR-0018](/decisions/0018-one-way-doors-go-to-ian.md)). It reflects input from Yew, Wren and Damson, and Ian's answers to Q-0003 to Q-0007, all given on 2026-10-31.
 
 Revised 2026-10-31 for [DR-0012](/decisions/0012-code-layout-and-core-crate.md), [DR-0014](/decisions/0014-square-grid.md), [DR-0015](/decisions/0015-tile-set.md), [DR-0016](/decisions/0016-wren-designs-the-tile-set.md), [DR-0017](/decisions/0017-tile-glyphs-and-colours.md) and [DR-0018](/decisions/0018-one-way-doors-go-to-ian.md), the resolved [Q-0006](/questions/resolved/0006-expected-table-size.md), [Q-0009](/questions/resolved/0009-sign-off-grid-and-tile-set.md) and [Q-0010](/questions/resolved/0010-where-editing-goes.md), and the 1.0 scaffold. No phase or deliverable changed.
 
@@ -25,7 +28,7 @@ Revised 2026-10-31 for [DR-0012](/decisions/0012-code-layout-and-core-crate.md),
   - Damson brings the design for the table and for exploring one tile. How tiles look is settled ([DR-0017](/decisions/0017-tile-glyphs-and-colours.md)).
   - Yew brings the Phase 1 plan, how Rust and TypeScript types stay in step, and then the tile set file format.
   - Wren and Yew work on [Q-0008](/questions/open/0008-global-maze-properties.md) (global maze properties). It doesn't block Phase 1.
-  - Nothing is waiting on Ian except approving this roadmap.
+  - Nothing is waiting on Ian.
 - **Next:** 1.1 and 1.2. Together they are the "exploring the table" demo Ian asked for.
 
 ## How it works

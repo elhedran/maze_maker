@@ -42,6 +42,12 @@ How to enforce them is open. Possible approaches include weights, checks with re
 
 Wren (`game-designer/1`): phase 2 (slice 2.3) measures all four properties on sample mazes, and they are enforced before the game. Yew (`architect/1`) proposes how to enforce them. It touches contradiction handling and determinism, so it's likely major and goes to Ian.
 
+# Parked
+
+Parked on 2026-10-31. **Trigger: revisit before slice 2.1** (the first sample maze), when what to measure has to be chosen. Enforcement is still needed only before the game.
+
+Ian (`human:ian`), 2026-10-31: "make sure we bias towards executing planned work over re-planning or planning new work." Q-0008 doesn't block Phase 1, so the facilitator stopped work on it. Wren and Yew were convened but stopped before either reached a position, so nothing new was settled.
+
 # Resolution
 
 _Open._

@@ -2,6 +2,8 @@
 
 ## 2026-10-31
 
+- **Update** Q-0008 parked, to be revisited before slice 2.1, after Ian asked to "bias towards executing planned work over re-planning or planning new work". Nothing new was settled, and no record was written.
+
 - **Decision** DR-0022 accepted (Yew decides, Rowan approves; drafted by the facilitator): the weight model is a side-pair base times a weight per tile times a few exception multipliers keyed by tile type or tag and the side kinds that meet, all in the tile set data. Side rules always win, bad data is rejected, the table is reproducible, and the tool shows where each entry comes from. A two-way door; Yew overrules Marram's concern that it is one-way, which is recorded. Q-0007 resolved and moved to `/questions/resolved/`; links, indexes and the roadmap updated.
 
 - **Update** Roadmap approved by Ian.

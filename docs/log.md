@@ -1,5 +1,16 @@
 # Log
 
+## 2026-11-01
+
+- **Update** Slice 1.1, first look at the table, is built on branch `claude/slice-1-1-4a2272`, waiting to land on `main`.
+  - Rowan built the Rust side: the tile set model, loader and validation, seeded noise and the table in `maze-core`; the `table_view` and `reload_tile_set` commands; ts-rs bindings. There are 45 Rust tests.
+  - Ash built the Lit table view and explanation panel to DR-0025, with 24 Vitest tests.
+  - Wren set the first numbers in `data/tile-sets/core.toml`, and six hand-checked entries match the tool.
+  - The facilitator ran both demo tasks and the edit-and-Reload loop in the real Tauri window. It also made the tile headers stay in view while the grid scrolls.
+  - Two tool tests had depended on the shipped numbers; they no longer do.
+  - README has the demo steps.
+- **Update** DR-0019 rule 11 numbers, from the first worktrees, are recorded in DR-0019. Rust: first build 1m 40s, first test run 3.9s, 4.0 GB. Frontend: `npm install` 29.3s, test 3.0s, build 1.9s.
+
 ## 2026-10-31
 
 - **Decision** DR-0026 accepted (written by Damson; approved by Marram): the design for slice 1.2, exploring one tile. The chosen tile sits in the middle with a list of neighbours on each side, sorted by share, and the facing side kinds on the shared edge; numbers and explanations come from the 1.1 table and DR-0025's panel; [Go] steps to a neighbour, and [< Back] and a trail go back; one entry point opens it for any tile and orientation, for 2.2 to reuse. Marram listed what the demo must have and what can slip. The 1.2 design gate is met; index and roadmap updated.

@@ -50,3 +50,13 @@ npm run tauri build          # release build and installers, in target/release/b
 `npm run dev` serves only the frontend at http://localhost:1420. Tauri commands don't work there, so the page shows an error instead of the core version.
 
 Rust tests sit next to the code in `#[cfg(test)]` modules. Frontend tests are `*.test.ts` files next to the component. They run in [happy-dom](https://github.com/capricorn86/happy-dom), with the Tauri backend faked by `mockIPC` from `@tauri-apps/api/mocks`, so they need no running app.
+
+## Demo: slice 1.1, first look at the table
+
+From `apps/tool/`, run `npm run tauri dev`. The window shows the adjacency table for the core tile set: one grid per direction, rows are a tile and columns its neighbour in that direction, each cell the neighbour's share of the row as a percentage. A blank cell is a 0.
+
+1. **A corridor corner east of a straight corridor.** Pick **East**. Find the row for the east-west straight corridor `─` and the column for the corner that opens west, `┐`. Click the cell. The panel on the right gives the probability and why: which sides face each other, the base for that pair, each tile's weight, any exceptions, the noise factor, and the row total it is divided by.
+2. **A 0, and which sides clash.** In the same row, click a blank cell under a room wall in the Room columns. The panel says "Can't happen" and names the two sides that clash, for example a passage meeting a room's floor with its wall at the end.
+
+**Changing a probability needs no code change.** The numbers live in `data/tile-sets/core.toml` ([DR-0024](docs/decisions/0024-tile-set-file-format.md)). Edit a base, a tile weight, an exception or the noise, save, and press **Reload tile set**. If the file is wrong, a red banner lists every error and the last good table stays on screen.
+

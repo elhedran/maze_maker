@@ -61,6 +61,11 @@ Ian asked whether the agents were using worktrees appropriately. The first versi
 
 11. The first time a worktree is used, the engineer measures how long its first full build takes (`npm install`, the Rust build and the Tauri app build, from a fresh worktree) and how much disk it uses, and reports the numbers. The facilitator records them in `docs/log.md` and adds them to this record. From then on, the facilitator uses them to decide, per brief, whether a short code step is worth a worktree or should simply wait its turn under rule 2.
 
+**Measured 2026-11-01, on slice 1.1** (the first use, rule 11):
+- Rowan's Rust worktree: first `cargo build --workspace` took 1m 40s, and the first `cargo test --workspace` 3.9s. The folder was 4.0 GB, almost all of it `target/`.
+- Ash's frontend worktree: `npm install` 29.3s, `npm test` 3.0s and `npm run build` 1.9s.
+- One thing to know: a session that runs in its own worktree can only edit files inside it. The engineers' worktrees went inside the facilitator's worktree (`<its root>/.worktrees/`, which is git-ignored too), not at the repository root.
+
 # Alternatives considered
 
 - **One checkout for everyone, code work serialized** (the first version of this record). Safe, but it makes the second engineer wait, and it rested on a ban that never existed. It remains the fallback: when a worktree isn't worth its build cost (rule 11), code work waits its turn in the main checkout.

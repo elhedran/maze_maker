@@ -18,6 +18,8 @@ Records that shape 1.1: [DR-0005](/decisions/0005-tauri-rust-backend-lit-fronten
 
 ## 1.1 First look at the table
 
+**Status (2026-11-01):** built on branch `claude/slice-1-1-4a2272`, waiting to land on `main`. Points 1 to 6 and 8 are checked. Point 7 is checked at 125% scaling only (reload to repaint 28 ms, row headers 35px); 150% scaling hasn't been checked. Points 9 and 10 wait for `main`. The facilitator ran both demo tasks in the real Tauri window.
+
 ### Rowan: the Rust side
 
 Rowan's branch holds `Cargo.lock` (serde, toml in `maze-core`; ts-rs in `maze-tool`).

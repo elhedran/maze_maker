@@ -25,8 +25,8 @@ Revised 2026-10-31 for [DR-0012](/decisions/0012-code-layout-and-core-crate.md),
 - **Now:**
   - 1.0 is done: all four "done when" points checked by Rowan on 2026-10-31.
   - The weight model is decided: a calculated base plus a few exceptions ([DR-0022](/decisions/0022-weight-model.md)), resolving [Q-0007](/questions/resolved/0007-open-details-of-table-probabilities.md).
-  - Damson brings the design for the table and for exploring one tile. How tiles look is settled ([DR-0017](/decisions/0017-tile-glyphs-and-colours.md)).
-  - Yew brings the Phase 1 plan, how Rust and TypeScript types stay in step, and then the tile set file format.
+  - 1.1 is built and waiting to land on `main`: the table design, how types stay in step and the tile set format are settled (DR-0023 to DR-0025), and so is the Phase 1 plan.
+  - Damson brings the design for exploring one tile (1.2).
   - Wren and Yew work on [Q-0008](/questions/open/0008-global-maze-properties.md) (global maze properties). It doesn't block Phase 1.
   - Nothing is waiting on Ian.
 - **Next:** 1.1 and 1.2. Together they are the "exploring the table" demo Ian asked for.
@@ -134,7 +134,14 @@ How the team took it:
   4. the tile set file format, which comes last (Yew, with an engineer);
   5. Yew's Phase 1 plan, with 1.1 as its first step.
 - **Settled since the last revision:** grid shape, neighbour directions and orientation ([DR-0014](/decisions/0014-square-grid.md), [DR-0015](/decisions/0015-tile-set.md)); the tiles and glossary ([DR-0015](/decisions/0015-tile-set.md)); glyphs and colours ([DR-0017](/decisions/0017-tile-glyphs-and-colours.md)).
-- **Status:** not started. This is the critical path.
+- **Status:** built, waiting to land on `main` (2026-11-01). It is on branch `claude/slice-1-1-4a2272`:
+  - the table is built in Rust from `data/tile-sets/core.toml`;
+  - changing a number is an edit and a Reload, with no rebuild;
+  - every cell shows its share of the row, and seeded noise is included and shown in each explanation;
+  - Wren's six hand-checked entries match;
+  - the facilitator ran both demo tasks in the real Tauri window.
+  
+  Records: [DR-0023](/decisions/0023-rust-typescript-types-in-step.md), [DR-0024](/decisions/0024-tile-set-file-format.md), [DR-0025](/decisions/0025-table-view-design.md), and the [Phase 1 plan](/plans/phase-1.md). The demo counts once the slice is on `main` and Ian has done the tasks.
 
 ### 1.2 Explore one tile
 

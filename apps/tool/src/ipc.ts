@@ -33,7 +33,7 @@ const ALL = 0xffff_ffff;
 
 /** Slice 1.1 asks for the whole unfiltered table, one direction at a time. */
 export function wholeTableRequest(direction: Direction): TableViewRequest {
-  const anyTile = () => ({ kinds: [], tileIds: [], tags: [] });
+  const anyTile = () => ({ kinds: [], tileIds: [], tags: [], sides: [] });
   return {
     rowFilter: anyTile(),
     columnFilter: anyTile(),

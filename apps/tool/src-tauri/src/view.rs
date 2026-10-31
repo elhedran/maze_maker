@@ -258,6 +258,7 @@ mod tests {
             kinds: vec![TileKind::Corridor],
             tile_ids: vec![],
             tags: vec!["fallback".into()],
+            sides: vec![],
         };
         let view = table_view(&core, &request);
         // Crossroads (1) and dead end (4).

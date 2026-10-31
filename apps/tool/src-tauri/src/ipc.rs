@@ -44,6 +44,18 @@ pub enum SideKind {
     FloorWallW,
 }
 
+/// A side kind to filter on (DR-0027). Not `SideKind`: the filter has no
+/// per-end wall kinds, only `floor_wall`, which matches a wall at any end.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum SideFilter {
+    Hedge,
+    Passage,
+    Door,
+    Floor,
+    FloorWall,
+}
+
 /// Picks tiles. Empty fields mean any; a tile must match every non-empty
 /// field. Within a field, matching any one value is enough.
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize, TS)]
@@ -52,6 +64,11 @@ pub struct TileFilter {
     pub kinds: Vec<TileKind>,
     pub tile_ids: Vec<String>,
     pub tags: Vec<String>,
+    /// The side on the shared edge (DR-0027): for the row filter, the row's
+    /// side in the requested direction; for the column filter, the column's
+    /// side facing back. Non-empty needs exactly one direction in the
+    /// request, or the request fails with `bad_request`.
+    pub sides: Vec<SideFilter>,
 }
 
 /// A window over the filtered rows or columns. Clamped to what exists, so
@@ -209,6 +226,9 @@ pub enum ToolErrorKind {
     LoadFailed,
     /// No table has loaded yet; `messages` holds the startup load errors.
     NotLoaded,
+    /// The request can't be answered as asked, e.g. a side filter without
+    /// exactly one direction. A frontend bug, not a data problem.
+    BadRequest,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, TS)]
@@ -247,6 +267,7 @@ mod bindings {
         render::<Direction>(&cfg, &mut out);
         render::<TileKind>(&cfg, &mut out);
         render::<SideKind>(&cfg, &mut out);
+        render::<SideFilter>(&cfg, &mut out);
         render::<TileFilter>(&cfg, &mut out);
         render::<Window>(&cfg, &mut out);
         render::<TableViewRequest>(&cfg, &mut out);

@@ -61,5 +61,5 @@ None.
 
 # Links
 
-- Approval and the facilitator's role: [DR-0002](/decisions/0002-approval-and-escalation.md)
+- Approval and the facilitator's role: [DR-0002](/decisions/archive/0002-approval-and-escalation.md)
 - Commits: [DR-0009](/decisions/0009-commit-straight-to-main.md)

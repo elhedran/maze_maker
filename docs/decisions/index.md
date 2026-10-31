@@ -5,7 +5,6 @@ One file per decision ([DR-0001](/decisions/0001-record-every-decision.md)). Onl
 ## Accepted
 
 - [DR-0001 Record every decision as a decision record](/decisions/0001-record-every-decision.md) - Every project decision gets its own decision record in docs/decisions, with a lifecycle and an archive.
-- [DR-0002 Approval and escalation rules](/decisions/0002-approval-and-escalation.md) - Ian approves major decisions and settles disputes; other decisions are approved by the relevant team members.
 - [DR-0003 Open Knowledge Format for all docs](/decisions/0003-open-knowledge-format-for-docs.md) - The docs folder is a strict OKF v0.2 bundle with a fixed layout for decisions, questions and plans.
 - [DR-0004 Track open questions as files](/decisions/0004-open-questions.md) - Questions waiting on a decision live in docs/questions/open and move to docs/questions/resolved when answered.
 - [DR-0005 Tauri v2 with a Rust backend and Lit frontend](/decisions/0005-tauri-rust-backend-lit-frontend.md) - Apps are built with Tauri v2, with generation logic in Rust and the UI in Lit web components.
@@ -21,10 +20,11 @@ One file per decision ([DR-0001](/decisions/0001-record-every-decision.md)). Onl
 - [DR-0015 The core tile set](/decisions/0015-tile-set.md) - Ten tiles in three kinds (corridor, room, hedge), giving 29 (tile, orientation) pairs, built on five kinds of side that say which tiles may sit next to each other.
 - [DR-0017 Tile glyphs and colours in the tool](/decisions/0017-tile-glyphs-and-colours.md) - Each (tile, orientation) shows as one Unicode box-drawing or block character, with corridors in blue single lines, rooms in amber double-line walls on a floor tint, and hedge as texture.
 - [DR-0012 Code layout, with a shared core crate and self-contained apps](/decisions/0012-code-layout-and-core-crate.md) - One Cargo workspace at the repository root, with the UI-free maze-core library in crates/ and each app, starting with the tool, self-contained in apps/.
+- [DR-0018 Easily reversed decisions are the team's; only one-way doors go to Ian](/decisions/0018-one-way-doors-go-to-ian.md) - If a decision can be reversed without a lot of extra work, the team decides it; only decisions that would be costly to reverse, and disputes on them, go to Ian.
 
 ## Proposed
 
 
 ## Archived
 
-_None yet._
+- [DR-0002 Approval and escalation rules](/decisions/archive/0002-approval-and-escalation.md) - Superseded by DR-0018.

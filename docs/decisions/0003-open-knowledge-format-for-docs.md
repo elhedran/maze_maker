@@ -33,7 +33,7 @@ The docs are read by Ian and by agents. A strict, simple format keeps them consi
 `docs/` is an Open Knowledge Format (OKF) v0.2 bundle[^okf], followed strictly.
 
 - Every `.md` file in `docs/` except `index.md` and `log.md` starts with YAML frontmatter with a non-empty `type`. Also set `title`, a one-sentence `description`, and `tags`.
-- Authorship and approval use `generated` and `verified`, with the actor IDs from [DR-0002](/decisions/0002-approval-and-escalation.md). Timestamps are ISO 8601 with an explicit UTC offset.
+- Authorship and approval use `generated` and `verified`, with the actor IDs from [DR-0002](/decisions/archive/0002-approval-and-escalation.md). Timestamps are ISO 8601 with an explicit UTC offset.
 - Links are standard Markdown links and bundle-relative: a leading `/` means `docs/`.
 - Every folder that holds documents has an `index.md` listing them under headings, each with its one-sentence description. Whoever adds, moves or archives a document updates the index.
 - `docs/log.md` records changes newest first, under `YYYY-MM-DD` headings, each line starting with a bold label: `**Creation**`, `**Update**`, `**Decision**`, `**Archive**` or `**Question**`.

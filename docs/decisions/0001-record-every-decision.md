@@ -37,7 +37,7 @@ Every decision gets a decision record (DR): one Markdown file per decision in `d
 - **Lifecycle:** `proposed` becomes `accepted` or `rejected`. An accepted record later becomes `superseded` (a newer record replaces it) or `deprecated` (no longer followed, nothing replaces it).
 - **Archive:** only records in use (`proposed`, `accepted`) stay in `docs/decisions/`. Anything `rejected`, `superseded` or `deprecated` moves (`git mv`) to `docs/decisions/archive/` with the same file name.
 - **Changing direction:** never rewrite an accepted record. Write a new one that `supersedes` it, set `superseded_by` on the old one, then archive the old one.
-- **Approval:** who must approve is set by [DR-0002](/decisions/0002-approval-and-escalation.md). A record is `accepted` only when every actor in `approvers` has signed in `verified`.
+- **Approval:** who must approve is set by [DR-0002](/decisions/archive/0002-approval-and-escalation.md). A record is `accepted` only when every actor in `approvers` has signed in `verified`.
 
 # Schema
 
@@ -97,7 +97,7 @@ None.
 
 # Links
 
-- Approval rules: [DR-0002](/decisions/0002-approval-and-escalation.md)
+- Approval rules: [DR-0002](/decisions/archive/0002-approval-and-escalation.md)
 - Document format: [DR-0003](/decisions/0003-open-knowledge-format-for-docs.md)
 
 [^glukhov]: https://www.glukhov.org/app-architecture/documentation/decision-records-ai-driven-development/

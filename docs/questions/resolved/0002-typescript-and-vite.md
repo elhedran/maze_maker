@@ -26,7 +26,7 @@ Should the Lit frontend be written in TypeScript and built with Vite?
 
 # Context
 
-Vite is Tauri's usual frontend tooling, and Lit works with it in either TypeScript or JavaScript. This is a technology choice, so it's Ian's ([DR-0002](/decisions/0002-approval-and-escalation.md)). It isn't needed until the phase 1 tool is scaffolded.
+Vite is Tauri's usual frontend tooling, and Lit works with it in either TypeScript or JavaScript. This is a technology choice, so it's Ian's ([DR-0002](/decisions/archive/0002-approval-and-escalation.md)). It isn't needed until the phase 1 tool is scaffolded.
 
 # Options
 

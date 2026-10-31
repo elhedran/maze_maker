@@ -12,7 +12,7 @@ resolved_by: human:ian
 resolved_at: 2026-10-31T14:46:00+01:00
 related:
   - /decisions/0001-record-every-decision.md
-  - /decisions/0002-approval-and-escalation.md
+  - /decisions/archive/0002-approval-and-escalation.md
   - /decisions/0003-open-knowledge-format-for-docs.md
   - /decisions/0004-open-questions.md
   - /decisions/0005-tauri-rust-backend-lit-frontend.md
@@ -33,7 +33,7 @@ Do DR-0001 to DR-0010 say what you decided? Approve them all, or say which to ch
 
 # Context
 
-The facilitator drafted these records from the setup conversation on 2026-10-31. They are all major, and AI-drafted records need your review before they're accepted ([DR-0002](/decisions/0002-approval-and-escalation.md)). Until then they stay `proposed`.
+The facilitator drafted these records from the setup conversation on 2026-10-31. They are all major, and AI-drafted records need your review before they're accepted ([DR-0002](/decisions/archive/0002-approval-and-escalation.md)). Until then they stay `proposed`.
 
 The "Alternatives considered" sections in DR-0005 and DR-0006 were added by the facilitator for context. You didn't discuss them.
 

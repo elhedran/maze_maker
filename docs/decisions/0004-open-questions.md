@@ -32,7 +32,7 @@ Any question that needs someone to decide is tracked as a file.
 - When it's answered or withdrawn, fill in `# Resolution` and move the file (`git mv`) to `docs/questions/resolved/`.
 - If the answer is a decision, it also gets a decision record ([DR-0001](/decisions/0001-record-every-decision.md)), and the question links to it in `resolution_record`.
 - `docs/questions/index.md` lists open questions under **Waiting on Ian** and **Waiting on the team**, followed by resolved ones.
-- Disputes the team can't settle ([DR-0002](/decisions/0002-approval-and-escalation.md)) are raised as questions waiting on Ian, with each position stated and attributed.
+- Disputes the team can't settle ([DR-0002](/decisions/archive/0002-approval-and-escalation.md)) are raised as questions waiting on Ian, with each position stated and attributed.
 
 # Schema
 
@@ -83,5 +83,5 @@ None.
 
 # Links
 
-- Approval and escalation: [DR-0002](/decisions/0002-approval-and-escalation.md)
+- Approval and escalation: [DR-0002](/decisions/archive/0002-approval-and-escalation.md)
 - Questions: [index](/questions/index.md)

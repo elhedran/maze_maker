@@ -48,7 +48,7 @@ The same, adding nothing:
 - Room walls are not rare.
 - Beyond that, the team goes with what makes a nice maze, for room walls, maze character and fallbacks. The tool is for fixing the maze by review, not getting it perfect ahead of time.
 
-Ian's approval covers only what is above, and "the team decides" rather than any particular answer. The team's choices are game design, approved by Wren and Marram ([DR-0002](/decisions/0002-approval-and-escalation.md)). The tiles themselves are listed in DR-0015, which links here.
+Ian's approval covers only what is above, and "the team decides" rather than any particular answer. The team's choices are game design, approved by Wren and Marram ([DR-0002](/decisions/archive/0002-approval-and-escalation.md)). The tiles themselves are listed in DR-0015, which links here.
 
 ## Left to the team
 
@@ -64,7 +64,7 @@ Ian's approval covers only what is above, and "the team decides" rather than any
 # Consequences
 
 - [Q-0004](/questions/resolved/0004-where-the-tile-set-comes-from.md) is resolved.
-- Wren and Marram approve the starter set and full set v1 as game-design records, unless something in them is major ([DR-0002](/decisions/0002-approval-and-escalation.md)).
+- Wren and Marram approve the starter set and full set v1 as game-design records, unless something in them is major ([DR-0002](/decisions/archive/0002-approval-and-escalation.md)).
 - Crossroads and dead ends are in the set as rare fallbacks, not ordinary tiles. The tile set session decides whether they join the starter set or wait for full set v1.
 
 # Concerns raised

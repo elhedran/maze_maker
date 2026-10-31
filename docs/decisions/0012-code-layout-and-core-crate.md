@@ -24,7 +24,7 @@ verified:
 
 # Context
 
-[DR-0008](/decisions/0008-adjacency-tool-first.md) makes the tool and the game separate apps, and leaves the architect to propose how they share code. The tool's skeleton (roadmap slice 1.0) is next. The layout and the boundary between shared logic and app code should be set before there is code to move, because both get expensive to change once features are built on them. That makes this major under [DR-0002](/decisions/0002-approval-and-escalation.md): it sets structure and boundaries between parts.
+[DR-0008](/decisions/0008-adjacency-tool-first.md) makes the tool and the game separate apps, and leaves the architect to propose how they share code. The tool's skeleton (roadmap slice 1.0) is next. The layout and the boundary between shared logic and app code should be set before there is code to move, because both get expensive to change once features are built on them. That makes this major under [DR-0002](/decisions/archive/0002-approval-and-escalation.md): it sets structure and boundaries between parts.
 
 # Decision
 
@@ -61,7 +61,7 @@ maze_maker/
 - It is a plain Rust library. It never depends on Tauri (`tauri` or any `tauri-*` crate), a UI or webview crate, an async runtime, or anything in `apps/`.
 - It does no I/O. It doesn't open files or sockets, read the environment, or read the clock or OS randomness. Callers hand it data (strings, bytes, values) and get values back. Parsing data it has been given is fine.
 - Randomness, if needed, is passed in by the caller. This keeps [DR-0007](/decisions/0007-wave-function-collapse.md)'s determinism question open rather than answering it.
-- Core never uses a dependency to do I/O, and turns off default features that bring in OS access (for example `getrandom`). Significant dependencies need a record ([DR-0002](/decisions/0002-approval-and-escalation.md)).
+- Core never uses a dependency to do I/O, and turns off default features that bring in OS access (for example `getrandom`). Significant dependencies need a record ([DR-0002](/decisions/archive/0002-approval-and-escalation.md)).
 - Dependencies point one way: apps depend on crates, never the reverse, and apps never depend on each other.
 
 **Apps.** Each app lives in `apps/<name>/` and is self-contained, with its own `package.json`, `package-lock.json`, Vite config, `src/` and `src-tauri/`. This is the standard Tauri v2 layout moved down a level, so the template's relative paths still work. The app crate holds everything app-specific: Tauri commands, the types that cross IPC to the frontend, file loading, and paging or streaming large data ([DR-0005](/decisions/0005-tauri-rust-backend-lit-frontend.md)). The Tauri CLI is a dev dependency of the app, run with npm ([DR-0006](/decisions/0006-npm-for-frontend-packages.md)).

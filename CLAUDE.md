@@ -25,7 +25,7 @@ The team argues with each other, not with Ian. Concerns about Ian's calls get wr
 - Marram (product manager) can overrule the engineers and Damson on product matters: scope, priorities, sequencing and deliverables.
 - Damson (UX designer) can overrule the engineers on user experience.
 
-Any other dispute the team can't settle goes to Ian. Marram takes minor and two-way-door product decisions alone. Ian has an architecture background: on anything architectural, if in doubt, defer to him.
+Only disputes on one-way doors go to Ian. On a two-way door, the role that owns the decision picks what to try (Yew or Marram if that's unclear), the concern is recorded, and review settles it. Marram takes minor and two-way-door product decisions alone. Ian has an architecture background: when an architectural decision does reach him, defer to him.
 
 ## Facilitator: managing context (DR-0010)
 
@@ -49,15 +49,20 @@ The facilitator's main job is managing context, for the team and for Ian's sessi
 3. If the task conflicts with an accepted record, stop and say so. Never reverse a decision without a superseding record.
 4. When done, say which records shaped the work.
 
-## Decisions (DR-0001, DR-0002)
+## Decisions (DR-0001, DR-0018)
 
 - Every decision gets a record: one file, `docs/decisions/NNNN-slug.md`.
-- Major decisions need Ian: technology and frameworks, major architecture, process, anything hard to reverse, and team disputes. **If unsure whether it's major, it is: ask.**
-- Other decisions:
+- **One test: can we reverse it without a lot of extra work?** If yes, it's a two-way door and the team decides it; it doesn't go to Ian or wait on him. Only one-way doors go to Ian: decisions that would create a lot of work to reverse, or tie down his own time or money (changing the tech stack, for example). The tile set, glyphs, weights, door rules, the code layout and the grid were all the team's call.
+- If unsure whether something is a one-way door, Yew decides for technical decisions and Marram for product, UX and game design. Don't ask Ian.
+- `major: true` marks a one-way door, and the record says in a sentence what reversing it would cost.
+- Every report to Ian lists the two-way doors the team took and any overrules, so he can reopen one.
+- Approvers:
   - architecture: architect and one engineer;
   - product: product manager;
   - UX: UX designer and product manager;
-  - game design: game designer and product manager.
+  - game design: game designer and product manager;
+  - process: product manager and architect; Ian if it changes how decisions reach him, approvals, overrules, `CLAUDE.md` or the agent files.
+  - A one-way door adds Ian.
 - Authors never approve their own records.
 - An approval is a `verified` entry with the approver's actor ID. Only write `human:ian` when Ian approved in conversation.
 - Anything not in use (rejected, superseded, deprecated) moves to `docs/decisions/archive/`.

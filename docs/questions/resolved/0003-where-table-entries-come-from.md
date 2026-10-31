@@ -34,7 +34,7 @@ How should the adjacency table's entries be produced? Should they be worked out 
 - Yew asks for this to be settled now, alongside the grid geometry record. The answer shapes the weights record and the tile set file format.
 - It blocks roadmap slice 1.1, the first demo ([roadmap](/roadmap.md)).
 - Phase 1 is view and filter only ([DR-0008](/decisions/0008-adjacency-tool-first.md)). If the table is written by hand, editing it in the tool becomes a scope question.
-- It sets the data model and is hard to reverse, so it is major ([DR-0002](/decisions/0002-approval-and-escalation.md)).
+- It sets the data model and is hard to reverse, so it is major ([DR-0002](/decisions/archive/0002-approval-and-escalation.md)).
 
 # Options
 

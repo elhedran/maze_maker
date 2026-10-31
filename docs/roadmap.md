@@ -31,7 +31,7 @@ Draft by Marram (product manager), waiting on Ian's approval. It reflects input 
 - Every slice works end to end, from Rust to the screen.
 - Every slice ends in a demo, written as tasks Ian does himself without help (Damson's suggestion). Each demo comes with a commit on `main`, a line in `/log.md` and the steps to run it.
 - A slice starts once the decisions it waits on are accepted. This roadmap names those decisions but doesn't make them.
-- Marram can reorder or resize slices within a phase, because sequencing is a product matter ([DR-0002](/decisions/0002-approval-and-escalation.md)). Changing what a phase is for goes to Ian.
+- Marram can reorder or resize slices within a phase, because sequencing is a product matter ([DR-0002](/decisions/archive/0002-approval-and-escalation.md)). Changing what a phase is for goes to Ian.
 - Yew writes the Phase 1 plan in `/plans/`, with these slices as its steps. The plan turns "responsive", "readable" and "see and understand" into measurable tests (Yew).
 - Slice numbers are stable, because other records refer to them. A dropped slice keeps its number.
 - Demo tasks say "east", which assumes a square grid. The geometry record hasn't settled that yet.
@@ -153,7 +153,7 @@ How the team took it:
 
 ### 1.4 Table checks (dropped)
 
-Marram dropped this slice on 2026-10-31, as a scope call ([DR-0002](/decisions/0002-approval-and-escalation.md)).
+Marram dropped this slice on 2026-10-31, as a scope call ([DR-0002](/decisions/archive/0002-approval-and-escalation.md)).
 
 - Ian said hard-to-place tiles and rare or common tiles aren't important to him ([Q-0005](/questions/resolved/0005-what-to-find-out-from-the-table.md)), and he expects to see problems in mazes.
 - Damson suggested shrinking 1.4 to basic checks. Marram went further: one basic check stays, as a test in 1.5.
@@ -244,7 +244,7 @@ These views belong in the records and questions that will settle them. The roadm
 
 ## What gates each slice
 
-"Ian?" means Ian approves the gate. DR-0007's follow-ups are likely major ([DR-0002](/decisions/0002-approval-and-escalation.md)).
+"Ian?" means Ian approves the gate. DR-0007's follow-ups are likely major ([DR-0002](/decisions/archive/0002-approval-and-escalation.md)).
 
 Already settled:
 

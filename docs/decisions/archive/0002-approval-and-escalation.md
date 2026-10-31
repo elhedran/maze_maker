@@ -2,15 +2,16 @@
 type: Decision Record
 title: Approval and escalation rules
 description: Ian approves major decisions and settles disputes; other decisions are approved by the relevant team members.
-status: stable
+status: deprecated
 decision_id: DR-0002
-decision_status: accepted
+decision_status: superseded
 decision_kind: process
 major: true
 owners: [human:ian]
 approvers: [human:ian]
 decided_at: 2026-10-31T14:46:00+01:00
 supersedes: []
+superseded_by: /decisions/0018-one-way-doors-go-to-ian.md
 tags: [process, decisions, team]
 generated:
   by: facilitator/1

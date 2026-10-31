@@ -2,6 +2,8 @@
 
 ## 2026-10-31
 
+- **Decision** DR-0018 accepted (Ian, reviewed by Yew and Marram): one test for what goes to Ian. If a decision can be reversed without a lot of extra work, the team decides it; only one-way doors and disputes on them go to Ian. When unclear, Yew decides for technical decisions and Marram for product. Supersedes DR-0002, now archived. `CLAUDE.md` and every agent in `.claude/agents/` updated to match.
+
 - **Decision** DR-0014 accepted (Yew, Ian): square grid with four neighbours. Ian noted it should not have been blocked on him. Q-0009 resolved.
 
 - **Decision** DR-0012 accepted (Yew, Rowan, Ian): the code layout. Ian approved it but said it should not have waited on him; decisions like it now go to the architect and an engineer.

@@ -200,7 +200,13 @@ Moved to later by Marram on 2026-11-01, then brought back the same day to run in
   - it's always visible what has been filtered out;
   - one action clears all filters.
 - **Waits on:** Damson's design for filtering (Damson and Marram). Kinds, tile types and tags on every tile are settled ([DR-0015](/decisions/0015-tile-set.md)).
-- **Status:** in progress (2026-11-01), on its own branch, in parallel with 2.1. Design gate met: [DR-0027](/decisions/0027-filter-table-design.md) accepted 2026-11-01. DR-0027's slip list stands: Kind, Tile type, the count line and Clear all are the must-haves; the Tag and Side facets and the filters in words may slip.
+- **Status:** built, waiting to land (2026-11-01). It's on branch `claude/busy-ritchie-ebe382`, not yet on `main`. Design gate met: [DR-0027](/decisions/0027-filter-table-design.md) accepted 2026-11-01.
+  - **Built:** everything in DR-0027, nothing slipped. Kind, Tile type, Tag and Side facets for the tile (rows) and the neighbour (columns); the count line with the filters in words; Clear all; the empty state. Rust filters through DR-0024's request, plus DR-0027's `sides` field; a side filter with other than one direction is a `bad_request` error (Rowan). The bar is `apps/tool/src/table/filter-bar.ts` (Ash).
+  - **Verified:** 52 Rust tests and 36 Vitest tests pass, and the build passes. The facilitator drove the real Tauri window by script: corridor corners next to rooms shows 4 of 29 rows, 13 of 29 columns; the demo (Room rows, Corridor columns, East) shows 13 of 29 rows, 15 of 29 columns; side labels follow the switcher; the empty state and Clear all work. Damson checked it against DR-0027 and passed it, with no overrules.
+  - **Ian, 2026-11-01, verbatim:** "new filters look good".
+  - **Bug found in the live check, and fixed:** two filter changes made before the bar redrew lost the first one. Ash fixed it, with a test that fails without the fix; the facilitator rechecked it in the live window (8 of 8 runs correct). After the fix: 52 Rust and 37 Vitest tests pass, and the build passes.
+  - **Follow-ups (Damson, not blockers):** make the shade legend look less like pressed buttons; when exactly one tile type is chosen, name it in the corner sentence ("Corridor corner tile, then…").
+  - **Next:** Ian's OK to land; then the facilitator rebases onto `main` (2.1 may have landed by then), reruns the build and tests, and fast-forwards `main`.
 
 ### 1.4 Table checks (dropped)
 

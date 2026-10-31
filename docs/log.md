@@ -2,6 +2,8 @@
 
 ## 2026-11-01
 
+- **Update** Slice 1.3, filtering the table, is built to [DR-0027](/decisions/0027-filter-table-design.md) on branch `claude/busy-ritchie-ebe382`, not yet on `main`. Rowan added the `sides` filter in Rust, with a `bad_request` error unless the request names one direction. Ash built the filter bar, with nothing slipped, and fixed a lost-update bug found in the live check. 52 Rust and 37 Vitest tests pass. The facilitator drove the real Tauri window by script, and Damson passed it against DR-0027 with two follow-ups (the shade legend, and the corner sentence for one tile type). Ian, verbatim: "new filters look good". It lands on `main` after Ian's OK. Roadmap 1.3 status updated.
+
 - **Update** Roadmap: Marram brought slice 1.3, filtering the table, back to run in parallel with 2.1, a sequencing call and a two-way door, after Ian said "Happy to use tokens faster if we can doo more work concurrently". It has its own session, worktrees and agent sessions of Rowan (Rust `sides` filter) and Ash (Lit filter bar), takes nothing from 2.1, and touches only the table view, its command and the filter code. DR-0027's slip list stands. Status lines updated.
 
 - **Update** Ian ran slice 1.1's two demo tasks himself from `main` and approved them: "demo approved - looks good.  I tried the east, tried the blank cell, also did a bit of an explore around how paths and rooms were represented". Roadmap 1.1 status and the Phase 1 plan updated; the plan's points 9 and 10 are checked.

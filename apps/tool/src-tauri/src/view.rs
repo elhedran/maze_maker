@@ -327,9 +327,11 @@ mod tests {
             2,
         );
         assert!(e.allowed);
-        assert_eq!(e.exceptions, vec![0]);
+        // The test exception is the last one, after any in core.toml.
+        let test_exception = view.exceptions.len() as u32 - 1;
+        assert_eq!(e.exceptions, vec![test_exception]);
         assert_eq!(
-            view.exceptions[0].rule,
+            view.exceptions[test_exception as usize].rule,
             "tile corridor_straight (passage) beside tile corridor_corner (passage)"
         );
         let product = e.base * e.row_weight * e.column_weight * 0.5 * e.noise;

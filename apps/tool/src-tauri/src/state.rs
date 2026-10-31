@@ -180,10 +180,10 @@ mod tests {
         assert_eq!(state.reload(&file.0).unwrap().revision, 1);
         let before = state.table_view(&TableViewRequest::everything()).unwrap();
 
-        file.write(&CORE.replace("weight = 1.0", "weight = -2.0"));
+        file.write(&CORE.replace("amount = 0.15", "amount = 1.5"));
         let err = state.reload(&file.0).unwrap_err();
         assert_eq!(err.kind, ToolErrorKind::LoadFailed);
-        assert_eq!(err.messages.len(), 10, "one per tile: {:?}", err.messages);
+        assert_eq!(err.messages.len(), 1, "{:?}", err.messages);
         assert_eq!(
             state.table_view(&TableViewRequest::everything()).unwrap(),
             before

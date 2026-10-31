@@ -8,9 +8,11 @@
 #
 # Edit, save, and press Reload in the tool; no rebuild needed.
 #
-# Numbers: every base, weight and multiplier starts at 1.0 with no exceptions,
-# as the Phase 1 plan says. Wren supplies the first real numbers and
-# exceptions as an edit to this file.
+# Numbers: Wren's first pass (game-designer/1, 2026-10-31). They aim at a
+# hedge maze that is inviting to wander: plenty of hedge, winding corridors
+# that turn more than they run straight, some junctions for choice, real
+# rooms with walls, and crossroads and dead ends kept as rare fallbacks
+# (DR-0016). They are a starting point for review in the tool, not final.
 #
 # Tile order is table order: kind order (corridor, room, hedge), with
 # fallbacks last within their kind (DR-0017 rule 8).
@@ -19,17 +21,30 @@ format = 1
 name = "core"
 
 # Seeded variation on every allowed entry (DR-0024). amount = 0 turns it off.
+# Kept as planned; Wren's DR-0013 concern about noise is on record, and the
+# sample mazes will tell us whether 0.15 makes them samey or muddy.
 [noise]
 seed = 20261031
 amount = 0.15
 
 # One base per pair of side kinds that may meet. All six are required.
+# Bases stay neutral where the tile weights already say what we want, so a
+# number in the table is easy to trace to one cause.
 [bases]
+# Hedge against hedge is the fabric of the maze; neutral, the hedge tile's
+# own weight carries "hedge is common".
 hedge_hedge = 1.0
+# Corridor joining corridor: the main way the player moves. Neutral.
 passage_passage = 1.0
+# A corridor arriving at a room's door: rooms should be reachable, so neutral.
 passage_door = 1.0
-door_door = 1.0
+# Doorway facing doorway: two rooms joined by a door with no corridor between.
+# Allowed, but it skips the walk between rooms, so uncommon.
+door_door = 0.3
+# Open floor beside open floor: room interiors. Neutral.
 floor_floor = 1.0
+# Wall-edged floor continuing along a room's wall. Neutral, so room walls
+# run on rather than breaking up.
 floor_wall_floor_wall = 1.0
 
 # Sides are N, E, S, W at rotation 0. Side kinds: hedge, passage, door,
@@ -42,6 +57,8 @@ kind = "corridor"
 tags = []
 sides = ["passage", "hedge", "passage", "hedge"]
 orientations = 2
+# The reference corridor. Long straight runs are damped by an exception
+# below rather than here, so a single straight stays ordinary.
 weight = 1.0
 
 [[tile]]
@@ -51,7 +68,9 @@ kind = "corridor"
 tags = []
 sides = ["passage", "passage", "hedge", "hedge"]
 orientations = 4
-weight = 1.0
+# A little above straight: hedge mazes wind, and a turn hides what's next,
+# which is where curiosity comes from.
+weight = 1.2
 
 [[tile]]
 id = "corridor_t_intersection"
@@ -60,7 +79,9 @@ kind = "corridor"
 tags = ["junction"]
 sides = ["passage", "passage", "hedge", "passage"]
 orientations = 4
-weight = 1.0
+# Choices matter, but too many make the maze a tangle; a junction every few
+# tiles, not every other one.
+weight = 0.6
 
 [[tile]]
 id = "corridor_crossroads"
@@ -69,7 +90,9 @@ kind = "corridor"
 tags = ["junction", "fallback"]
 sides = ["passage", "passage", "passage", "passage"]
 orientations = 1
-weight = 1.0
+# Fallback (DR-0016): very low. Four-way choices are disorienting and flatten
+# the maze into a grid.
+weight = 0.05
 
 [[tile]]
 id = "corridor_dead_end"
@@ -78,7 +101,9 @@ kind = "corridor"
 tags = ["fallback"]
 sides = ["passage", "hedge", "hedge", "hedge"]
 orientations = 4
-weight = 1.0
+# Fallback (DR-0016): very low. A dead end with nothing in it is a small
+# punishment; until dead ends can hold a reward, keep them rare.
+weight = 0.05
 
 [[tile]]
 id = "open_room"
@@ -87,7 +112,9 @@ kind = "room"
 tags = []
 sides = ["floor", "floor", "floor", "floor"]
 orientations = 1
-weight = 1.0
+# Room interiors: a clearing to arrive in. Slightly under corridor so rooms
+# are places you find, not the default.
+weight = 0.8
 
 [[tile]]
 id = "room_wall"
@@ -96,6 +123,8 @@ kind = "room"
 tags = ["room_edge"]
 sides = ["hedge", "floor_wall_n", "floor", "floor_wall_n"]
 orientations = 4
+# Not rare (Ian): every room needs its walls, and a room that can't close
+# off reads as a smear of floor.
 weight = 1.0
 
 [[tile]]
@@ -105,7 +134,9 @@ kind = "room"
 tags = ["room_edge"]
 sides = ["hedge", "hedge", "floor_wall_e", "floor_wall_n"]
 orientations = 4
-weight = 1.0
+# Fewer than walls (a room has four corners but many wall tiles), but
+# enough that rooms close into shapes.
+weight = 0.7
 
 [[tile]]
 id = "room_doorway"
@@ -114,7 +145,9 @@ kind = "room"
 tags = ["room_edge"]
 sides = ["door", "floor_wall_n", "floor", "floor_wall_n"]
 orientations = 4
-weight = 1.0
+# One or two ways in per room: a doorway is a threshold, and too many make
+# the room just another junction.
+weight = 0.4
 
 [[tile]]
 id = "hedge"
@@ -123,15 +156,25 @@ kind = "hedge"
 tags = []
 sides = ["hedge", "hedge", "hedge", "hedge"]
 orientations = 1
-weight = 1.0
+# Common (DR-0016): solid hedge is what makes it a hedge maze and gives
+# corridors their shape.
+weight = 1.5
 
 # Exceptions multiply particular pairs, both ways round (DR-0022). Each end
 # names a tile (tile = "<id>") or a tag (tag = "<tag>") and the side it
-# presents; side = "floor_wall" matches a wall at either end. An example,
-# switched off:
-#
-# [[exception]]
-# name = "Doorway rarely faces a dead end"
-# a = { tile = "room_doorway", side = "door" }
-# b = { tile = "corridor_dead_end", side = "passage" }
-# multiplier = 0.1
+# presents; side = "floor_wall" matches a wall at either end.
+
+# Long straight runs are tedious and show you everything ahead; halve
+# straight-into-straight so corridors bend more often than they run on.
+[[exception]]
+name = "Long straights are rarer than turns"
+a = { tile = "corridor_straight", side = "passage" }
+b = { tile = "corridor_straight", side = "passage" }
+multiplier = 0.5
+
+# Walking out of a room straight into a dead end feels like a trick.
+[[exception]]
+name = "Doorway rarely faces a dead end"
+a = { tile = "room_doorway", side = "door" }
+b = { tile = "corridor_dead_end", side = "passage" }
+multiplier = 0.1

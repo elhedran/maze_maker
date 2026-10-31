@@ -2,12 +2,14 @@
 type: Open Question
 title: How big will the table get?
 description: Estimate how many rows (tile and orientation pairs) the adjacency table will have, in Phase 1 and later in the game.
-status: draft
+status: stable
 question_id: Q-0006
-question_status: open
+question_status: resolved
 waiting_on: [human:ian]
 raised_by: product-manager/1
 raised_at: 2026-10-31T15:05:00+01:00
+resolved_by: human:ian
+resolved_at: 2026-10-31T15:40:00+01:00
 related:
   - /roadmap.md
   - /decisions/0005-tauri-rust-backend-lit-frontend.md
@@ -51,4 +53,6 @@ Marram (`product-manager/1`): an order of magnitude is enough, for Phase 1 and f
 
 # Resolution
 
-_Open._
+Ian answered on 2026-10-31, in conversation with the main facilitator session. His words, verbatim: "For Q-0006, I expect the eventual table to be up in the order of millions of cells - although in the short term more in the order of 30 rows/columns."
+
+So the table is small for now, about 30 rows and columns, and in the end around millions of cells. This is an estimate for planning, not a decision, so it has no record of its own. It feeds Yew's paging and transport record and the roadmap's condition on slice 1.5.

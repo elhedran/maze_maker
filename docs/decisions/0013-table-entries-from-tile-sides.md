@@ -80,7 +80,7 @@ From [Q-0003](/questions/resolved/0003-where-table-entries-come-from.md):
 
 # Consequences
 
-- The table is computed from the tile set, not written by hand. Whether the tool can edit probabilities is a separate question for Ian ([Q-0010](/questions/open/0010-where-editing-goes.md)); [DR-0008](/decisions/0008-adjacency-tool-first.md) keeps Phase 1 to view and filter.
+- The table is computed from the tile set, not written by hand. Whether the tool can edit probabilities is a separate question for Ian ([Q-0010](/questions/resolved/0010-where-editing-goes.md)); [DR-0008](/decisions/0008-adjacency-tool-first.md) keeps Phase 1 to view and filter.
 - The table holds probabilities, with 0 where sides don't pair up. Yew (`architect/1`) reads this as settling "weights vs allowed/forbidden" from [DR-0007](/decisions/0007-wave-function-collapse.md) in favour of weights, so the roadmap gate becomes "the weight model". That record still decides:
   - per-pair weights, per-tile weights, or both;
   - where base weights live;

@@ -2,12 +2,14 @@
 type: Open Question
 title: Where does editing probabilities go?
 description: Decide which phase, if any, adds editing the table's probabilities inside the tool, given that Phase 1 is view and filter only.
-status: draft
+status: stable
 question_id: Q-0010
-question_status: open
+question_status: resolved
 waiting_on: [human:ian]
 raised_by: product-manager/1
 raised_at: 2026-10-31T15:25:00+01:00
+resolved_by: product-manager/1
+resolved_at: 2026-10-31T15:45:00+01:00
 related:
   - /roadmap.md
   - /decisions/0008-adjacency-tool-first.md
@@ -62,4 +64,6 @@ If your Q-0007 answer is weights set by hand on every pair, Marram would move ed
 
 # Resolution
 
-_Open._
+Withdrawn from Ian and decided by Marram (`product-manager/1`) as a two-way door, following Ian's direction on 2026-10-31: "too many details in the maze came to me and the intent of the tool was to be able to defer those. The whole team needs to learn about two way door decisions (they make) versus one way door decisions (I make)."
+
+Decision: editing probabilities in the tool joins Phase 2 at slice 2.3. Until then, Ian changes probabilities by editing the tile set data and reloading it. If the weight model ends up as weights set by hand on every pair, Marram and Yew move editing earlier.

@@ -5,7 +5,7 @@ description: Settle the points that DR-0013 (table entries) and DR-0016 (tile se
 status: draft
 question_id: Q-0007
 question_status: open
-waiting_on: [human:ian]
+waiting_on: [engineer-rowan/1, engineer-ash/1]
 raised_by: facilitator/1
 raised_at: 2026-10-31T15:10:00+01:00
 related:
@@ -13,7 +13,7 @@ related:
   - /decisions/0016-wren-designs-the-tile-set.md
   - /questions/resolved/0003-where-table-entries-come-from.md
   - /questions/resolved/0004-where-the-tile-set-comes-from.md
-  - /questions/open/0006-expected-table-size.md
+  - /questions/resolved/0006-expected-table-size.md
   - /roadmap.md
 tags: [adjacency-table, probabilities, tile-sides, tile-set, phase-1]
 generated:
@@ -49,7 +49,7 @@ Ian has answered points 1 to 9 (see Context). Point 10 is still with him; the ma
   - "should we see it often in that place";
   - "some randomness ... to add flavour".
 
-  "I'm expecting a big table" is partial input to [Q-0006](/questions/open/0006-expected-table-size.md), which stays open. Points 5 and 10 ask what his randomness and "in that place" mean.
+  "I'm expecting a big table" is partial input to [Q-0006](/questions/resolved/0006-expected-table-size.md), which stays open. Points 5 and 10 ask what his randomness and "in that place" mean.
 - **Points 1 to 9 are answered.** Ian (`human:ian`), verbatim, 2026-10-31:
 
   > rooms can only join at a door. We will add some game logic on not "doubling up" the doors in these scenarios at play time, not map generation time. A path can only lead into a room via a door - the open side of a room (i.e. not the wall) can only be to other open room. 3. is a good question. Lets allow for rooms we can't get into for now. We will revisit if and how we fix this later. for 4. its more that paths are more likely to be near other paths. Rooms should be rare. Although I guess the closed side of a room is equally likely to be another room or a path.
@@ -99,4 +99,8 @@ On point 10, Yew (`architect/1`) recommends (b): a computed base plus a few exce
 
 # Resolution
 
-_Open._
+_Open, now with the team._ Following Ian's direction on 2026-10-31 that the team makes two-way-door decisions itself ("too many details in the maze came to me and the intent of the tool was to be able to defer those. The whole team needs to learn about two way door decisions (they make) versus one way door decisions (I make)."), point 10 no longer goes to Ian.
+
+- **Yew (`architect/1`):** two-way, because the table is calculated from the tile set data and nothing saved depends on it yet. Yew decides (b): a calculated base plus a few exceptions for particular pairs. The tool shows each final weight and where it came from. Zones come later as extra sets of weights over the same base. At millions of cells (Q-0006), setting every pair by hand isn't workable.
+- **Marram (`product-manager/1`):** sees it as one-way, because it is the table's data model and the tile set format builds on it.
+- Yew can overrule Marram on architecture ([DR-0002](/decisions/0002-approval-and-escalation.md)). As an architecture decision it still needs one engineer's approval. Once an engineer agrees, it gets its own record and this question is resolved. If the engineer agrees with Marram that it's one-way, it goes back to Ian.

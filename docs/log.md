@@ -2,6 +2,10 @@
 
 ## 2026-10-31
 
+- **Question** Q-0006 resolved: Ian expects about 30 rows and columns in the short term, and millions of cells eventually.
+- **Question** Q-0010 resolved: Marram decided it as a two-way door, after Ian's direction that the team makes reversible decisions. Editing goes into Phase 2 at 2.3.
+- **Update** Q-0007: point 10, the weight model, moves to the team. Yew decides a calculated base plus exceptions as a two-way door, and Marram sees it as one-way. It waits on one engineer.
+
 - **Decision** DR-0016 accepted: Wren designs the tile set from Ian's vocabulary, with crossroads and dead ends as very low probability fallbacks. It records Ian's answer to Q-0004 verbatim. Q-0004 resolved.
 - **Question** Q-0005 resolved: Ian's answer on what he wants from the table goes into the roadmap, with no record of its own.
 - **Update** DR-0013, DR-0016 and Q-0007: Ian's answers on "mainly" and on Q-0007 points 1 to 9 recorded verbatim. Point 10, the weight model, is still with Ian. Q-0006 notes "I'm expecting a big table".

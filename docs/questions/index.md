@@ -4,13 +4,11 @@ Questions waiting on a decision, and how they were answered ([DR-0004](/decision
 
 ## Waiting on Ian
 
-- [Q-0006 How big will the table get?](/questions/open/0006-expected-table-size.md) - Estimate how many rows (tile and orientation pairs) the adjacency table will have, in Phase 1 and later in the game. Not urgent: blocks 1.5.
-- [Q-0007 Open details of the table's probabilities and the tile set](/questions/open/0007-open-details-of-table-probabilities.md) - Points 1 to 9 are answered; point 10, the weight model, is still with Ian. Blocks 1.1 through the weight model.
-- [Q-0010 Where does editing probabilities go?](/questions/open/0010-where-editing-goes.md) - Decide which phase, if any, adds editing the table's probabilities inside the tool, given that Phase 1 is view and filter only.
+_None._
 
 ## Waiting on the team
 
-_None._
+- [Q-0007 Open details of the table's probabilities and the tile set](/questions/open/0007-open-details-of-table-probabilities.md) - Points 1 to 9 are answered. Point 10, the weight model: Yew decides a calculated base plus exceptions as a two-way door, and it waits on one engineer's approval.
 
 ## Resolved
 
@@ -19,3 +17,5 @@ _None._
 - [Q-0003 Where do the adjacency table's entries come from?](/questions/resolved/0003-where-table-entries-come-from.md) - Mainly from the tiles' sides, as probabilities ([DR-0013](/decisions/0013-table-entries-from-tile-sides.md)).
 - [Q-0004 Where does the tile set come from?](/questions/resolved/0004-where-the-tile-set-comes-from.md) - Wren designs it from Ian's vocabulary, with crossroads and dead ends as rare fallbacks ([DR-0016](/decisions/0016-wren-designs-the-tile-set.md)).
 - [Q-0005 What do you want to find out from the table?](/questions/resolved/0005-what-to-find-out-from-the-table.md) - Explore the probabilities, filter by tile type, and trace problems seen in mazes back to them; recorded in the roadmap.
+- [Q-0006 How big will the table get?](/questions/resolved/0006-expected-table-size.md) - About 30 rows and columns in the short term, and millions of cells eventually.
+- [Q-0010 Where does editing probabilities go?](/questions/resolved/0010-where-editing-goes.md) - Phase 2, at slice 2.3; Marram decided it as a two-way door.

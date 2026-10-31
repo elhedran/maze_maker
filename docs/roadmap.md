@@ -19,8 +19,8 @@ Draft by Marram (product manager), waiting on Ian's approval. It reflects input 
 
 - **Now:**
   - Ian settles the weight model, the last open part of [Q-0007](/questions/open/0007-open-details-of-table-probabilities.md). It blocks the first demo.
-  - Ian answers [Q-0010](/questions/open/0010-where-editing-goes.md) (where editing probabilities goes). It doesn't block anything yet.
-  - [Q-0006](/questions/open/0006-expected-table-size.md) (table size) can wait, but a number would settle when paging is needed.
+  - Ian answers [Q-0010](/questions/resolved/0010-where-editing-goes.md) (where editing probabilities goes). It doesn't block anything yet.
+  - [Q-0006](/questions/resolved/0006-expected-table-size.md) (table size) can wait, but a number would settle when paging is needed.
   - Yew and Wren bring the grid geometry record. Yew brings the weight model. The tile-set session brings DR-0015, the starter tiles. Damson brings the design for drawing and exploring.
   - Ian approves [DR-0012](/decisions/0012-code-layout-and-core-crate.md) (code layout), and then 1.0 starts.
 - **Next:** 1.1 and 1.2. Together they are the "exploring the table" demo Ian asked for.
@@ -66,7 +66,7 @@ What Marram takes from this:
 - **What doesn't:** which tiles are hard to place, and which are rare or common. So 1.4 (table checks) is dropped.
 - **Filters:** he filters by tile type (room, corridor, corridor corner). We use his word, "corridor", not "hallway".
 - **His working loop:** see a problem in a maze, look at the probabilities behind it, change them. So Phase 2 starts with a maze (2.1), then the link from a spot in the maze to the table (2.2), then a loop to tune and compare (2.3).
-- **Changing probabilities:** until [Q-0010](/questions/open/0010-where-editing-goes.md) is answered, you change them by editing the tile set data, and the tool reloads it.
+- **Changing probabilities:** until [Q-0010](/questions/resolved/0010-where-editing-goes.md) is answered, you change them by editing the tile set data, and the tool reloads it.
 
 How the team took it:
 
@@ -169,7 +169,7 @@ Marram dropped this slice on 2026-10-31, as a scope call ([DR-0002](/decisions/0
   - a basic check, agreed by Wren and Yew, runs as a test. For example: every side of every tile can meet something.
 - **Waits on:**
   - full set v1 (Wren, approved by Wren and Marram under [DR-0016](/decisions/0016-wren-designs-the-tile-set.md));
-  - how big the table will get ([Q-0006](/questions/open/0006-expected-table-size.md)). Ian has said "I'm expecting a big table". Yew still wants a rough number of tiles;
+  - how big the table will get ([Q-0006](/questions/resolved/0006-expected-table-size.md)). Ian has said "I'm expecting a big table". Yew still wants a rough number of tiles;
   - the paging and transport record (Yew);
   - Damson's design for the full size.
 - **Status:** not started.
@@ -179,7 +179,7 @@ Marram dropped this slice on 2026-10-31, as a scope call ([DR-0002](/decisions/0
 
 ### Not in Phase 1
 
-- **Editing probabilities in the tool:** waiting on Ian ([Q-0010](/questions/open/0010-where-editing-goes.md)). Until then, you change probabilities by editing the tile set data and reloading it.
+- **Editing probabilities in the tool:** waiting on Ian ([Q-0010](/questions/resolved/0010-where-editing-goes.md)). Until then, you change probabilities by editing the tile set data and reloading it.
 - Generating mazes (that's Phase 2), and anything in the game.
 
 ## Phase 2: sample mazes (outline)
@@ -198,7 +198,7 @@ Marram dropped this slice on 2026-10-31, as a scope call ([DR-0002](/decisions/0
   - Waits on: Damson's design for the link.
 - **2.3 Tune and compare:** Ian's loop. Change probabilities, reload, regenerate with the same seed and compare (Wren's loop, moved up for Ian).
   - Demo: Ian changes a probability, regenerates the same seed, and points at what changed.
-  - How he changes them depends on [Q-0010](/questions/open/0010-where-editing-goes.md).
+  - How he changes them depends on [Q-0010](/questions/resolved/0010-where-editing-goes.md).
 - **2.4 Watch it collapse:** step through generation, seeing each cell's possibilities and where contradictions happen.
 - **2.5 Judge many samples:** generate a batch from seeds. Samples are big enough to judge pacing over a walk, not just one screen (Wren). Measures are taken from the player's side, not just as tile counts (Wren):
   - reachable cells;
@@ -265,9 +265,9 @@ Already settled:
 | Design for exploring, openable from anywhere | design | Damson | no | 1.2 (brought with 1.1's design) |
 | Design for filtering | design | Damson | no | 1.3 |
 | Full tile set v1 | game design, [DR-0016](/decisions/0016-wren-designs-the-tile-set.md) | Wren | no: Wren and Marram, unless major | 1.5 |
-| How big the table will get | [Q-0006](/questions/open/0006-expected-table-size.md) | Ian | yes | 1.5 (earlier if thousands of tiles) |
+| How big the table will get | [Q-0006](/questions/resolved/0006-expected-table-size.md) | Ian | yes | 1.5 (earlier if thousands of tiles) |
 | Paging and transport | architecture | Yew | Yew to say | 1.5 |
-| Where editing probabilities goes | [Q-0010](/questions/open/0010-where-editing-goes.md) | Ian | yes | 2.3 at the latest |
+| Where editing probabilities goes | [Q-0010](/questions/resolved/0010-where-editing-goes.md) | Ian | yes | 2.3 at the latest |
 | Contradiction handling | DR-0007 | Yew | yes | 2.1 |
 | Determinism and persistence | DR-0007 | Yew, with Wren | yes | 2.1 (seeds); 2.6 and the game (persistence) |
 | Design for the generation view and the link from maze to table | design | Damson | no | 2.1, 2.2 |

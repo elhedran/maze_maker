@@ -18,6 +18,10 @@ generated:
 verified:
   - by: human:ian
     at: 2026-10-31T15:05:00+01:00
+  - by: human:ian
+    at: 2026-10-31T15:14:00+01:00
+  - by: human:ian
+    at: 2026-10-31T15:17:00+01:00
 ---
 
 # Context
@@ -38,19 +42,34 @@ The same, point by point, adding nothing:
 - Rooms need doors, so that a room door is more likely to match a path but could match a room.
 - For what is allowed, there is slight variation in the probabilities.
 
+Yew asked what else, besides the sides, sets entries. Ian (`human:ian`), verbatim, later on 2026-10-31:
+
+> For Yews additional question to Q-0003 - probabilities are mainly "if it can work" and "should we see it often in that place" - and some randomness for to add flavour. I'm expecting a big table.
+
+Ian's answers to the open details ([Q-0007](/questions/open/0007-open-details-of-table-probabilities.md), points 1 to 9), verbatim, later on 2026-10-31:
+
+> rooms can only join at a door. We will add some game logic on not "doubling up" the doors in these scenarios at play time, not map generation time. A path can only lead into a room via a door - the open side of a room (i.e. not the wall) can only be to other open room. 3. is a good question. Lets allow for rooms we can't get into for now. We will revisit if and how we fix this later. for 4. its more that paths are more likely to be near other paths. Rooms should be rare. Although I guess the closed side of a room is equally likely to be another room or a path.
+>
+> 5: I want to see the variation in the table of probabilities. I plan on having in future different "zones" with different probabilities.
+
+The same, point by point, adding nothing:
+
+- Rooms join only at a door. Not "doubling up" doors is game logic at play time, not at map generation.
+- A path leads into a room only through a door. A room's open side (not its wall) faces only another room's open side.
+- Rooms we can't get into are allowed for now. If and how to fix that is revisited later.
+- Paths are more likely to be near other paths. Rooms should be rare. The closed side of a room is equally likely to face another room or a path.
+- The variation shows in the table of probabilities. In future, different "zones" will have different probabilities.
+
+His answers on room walls, maze character and fallbacks are in [DR-0016](/decisions/0016-wren-designs-the-tile-set.md).
+
 Ian's approval covers only what is above. Everything below is either open or the team's reading.
 
 ## Not decided here
 
-These go back to Ian. The main facilitator session is putting them to him together; [Q-0007](/questions/open/0007-open-details-of-table-probabilities.md) tracks them.
-
-- **"Slight variation":** fixed in the tile set data, generated when the table is built, or different from place to place or maze to maze.
-- **Paths and rooms:** can a path meet a room side that has no door, at a low probability, or is that 0? (Wren)
-- **"Rooms will need doors":** are door tiles available to rooms, or is every room guaranteed at least one door? A guarantee is a property of the whole room, which side probabilities alone can't deliver. (Wren, Yew)
-- **"Paths are more likely to match paths, rooms other rooms":** pairs of sides (passage to passage, floor to floor), or kinds of tile (rooms tend to sit beside rooms)? Kinds of tile can't be expressed from sides as proposed so far, because a room's outer wall and a hallway's closed side are the same kind of side. (Wren, Yew)
-- **"Could match a room":** another room's door only, or any room edge? Wren and Yew both read it as door to door. (Wren, Yew, and the main facilitator session)
-- **"Mainly":** what else sets entries besides the sides? If it means exceptions for particular pairs, the tile set format has to carry them. (Yew)
+- **The weight model for "should we see it often in that place":** (a) weights set by hand on every pair, which would partly supersede this record and needs table editing, or (b) a computed base plus a few exceptions for particular pairs in the tile set data, which Yew recommends. Ian's future "zones" are new input. Still with Ian in [Q-0007](/questions/open/0007-open-details-of-table-probabilities.md). (Yew, Wren)
+- **Guaranteeing rooms a door:** deferred by Ian. It is a global property of the maze, which the tile set session tracks in Q-0008.
 - **The numbers:** the actual probabilities aren't set here. Whoever proposes them brings them back to Ian.
+- **The team's reading of point 5:** the main facilitator session reads "I want to see the variation in the table" as noise in the table's numbers, which Yew says must be reproducible, stored or seeded ([DR-0007](/decisions/0007-wave-function-collapse.md) determinism follow-up). This reading is not part of Ian's approval.
 
 # Alternatives considered
 
@@ -61,7 +80,7 @@ From [Q-0003](/questions/resolved/0003-where-table-entries-come-from.md):
 
 # Consequences
 
-- The table is computed from the tile set, not written by hand. Phase 1 stays view and filter, with no editing in the tool ([DR-0008](/decisions/0008-adjacency-tool-first.md)).
+- The table is computed from the tile set, not written by hand. Whether the tool can edit probabilities is a separate question for Ian ([Q-0010](/questions/open/0010-where-editing-goes.md)); [DR-0008](/decisions/0008-adjacency-tool-first.md) keeps Phase 1 to view and filter.
 - The table holds probabilities, with 0 where sides don't pair up. Yew (`architect/1`) reads this as settling "weights vs allowed/forbidden" from [DR-0007](/decisions/0007-wave-function-collapse.md) in favour of weights, so the roadmap gate becomes "the weight model". That record still decides:
   - per-pair weights, per-tile weights, or both;
   - where base weights live;
@@ -69,14 +88,14 @@ From [Q-0003](/questions/resolved/0003-where-table-entries-come-from.md):
   - how the weights of several collapsed neighbours combine.
 
   Propagation only needs "probability above 0", so the last point can wait for slice 2.1.
-- The tile set's sides need kinds that tell paths, rooms and doors apart. The tile set session defines them and builds on this record. Wren and Yew propose that a doorway's outer side is its own kind, Door. It meets a passage (likely) or another room's door (less likely), and never a hedge or a room floor, which keeps rooms rectangular. That is their proposal, not part of Ian's approval.
+- The tile set's sides need kinds that tell paths, rooms and doors apart. The tile set session defines them (DR-0015) and builds on this record. Ian's answers fit the door kind Wren and Yew proposed: rooms join only at a door, and a path enters a room only through a door.
 
 # Concerns raised
 
 No disagreement. On "slight variation", Yew and Wren both favour values set by hand in the tile set data over generated noise. Neither position is part of Ian's approval.
 
 - **Wren (`game-designer/1`):** base weights from the sides, with small deliberate changes on top, such as making long straight runs rarer than turns. Pacing should come from choices someone made, and collapse is already random. Seeded noise adds biases nobody chose, which are hard to tune or explain. Variation from place to place would help discovery, but it is a separate idea.
-- **Yew (`architect/1`):** set per tile, not per pair, since per pair is hand-writing the table again. Each entry is a base weight for the two facing side types times a per-tile weight, so the tool can explain every number (slices 1.2 and 1.4), and the table needs no seed. If Ian does mean jitter, seed it when the table is built and keep the seed in the tile set. Either way the variation must be reproducible, stored or seeded, which ties into the determinism follow-up in [DR-0007](/decisions/0007-wave-function-collapse.md). Don't write that weights come only from the sides: Ian said "mainly".
+- **Yew (`architect/1`):** set per tile, not per pair, since per pair is hand-writing the table again. Each entry is a base weight for the two facing side types times a per-tile weight, so the tool can explain every number (slices 1.2 and 1.4), and the table needs no seed. If Ian does mean jitter, seed it when the table is built and keep the seed in the tile set. Either way the variation must be reproducible, stored or seeded, which ties into the determinism follow-up in [DR-0007](/decisions/0007-wave-function-collapse.md). Don't write that weights come only from the sides: Ian said "mainly". After Ian's answer on "mainly", Yew notes that a weight per tile can't express "in that place", and recommends a computed base plus a few exceptions for particular pairs.
 
 # AI guidance
 

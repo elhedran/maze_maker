@@ -2,6 +2,12 @@
 
 ## 2026-10-31
 
+- **Decision** DR-0016 accepted: Wren designs the tile set from Ian's vocabulary, with crossroads and dead ends as very low probability fallbacks. It records Ian's answer to Q-0004 verbatim. Q-0004 resolved.
+- **Question** Q-0005 resolved: Ian's answer on what he wants from the table goes into the roadmap, with no record of its own.
+- **Update** DR-0013, DR-0016 and Q-0007: Ian's answers on "mainly" and on Q-0007 points 1 to 9 recorded verbatim. Point 10, the weight model, is still with Ian. Q-0006 notes "I'm expecting a big table".
+- **Question** Q-0010 raised by Marram: where does editing probabilities go? Waiting on Ian.
+- **Update** Roadmap revised by Marram for DR-0013, DR-0016 and Q-0005: slice 1.4 dropped, Phase 2 reordered around Ian's review loop.
+
 - **Update** DR-0013 and Q-0007: added the open points Wren and Yew raised (whether every room is guaranteed a door; side pairs or tile kinds for "paths match paths, rooms other rooms"), their door-to-door reading, and Yew's note that any variation must be reproducible. All still with Ian.
 - **Decision** DR-0013 accepted: the adjacency table's entries come mainly from the tiles' sides, as probabilities, with 0 where sides don't pair up. It records Ian's answer to Q-0003 verbatim. Q-0003 resolved.
 - **Question** Q-0007 raised: the open details of DR-0013 (slight variation, paths meeting rooms, doors, what "mainly" covers). Waiting on Ian; the main session is putting them to him together.

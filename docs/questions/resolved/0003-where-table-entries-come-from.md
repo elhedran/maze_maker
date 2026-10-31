@@ -15,7 +15,7 @@ related:
   - /roadmap.md
   - /decisions/0007-wave-function-collapse.md
   - /decisions/0008-adjacency-tool-first.md
-  - /questions/open/0004-where-the-tile-set-comes-from.md
+  - /questions/resolved/0004-where-the-tile-set-comes-from.md
   - /questions/open/0007-open-details-of-table-probabilities.md
 tags: [adjacency-table, data-model, phase-1]
 generated:

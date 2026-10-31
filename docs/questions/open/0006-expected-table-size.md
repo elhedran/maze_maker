@@ -12,6 +12,7 @@ related:
   - /roadmap.md
   - /decisions/0005-tauri-rust-backend-lit-frontend.md
   - /decisions/0008-adjacency-tool-first.md
+  - /questions/open/0007-open-details-of-table-probabilities.md
 tags: [adjacency-table, scale, phase-1]
 generated:
   by: product-manager/1
@@ -32,6 +33,7 @@ Roughly how many rows (tiles times their orientations) do you expect the table t
 - Yew (`architect/1`) needs the estimate for the paging and transport record at slice 1.5, and for the speed tests in the Phase 1 plan ([DR-0005](/decisions/0005-tauri-rust-backend-lit-frontend.md) consequences).
 - Damson (`ux-designer/1`): at full size, a view of the whole table may stop being readable.
 - Wren's (`game-designer/1`) starter set has 19 rows. Full set v1 adds crossroads, dead end, plain room edge, corner doorway and some variants.
+- **Partial input from Ian, 2026-10-31:** "I'm expecting a big table" (in his answer on what else sets entries, recorded in [Q-0007](/questions/open/0007-open-details-of-table-probabilities.md)). This question stays open for a rough number. Yew asks for it as a number of tiles. If it's in the thousands, Yew would move slice 1.5 up to straight after 1.1; the view-based interface from 1.1 already allows for paging.
 - This isn't urgent, because it blocks only slice 1.5 ([roadmap](/roadmap.md)). An early number helps Yew and Damson plan.
 
 # Options

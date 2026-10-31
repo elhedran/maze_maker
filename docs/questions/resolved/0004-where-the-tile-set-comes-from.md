@@ -2,16 +2,20 @@
 type: Open Question
 title: Where does the tile set come from?
 description: Decide whether Wren designs the tile set from Ian's suggested vocabulary, or the team starts from a tile set from Ian's earlier work.
-status: draft
+status: stable
 question_id: Q-0004
-question_status: open
+question_status: resolved
 waiting_on: [human:ian]
 raised_by: product-manager/1
 raised_at: 2026-10-31T15:05:00+01:00
+resolved_by: human:ian
+resolved_at: 2026-10-31T15:09:00+01:00
+resolution_record: /decisions/0016-wren-designs-the-tile-set.md
 related:
   - /roadmap.md
   - /decisions/0007-wave-function-collapse.md
   - /questions/resolved/0003-where-table-entries-come-from.md
+  - /questions/open/0007-open-details-of-table-probabilities.md
 tags: [tile-set, game-design, phase-1]
 generated:
   by: product-manager/1
@@ -48,4 +52,6 @@ Marram (`product-manager/1`) recommends option 1, or option 3 if you have earlie
 
 # Resolution
 
-_Open._
+Ian answered on 2026-10-31, in conversation with the main facilitator session. His words, verbatim: "we will want cross-roads and dead ends - but both should be very low probability - they are more there to fix issues where nothing else fits. Same with the other "variations". other than that happy to go with the recommendation"
+
+He offered no earlier material, so this is option 1: Wren designs the tile set from his vocabulary. He named crossroads and dead ends as very low probability fallbacks. Which tiles "the other variations" cover is open in [Q-0007](/questions/open/0007-open-details-of-table-probabilities.md). Recorded as [DR-0016](/decisions/0016-wren-designs-the-tile-set.md).

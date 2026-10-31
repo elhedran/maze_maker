@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { clearMocks, mockIPC } from "@tauri-apps/api/mocks";
 import { COMMANDS } from "../ipc.ts";
+import { TOOL_ERROR_EVENT } from "../tool-error.ts";
 import "./adjacency-table.ts";
 import type { AdjacencyTable } from "./adjacency-table.ts";
 import type { Direction } from "../bindings/Direction.ts";
@@ -98,7 +99,6 @@ function viewFor(direction: Direction, revision = 1): TableView {
 
 interface Backend {
   requests: TableViewRequest[];
-  reloadFails?: ToolError;
 }
 
 const SIDE_INDEX: Record<Direction, number> = { north: 0, east: 1, south: 2, west: 3 };
@@ -140,10 +140,6 @@ function backend(): Backend {
       const request = (payload as { request: TableViewRequest }).request;
       state.requests.push(request);
       return filteredView(request);
-    }
-    if (cmd === COMMANDS.reloadTileSet) {
-      if (state.reloadFails) throw state.reloadFails;
-      return { revision: 2, tileSetPath: "data/tile-sets/core.toml", loadedAt: "2026-10-31T20:20:00+01:00" };
     }
     throw new Error(`unexpected command ${cmd}`);
   });
@@ -211,7 +207,6 @@ describe("adjacency-table", () => {
 
     const header = root(el).querySelector('thead th[scope="col"]')!;
     expect(header.getAttribute("title")).toBe("Corridor straight, E–W · weight 2.0");
-    expect(text).toContain("data/tile-sets/core.toml");
   });
 
   test("shows the share of row with one decimal, <0.1 for tiny shares, blank for 0", async () => {
@@ -290,41 +285,25 @@ describe("adjacency-table", () => {
     await vi.waitFor(() => expect(cell(el, 0, 1).classList).toContain("selected"));
   });
 
-  test("a failed reload shows Rust's error and keeps the last good table", async () => {
+  test("refresh() refetches and keeps the selection", async () => {
     const ipc = backend();
     const el = await mount();
     cell(el, 0, 1).click();
-    ipc.reloadFails = {
-      kind: "load_failed",
-      messages: ["tile room_wall: weight must be above 0", "exception 2: unknown tag doorway"],
-    };
-
-    root(el).querySelector<HTMLButtonElement>("#reload")!.click();
-    await vi.waitFor(() =>
-      expect(root(el).querySelector(".banner")?.textContent).toBe(
-        "tile room_wall: weight must be above 0\nexception 2: unknown tag doorway",
-      ),
-    );
-    expect(cell(el, 0, 1).textContent?.trim()).toBe("15.0");
-    expect(squash(panelText(el))).toContain("× noise 1.07");
-
-    ipc.reloadFails = undefined;
-    root(el).querySelector<HTMLButtonElement>("#reload")!.click();
-    await vi.waitFor(() => expect(root(el).querySelector(".banner")).toBeNull());
-    expect(ipc.requests).toHaveLength(2);
-    expect(cell(el, 0, 1).classList).toContain("selected");
+    el.refresh();
+    await vi.waitFor(() => expect(ipc.requests).toHaveLength(2));
+    await vi.waitFor(() => expect(cell(el, 0, 1).classList).toContain("selected"));
   });
 
-  test("a table that can't load at all shows the error and no grid", async () => {
+  test("a table that can't load at all reports the error up to the app and shows no grid", async () => {
     mockIPC(() => {
       const error: ToolError = { kind: "not_loaded", messages: ["data/tile-sets/core.toml: missing [bases]"] };
       throw error;
     });
+    const reported: string[] = [];
+    document.body.addEventListener(TOOL_ERROR_EVENT, (e) => reported.push((e as CustomEvent<string>).detail));
     const el = document.createElement("adjacency-table");
     document.body.append(el);
-    await vi.waitFor(() =>
-      expect(root(el).querySelector(".banner")?.textContent).toBe("data/tile-sets/core.toml: missing [bases]"),
-    );
+    await vi.waitFor(() => expect(reported).toEqual(["data/tile-sets/core.toml: missing [bases]"]));
     expect(root(el).querySelector("table")).toBeNull();
   });
 

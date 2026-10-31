@@ -60,3 +60,14 @@ From `apps/tool/`, run `npm run tauri dev`. The window shows the adjacency table
 
 **Changing a probability needs no code change.** The numbers live in `data/tile-sets/core.toml` ([DR-0024](docs/decisions/0024-tile-set-file-format.md)). Edit a base, a tile weight, an exception or the noise, save, and press **Reload tile set**. If the file is wrong, a red banner lists every error and the last good table stays on screen.
 
+
+## Demo: slice 2.1, first sample maze
+
+From `apps/tool/`, run `npm run tauri dev` and pick the **Maze** tab. The tile set bar and **Reload tile set** sit above both tabs, so they work from either.
+
+1. **A maze from a seed.** The seed field opens with a random seed. Press **Generate** (or Enter in the field). The maze is drawn with the table's glyphs, two characters per cell; blue single lines are corridors, brown double lines and the tinted floor are rooms, green shading is hedge. The line above it says which seed it is, its size, and whether generation had to restart. Hover a cell to read its name and position under the maze.
+2. **Same seed, same maze.** Press **Generate** again: the maze doesn't change. Type a different seed, or press **Random seed**, and it does.
+3. **Can you get around in it?** Beside the maze, **Reachable from centre** says how much of the walkable maze you could walk to from the outlined centre cell, and **Separate areas** how many pieces it falls into ([DR-0030](docs/decisions/0030-measures-for-2-1.md)). The maze's edge cuts paths that would carry on in the endless maze, so read these for comparing seeds, not as a pass mark.
+4. **Change the data, see the maze change.** Edit a weight in `data/tile-sets/core.toml`, save, and press **Reload tile set**. The maze regenerates from the same seed with the new numbers, and the status line says "regenerated after reload". If the file is wrong, the red banner lists the errors and the last good maze stays.
+
+If generation gives up after its restarts, the maze area says so in red and suggests another seed or a look at the table for tiles that can't meet.

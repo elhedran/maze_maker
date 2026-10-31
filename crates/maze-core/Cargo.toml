@@ -6,3 +6,5 @@ description = "Maze Maker domain logic: tiles, the adjacency table and WFC. No I
 publish = false
 
 [dependencies]
+serde = { version = "1.0.229", features = ["derive"] }
+toml = "1.1.8"

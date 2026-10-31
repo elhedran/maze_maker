@@ -11,7 +11,6 @@ One file per decision ([DR-0001](/decisions/0001-record-every-decision.md)). Onl
 - [DR-0006 npm for frontend packages](/decisions/0006-npm-for-frontend-packages.md) - The frontend uses npm as its package manager.
 - [DR-0007 Generate mazes with Wave Function Collapse](/decisions/0007-wave-function-collapse.md) - Mazes are generated around the player with Wave Function Collapse over a tile set and an adjacency table.
 - [DR-0008 Adjacency-table tool first, separate from the game](/decisions/0008-adjacency-tool-first.md) - Phase 1 builds the adjacency table and a separate tool to inspect and test it; the game comes later.
-- [DR-0009 Commit straight to main](/decisions/0009-commit-straight-to-main.md) - Work is committed directly to main, with no branches and no remote for now.
 - [DR-0010 The facilitator manages context](/decisions/0010-facilitator-manages-context.md) - The facilitator's main job is managing context, giving each task fresh team sessions and telling Ian when to clear his session.
 - [DR-0011 TypeScript and Vite for the Lit frontend](/decisions/0011-typescript-and-vite.md) - The Lit frontend is written in TypeScript and built with Vite.
 - [DR-0013 Table entries come from tile sides, as probabilities](/decisions/0013-table-entries-from-tile-sides.md) - The adjacency table's entries are worked out mainly from the tiles' sides, with probability 0 where sides don't pair up and slightly varied probabilities for what is allowed.
@@ -21,8 +20,9 @@ One file per decision ([DR-0001](/decisions/0001-record-every-decision.md)). Onl
 - [DR-0017 Tile glyphs and colours in the tool](/decisions/0017-tile-glyphs-and-colours.md) - Each (tile, orientation) shows as one Unicode box-drawing or block character, with corridors in blue single lines, rooms in amber double-line walls on a floor tint, and hedge as texture.
 - [DR-0012 Code layout, with a shared core crate and self-contained apps](/decisions/0012-code-layout-and-core-crate.md) - One Cargo workspace at the repository root, with the UI-free maze-core library in crates/ and each app, starting with the tool, self-contained in apps/.
 - [DR-0018 Easily reversed decisions are the team's; only one-way doors go to Ian](/decisions/0018-one-way-doors-go-to-ian.md) - If a decision can be reversed without a lot of extra work, the team decides it; only decisions that would be costly to reverse, and disputes on them, go to Ian.
-- [DR-0019 Parallel work shares one checkout, with rules](/decisions/0019-parallel-work-in-one-checkout.md) - Agents and sessions working at the same time share the main checkout; only one changes code at a time, parallel work gets separate files, and only the facilitator commits, by path.
+- [DR-0019 Parallel code work gets its own worktree; shared files stay with the facilitator](/decisions/0019-parallel-work-in-one-checkout.md) - Each engineer changing code in parallel works in their own git worktree on a short-lived local branch, which the facilitator rebases and fast-forwards onto main. Docs-only parallel work stays in the main checkout, with separate files per agent and commits by path.
 - [DR-0020 Vitest and happy-dom for frontend tests](/decisions/0020-vitest-for-frontend-tests.md) - The Lit frontend is tested with Vitest in a happy-dom environment, with the Tauri backend faked by mockIPC from @tauri-apps/api/mocks.
+- [DR-0021 Work lands on main; local branches and worktrees are allowed](/decisions/0021-work-lands-on-main.md) - Work is committed to main and there is no remote yet; local branches and worktrees may be used, as long as the work lands on main. Supersedes DR-0009.
 
 ## Proposed
 
@@ -30,3 +30,4 @@ One file per decision ([DR-0001](/decisions/0001-record-every-decision.md)). Onl
 ## Archived
 
 - [DR-0002 Approval and escalation rules](/decisions/archive/0002-approval-and-escalation.md) - Superseded by DR-0018.
+- [DR-0009 Commit straight to main](/decisions/archive/0009-commit-straight-to-main.md) - Superseded by DR-0021.

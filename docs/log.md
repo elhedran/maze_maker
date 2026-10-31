@@ -2,6 +2,12 @@
 
 ## 2026-10-31
 
+- **Decision** DR-0019 revised and re-accepted (written by Yew; approved by Ash in the architect's place and by Marram): parallel code work gets its own worktree in a git-ignored `.worktrees/`, which the facilitator creates, lands by rebase and fast-forward, and removes. Docs-only parallel work stays in the main checkout. Shared files and record numbers stay with the facilitator. `.worktrees/` added to `.gitignore`.
+
+- **Decision** DR-0021 accepted (Ian, reviewed by Yew and Ash): work lands on `main`, local branches and worktrees are allowed, no remote yet. It supersedes DR-0009, which wrongly recorded a ban on branches that Ian never made; DR-0009 moved to the archive. `CLAUDE.md` and the engineers' agent files updated.
+
+- **Update** Corrected timestamps in DR-0019, DR-0020 and DR-0021, which had been written ahead of the real clock.
+
 - **Update** Slice 1.0 done: Rowan checked all four done-when points (fresh clone from the README, DR-0012 layout, Rust value in the real Tauri window, Rust and TypeScript tests). First frontend tests added.
 
 - **Decision** DR-0020 accepted (Ash, Yew; written by Rowan): Vitest and happy-dom for frontend tests, with the backend faked by `mockIPC`.

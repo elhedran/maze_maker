@@ -9,17 +9,17 @@ decision_kind: architecture
 major: false
 owners: [engineer-rowan/1]
 approvers: [architect/1, engineer-ash/1]
-decided_at: 2026-10-31T20:40:00+01:00
+decided_at: 2026-10-31T19:14:00+01:00
 supersedes: []
 tags: [testing, frontend, lit, vite, vitest]
 generated:
   by: engineer-rowan/1
-  at: 2026-10-31T19:15:00+01:00
+  at: 2026-10-31T19:08:00+01:00
 verified:
   - by: engineer-ash/1
-    at: 2026-10-31T20:20:00+01:00
+    at: 2026-10-31T19:12:00+01:00
   - by: architect/1
-    at: 2026-10-31T20:40:00+01:00
+    at: 2026-10-31T19:14:00+01:00
 ---
 
 # Context

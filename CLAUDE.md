@@ -81,9 +81,9 @@ Anything waiting on a decision is a file in `docs/questions/open/`, moved to `do
 - Plans for major work go in `docs/plans/`.
 - The roadmap is `docs/roadmap.md`, owned by Marram and approved by Ian.
 
-## Git (DR-0009)
+## Git (DR-0021, DR-0019)
 
-Commit straight to `main`. No branches, no remote yet.
+Work lands on `main`. Local branches and worktrees are fine; DR-0019 says when agents use them. No remote yet.
 
 ## Toolchain
 

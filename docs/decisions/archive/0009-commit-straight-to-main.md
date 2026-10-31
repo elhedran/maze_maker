@@ -2,15 +2,16 @@
 type: Decision Record
 title: Commit straight to main
 description: Work is committed directly to main, with no branches and no remote for now.
-status: stable
+status: deprecated
 decision_id: DR-0009
-decision_status: accepted
+decision_status: superseded
 decision_kind: process
 major: true
 owners: [human:ian]
 approvers: [human:ian]
 decided_at: 2026-10-31T14:46:00+01:00
 supersedes: []
+superseded_by: /decisions/0021-work-lands-on-main.md
 tags: [process, git]
 generated:
   by: facilitator/1
@@ -19,6 +20,8 @@ verified:
   - by: human:ian
     at: 2026-10-31T14:46:00+01:00
 ---
+
+> Superseded by [DR-0021](/decisions/0021-work-lands-on-main.md). The ban on branches below was added in drafting; Ian never made it.
 
 # Context
 

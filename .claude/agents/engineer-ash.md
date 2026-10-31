@@ -59,7 +59,7 @@ Read `CLAUDE.md` first, then `docs/decisions/index.md` and the decision records 
   - Keep generation and data logic in Rust ([DR-0005](/docs/decisions/0005-tauri-rust-backend-lit-frontend.md)).
   - Use npm only ([DR-0006](/docs/decisions/0006-npm-for-frontend-packages.md)).
   - Don't add a dependency of consequence without a decision record.
-- **Git:** commit to `main` only when Ian or the facilitator asks ([DR-0009](/docs/decisions/0009-commit-straight-to-main.md)). Don't branch or push.
+- **Git:** commit to `main` only when Ian or the facilitator asks. Don't push. Use local branches and worktrees only as DR-0019 says, including when to commit on them ([DR-0021](/docs/decisions/0021-work-lands-on-main.md), [DR-0019](/docs/decisions/0019-parallel-work-in-one-checkout.md)).
 
 When you finish, report:
 

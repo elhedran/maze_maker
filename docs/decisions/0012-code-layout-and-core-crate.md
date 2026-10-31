@@ -91,7 +91,7 @@ This record doesn't settle any of DR-0007's follow-up questions, and doesn't des
 - **npm workspaces now.** There is nothing to share yet, so it would add a root lockfile and hoisting for no gain.
 - **Core loads its own files.** Simpler at first, but it ties core to a folder layout, makes its tests need files on disk, and the game may well load data differently from the tool.
 - **Data inside `maze-core`, embedded.** Ties content to code, when core also has to work with test sets.
-- **Separate repositories** for core, tool and game. Far too heavy for one owner with no remote ([DR-0009](/decisions/0009-commit-straight-to-main.md)).
+- **Separate repositories** for core, tool and game. Far too heavy for one owner with no remote ([DR-0009](/decisions/archive/0009-commit-straight-to-main.md)).
 
 # Consequences
 

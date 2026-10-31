@@ -19,7 +19,7 @@ related:
   - /decisions/0006-npm-for-frontend-packages.md
   - /decisions/0007-wave-function-collapse.md
   - /decisions/0008-adjacency-tool-first.md
-  - /decisions/0009-commit-straight-to-main.md
+  - /decisions/archive/0009-commit-straight-to-main.md
   - /decisions/0010-facilitator-manages-context.md
 tags: [process, decisions]
 generated:

@@ -147,7 +147,7 @@ How the team took it:
   - The view can be opened from anywhere, so that 2.2 can open it from a spot in a maze (Damson).
 - **Done when:** it works for every tile and orientation in the core set, and agrees with the 1.1 table.
 - **Waits on:** Damson's design for exploring, which is brought together with the 1.1 table design (Damson and Marram).
-- **Status:** not started.
+- **Status:** not started. Its design gate is met: [DR-0026](/decisions/0026-explore-one-tile-design.md) accepted (2026-10-31).
 
 ### 1.3 Filter the table
 

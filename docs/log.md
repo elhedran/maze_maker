@@ -2,6 +2,8 @@
 
 ## 2026-10-31
 
+- **Decision** DR-0026 accepted (written by Damson; approved by Marram): the design for slice 1.2, exploring one tile. The chosen tile sits in the middle with a list of neighbours on each side, sorted by share, and the facing side kinds on the shared edge; numbers and explanations come from the 1.1 table and DR-0025's panel; [Go] steps to a neighbour, and [< Back] and a trail go back; one entry point opens it for any tile and orientation, for 2.2 to reuse. Marram listed what the demo must have and what can slip. The 1.2 design gate is met; index and roadmap updated.
+
 - **Update** Q-0008 parked, to be revisited before slice 2.1, after Ian asked to "bias towards executing planned work over re-planning or planning new work". Nothing new was settled, and no record was written.
 
 - **Decision** DR-0022 accepted (Yew decides, Rowan approves; drafted by the facilitator): the weight model is a side-pair base times a weight per tile times a few exception multipliers keyed by tile type or tag and the side kinds that meet, all in the tile set data. Side rules always win, bad data is rejected, the table is reproducible, and the tool shows where each entry comes from. A two-way door; Yew overrules Marram's concern that it is one-way, which is recorded. Q-0007 resolved and moved to `/questions/resolved/`; links, indexes and the roadmap updated.

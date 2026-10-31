@@ -2,12 +2,15 @@
 type: Open Question
 title: TypeScript and Vite for the Lit frontend?
 description: Choose the language and build tooling for the Lit frontend.
-status: draft
+status: stable
 question_id: Q-0002
-question_status: open
+question_status: resolved
 waiting_on: [human:ian]
 raised_by: facilitator/1
 raised_at: 2026-10-31T14:15:00+01:00
+resolved_by: human:ian
+resolved_at: 2026-10-31T14:46:00+01:00
+resolution_record: /decisions/0011-typescript-and-vite.md
 related:
   - /decisions/0005-tauri-rust-backend-lit-frontend.md
   - /decisions/0006-npm-for-frontend-packages.md
@@ -36,3 +39,5 @@ Vite is Tauri's usual frontend tooling, and Lit works with it in either TypeScri
 TypeScript and Vite (`facilitator/1`). The team isn't formed yet; the architect and engineers can weigh in once they exist.
 
 # Resolution
+
+Ian approved the recommendation on 2026-10-31: TypeScript and Vite. Recorded as [DR-0011](/decisions/0011-typescript-and-vite.md).

@@ -2,13 +2,14 @@
 type: Decision Record
 title: Open Knowledge Format for all docs
 description: The docs folder is a strict OKF v0.2 bundle with a fixed layout for decisions, questions and plans.
-status: draft
+status: stable
 decision_id: DR-0003
-decision_status: proposed
+decision_status: accepted
 decision_kind: process
 major: true
 owners: [human:ian]
 approvers: [human:ian]
+decided_at: 2026-10-31T14:46:00+01:00
 supersedes: []
 tags: [process, docs, okf]
 sources:
@@ -18,6 +19,9 @@ sources:
 generated:
   by: facilitator/1
   at: 2026-10-31T14:39:00+01:00
+verified:
+  - by: human:ian
+    at: 2026-10-31T14:46:00+01:00
 ---
 
 # Context

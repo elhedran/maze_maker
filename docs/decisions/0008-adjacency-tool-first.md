@@ -2,18 +2,22 @@
 type: Decision Record
 title: Adjacency-table tool first, separate from the game
 description: Phase 1 builds the adjacency table and a separate tool to inspect and test it; the game comes later.
-status: draft
+status: stable
 decision_id: DR-0008
-decision_status: proposed
+decision_status: accepted
 decision_kind: product
 major: true
 owners: [human:ian]
 approvers: [human:ian]
+decided_at: 2026-10-31T14:46:00+01:00
 supersedes: []
 tags: [roadmap, tooling, adjacency-table]
 generated:
   by: facilitator/1
   at: 2026-10-31T14:15:00+01:00
+verified:
+  - by: human:ian
+    at: 2026-10-31T14:46:00+01:00
 ---
 
 # Context

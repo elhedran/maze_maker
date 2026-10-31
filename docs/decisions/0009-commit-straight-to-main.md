@@ -2,18 +2,22 @@
 type: Decision Record
 title: Commit straight to main
 description: Work is committed directly to main, with no branches and no remote for now.
-status: draft
+status: stable
 decision_id: DR-0009
-decision_status: proposed
+decision_status: accepted
 decision_kind: process
 major: true
 owners: [human:ian]
 approvers: [human:ian]
+decided_at: 2026-10-31T14:46:00+01:00
 supersedes: []
 tags: [process, git]
 generated:
   by: facilitator/1
   at: 2026-10-31T14:15:00+01:00
+verified:
+  - by: human:ian
+    at: 2026-10-31T14:46:00+01:00
 ---
 
 # Context

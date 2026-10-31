@@ -2,18 +2,22 @@
 type: Decision Record
 title: Approval and escalation rules
 description: Ian approves major decisions and settles disputes; other decisions are approved by the relevant team members.
-status: draft
+status: stable
 decision_id: DR-0002
-decision_status: proposed
+decision_status: accepted
 decision_kind: process
 major: true
 owners: [human:ian]
 approvers: [human:ian]
+decided_at: 2026-10-31T14:46:00+01:00
 supersedes: []
 tags: [process, decisions, team]
 generated:
   by: facilitator/1
   at: 2026-10-31T14:39:00+01:00
+verified:
+  - by: human:ian
+    at: 2026-10-31T14:46:00+01:00
 ---
 
 # Context

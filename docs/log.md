@@ -2,6 +2,10 @@
 
 ## 2026-10-31
 
+- **Decision** DR-0001 to DR-0010 accepted: Ian approved them as written. Q-0001 resolved.
+- **Decision** DR-0011 accepted: the Lit frontend uses TypeScript and Vite. Q-0002 resolved.
+- **Update** DR-0005: its link to Q-0002 now points to the resolved question and to DR-0011.
+
 - **Decision** DR-0010 proposed: the facilitator manages context, with fresh team sessions per task and reminders for Ian to clear his session. Added to Q-0001 for sign-off.
 
 - **Update** DR-0002 (still proposed): the product manager can overrule the engineers and the UX designer on product matters, and takes minor and two-way-door product decisions alone.

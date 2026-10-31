@@ -4,10 +4,6 @@ One file per decision ([DR-0001](/decisions/0001-record-every-decision.md)). Onl
 
 ## Accepted
 
-_None yet._
-
-## Proposed
-
 - [DR-0001 Record every decision as a decision record](/decisions/0001-record-every-decision.md) - Every project decision gets its own decision record in docs/decisions, with a lifecycle and an archive.
 - [DR-0002 Approval and escalation rules](/decisions/0002-approval-and-escalation.md) - Ian approves major decisions and settles disputes; other decisions are approved by the relevant team members.
 - [DR-0003 Open Knowledge Format for all docs](/decisions/0003-open-knowledge-format-for-docs.md) - The docs folder is a strict OKF v0.2 bundle with a fixed layout for decisions, questions and plans.
@@ -18,6 +14,11 @@ _None yet._
 - [DR-0008 Adjacency-table tool first, separate from the game](/decisions/0008-adjacency-tool-first.md) - Phase 1 builds the adjacency table and a separate tool to inspect and test it; the game comes later.
 - [DR-0009 Commit straight to main](/decisions/0009-commit-straight-to-main.md) - Work is committed directly to main, with no branches and no remote for now.
 - [DR-0010 The facilitator manages context](/decisions/0010-facilitator-manages-context.md) - The facilitator's main job is managing context, giving each task fresh team sessions and telling Ian when to clear his session.
+- [DR-0011 TypeScript and Vite for the Lit frontend](/decisions/0011-typescript-and-vite.md) - The Lit frontend is written in TypeScript and built with Vite.
+
+## Proposed
+
+_None._
 
 ## Archived
 

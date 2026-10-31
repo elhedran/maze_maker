@@ -2,18 +2,22 @@
 type: Decision Record
 title: npm for frontend packages
 description: The frontend uses npm as its package manager.
-status: draft
+status: stable
 decision_id: DR-0006
-decision_status: proposed
+decision_status: accepted
 decision_kind: architecture
 major: true
 owners: [human:ian]
 approvers: [human:ian]
+decided_at: 2026-10-31T14:46:00+01:00
 supersedes: []
 tags: [technology, npm, frontend]
 generated:
   by: facilitator/1
   at: 2026-10-31T14:15:00+01:00
+verified:
+  - by: human:ian
+    at: 2026-10-31T14:46:00+01:00
 ---
 
 # Context

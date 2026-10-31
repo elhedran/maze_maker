@@ -2,18 +2,22 @@
 type: Decision Record
 title: The facilitator manages context
 description: The facilitator's main job is managing context, giving each task fresh team sessions and telling Ian when to clear his session.
-status: draft
+status: stable
 decision_id: DR-0010
-decision_status: proposed
+decision_status: accepted
 decision_kind: process
 major: true
 owners: [human:ian]
 approvers: [human:ian]
+decided_at: 2026-10-31T14:46:00+01:00
 supersedes: []
 tags: [process, facilitator, context, team]
 generated:
   by: facilitator/1
   at: 2026-10-31T14:42:00+01:00
+verified:
+  - by: human:ian
+    at: 2026-10-31T14:46:00+01:00
 ---
 
 # Context

@@ -2,12 +2,14 @@
 type: Open Question
 title: Sign off the founding decision records
 description: DR-0001 to DR-0010 record what Ian decided on 2026-10-31 and become accepted once he approves the wording.
-status: draft
+status: stable
 question_id: Q-0001
-question_status: open
+question_status: resolved
 waiting_on: [human:ian]
 raised_by: facilitator/1
 raised_at: 2026-10-31T14:15:00+01:00
+resolved_by: human:ian
+resolved_at: 2026-10-31T14:46:00+01:00
 related:
   - /decisions/0001-record-every-decision.md
   - /decisions/0002-approval-and-escalation.md
@@ -45,3 +47,5 @@ The "Alternatives considered" sections in DR-0005 and DR-0006 were added by the 
 None. It's your wording to check.
 
 # Resolution
+
+Ian approved DR-0001 to DR-0010 as written on 2026-10-31. All ten are now `accepted`, with `human:ian` in `verified`.

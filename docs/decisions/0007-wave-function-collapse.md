@@ -2,18 +2,22 @@
 type: Decision Record
 title: Generate mazes with Wave Function Collapse
 description: Mazes are generated around the player with Wave Function Collapse over a tile set and an adjacency table.
-status: draft
+status: stable
 decision_id: DR-0007
-decision_status: proposed
+decision_status: accepted
 decision_kind: architecture
 major: true
 owners: [human:ian]
 approvers: [human:ian]
+decided_at: 2026-10-31T14:46:00+01:00
 supersedes: []
 tags: [generation, wfc, adjacency-table]
 generated:
   by: facilitator/1
   at: 2026-10-31T14:15:00+01:00
+verified:
+  - by: human:ian
+    at: 2026-10-31T14:46:00+01:00
 ---
 
 # Context

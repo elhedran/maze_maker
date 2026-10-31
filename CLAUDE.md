@@ -84,4 +84,5 @@ Commit straight to `main`. No branches, no remote yet.
 
 - Rust stable (MSVC), installed with rustup.
 - Node 24 and npm (DR-0006).
+- The Lit frontend is TypeScript, built with Vite (DR-0011).
 - Tauri's Windows prerequisites are installed: VS Build Tools with C++, the Windows 11 SDK, and WebView2.

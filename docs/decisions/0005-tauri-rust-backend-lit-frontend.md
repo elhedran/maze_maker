@@ -2,13 +2,14 @@
 type: Decision Record
 title: Tauri v2 with a Rust backend and Lit frontend
 description: Apps are built with Tauri v2, with generation logic in Rust and the UI in Lit web components.
-status: draft
+status: stable
 decision_id: DR-0005
-decision_status: proposed
+decision_status: accepted
 decision_kind: architecture
 major: true
 owners: [human:ian]
 approvers: [human:ian]
+decided_at: 2026-10-31T14:46:00+01:00
 supersedes: []
 tags: [technology, tauri, rust, lit]
 sources:
@@ -18,6 +19,9 @@ sources:
 generated:
   by: facilitator/1
   at: 2026-10-31T14:15:00+01:00
+verified:
+  - by: human:ian
+    at: 2026-10-31T14:46:00+01:00
 ---
 
 # Context
@@ -43,7 +47,7 @@ These weren't evaluated in depth; the stack is Ian's choice. Listed for context:
 
 - Generation runs in Rust and the frontend only displays results. Moving large data (the adjacency table, maze chunks) over Tauri's IPC has a cost, so interfaces should page or stream it rather than send everything at once.
 - Development machines need Rust and Tauri's Windows prerequisites (MSVC build tools, WebView2).
-- The frontend language and bundler are still open: [Q-0002](/questions/open/0002-typescript-and-vite.md).
+- The frontend language and bundler were left open in [Q-0002](/questions/resolved/0002-typescript-and-vite.md) and settled by [DR-0011](/decisions/0011-typescript-and-vite.md).
 
 # Concerns raised
 

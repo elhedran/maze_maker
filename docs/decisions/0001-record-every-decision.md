@@ -2,13 +2,14 @@
 type: Decision Record
 title: Record every decision as a decision record
 description: Every project decision gets its own decision record in docs/decisions, with a lifecycle and an archive.
-status: draft
+status: stable
 decision_id: DR-0001
-decision_status: proposed
+decision_status: accepted
 decision_kind: process
 major: true
 owners: [human:ian]
 approvers: [human:ian]
+decided_at: 2026-10-31T14:46:00+01:00
 supersedes: []
 tags: [process, decisions]
 sources:
@@ -18,6 +19,9 @@ sources:
 generated:
   by: facilitator/1
   at: 2026-10-31T14:15:00+01:00
+verified:
+  - by: human:ian
+    at: 2026-10-31T14:46:00+01:00
 ---
 
 # Context

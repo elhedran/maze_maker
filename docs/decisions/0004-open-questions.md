@@ -2,18 +2,22 @@
 type: Decision Record
 title: Track open questions as files
 description: Questions waiting on a decision live in docs/questions/open and move to docs/questions/resolved when answered.
-status: draft
+status: stable
 decision_id: DR-0004
-decision_status: proposed
+decision_status: accepted
 decision_kind: process
 major: true
 owners: [human:ian]
 approvers: [human:ian]
+decided_at: 2026-10-31T14:46:00+01:00
 supersedes: []
 tags: [process, questions]
 generated:
   by: facilitator/1
   at: 2026-10-31T14:15:00+01:00
+verified:
+  - by: human:ian
+    at: 2026-10-31T14:46:00+01:00
 ---
 
 # Context

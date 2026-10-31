@@ -7,6 +7,7 @@ import type { Direction } from "../bindings/Direction.ts";
 import type { EntryView } from "../bindings/EntryView.ts";
 import type { TableView } from "../bindings/TableView.ts";
 import type { TableViewRequest } from "../bindings/TableViewRequest.ts";
+import type { TileFilter } from "../bindings/TileFilter.ts";
 import type { TileView } from "../bindings/TileView.ts";
 import type { ToolError } from "../bindings/ToolError.ts";
 
@@ -99,13 +100,45 @@ interface Backend {
   reloadFails?: ToolError;
 }
 
+const SIDE_INDEX: Record<Direction, number> = { north: 0, east: 1, south: 2, west: 3 };
+
+/** DR-0027's matching, as Rust does it: empty means any, OR within a field, AND across. */
+function matches(tile: TileView, f: TileFilter, sideIndex: number): boolean {
+  const side = tile.sides[sideIndex];
+  const sideKind = side.startsWith("floor_wall") ? "floor_wall" : side;
+  return (
+    (f.kinds.length === 0 || f.kinds.includes(tile.kind)) &&
+    (f.tileIds.length === 0 || f.tileIds.includes(tile.id)) &&
+    (f.tags.length === 0 || f.tags.some((t) => tile.tags.includes(t))) &&
+    (f.sides.length === 0 || f.sides.includes(sideKind as TileFilter["sides"][number]))
+  );
+}
+
+/** The fixture view, filtered the way Rust filters it. The column side is the one facing back. */
+function filteredView(request: TableViewRequest): TableView {
+  const direction = request.directions[0];
+  const view = viewFor(direction);
+  const rowSide = SIDE_INDEX[direction];
+  const rows = view.rows.filter((i) => matches(TILES[i], request.rowFilter, rowSide));
+  const columns = view.columns.filter((i) => matches(TILES[i], request.columnFilter, (rowSide + 2) % 4));
+  const empty = rows.length === 0 || columns.length === 0;
+  return {
+    ...view,
+    totalRows: rows.length,
+    totalColumns: columns.length,
+    rows: empty ? [] : rows,
+    columns: empty ? [] : columns,
+    entries: empty ? [] : view.entries.filter((e) => rows.includes(e.row) && columns.includes(e.column)),
+  };
+}
+
 function backend(): Backend {
   const state: Backend = { requests: [] };
   mockIPC((cmd, payload) => {
     if (cmd === COMMANDS.tableView) {
       const request = (payload as { request: TableViewRequest }).request;
       state.requests.push(request);
-      return viewFor(request.directions[0]);
+      return filteredView(request);
     }
     if (cmd === COMMANDS.reloadTileSet) {
       if (state.reloadFails) throw state.reloadFails;
@@ -128,6 +161,22 @@ const cell = (el: Element, row: number, column: number) =>
   root(el).querySelector<HTMLElement>(`td[data-row="${row}"][data-column="${column}"]`)!;
 const panelText = (el: Element) => root(el).querySelector("table-explanation")!.shadowRoot!.textContent ?? "";
 const squash = (s: string) => s.replace(/\s+/g, " ");
+const bar = (el: Element) => root(el).querySelector("filter-bar")!.shadowRoot!;
+/** A toggle in one group's facet: `toggle(el, "row", "kind", "room")`. */
+const toggle = (el: Element, group: "row" | "column", facet: string, value: string) =>
+  bar(el).querySelector<HTMLButtonElement>(
+    `[data-group="${group}"] [data-facet="${facet}"] button[data-value="${value}"]`,
+  )!;
+const countText = (el: Element) => squash(bar(el).querySelector(".count")!.textContent ?? "").trim();
+const clearAll = (el: Element) => bar(el).querySelector<HTMLButtonElement>("#clear-all")!;
+const cornerText = (el: Element) => squash(root(el).querySelector(".corner")!.textContent ?? "");
+const sideLabels = (el: Element) =>
+  [...bar(el).querySelectorAll('[data-facet="side"] .facet-name')].map((n) => n.textContent);
+const rowGlyphs = (el: Element) =>
+  [...root(el).querySelectorAll('tbody th[scope="row"] .glyph')].map((g) => g.textContent);
+const columnGlyphs = (el: Element) =>
+  [...root(el).querySelectorAll('thead th[scope="col"] .glyph')].map((g) => g.textContent);
+const ANY: TileFilter = { kinds: [], tileIds: [], tags: [], sides: [] };
 
 afterEach(() => {
   document.body.innerHTML = "";
@@ -140,7 +189,8 @@ describe("adjacency-table", () => {
     await mount();
     expect(ipc.requests).toHaveLength(1);
     expect(ipc.requests[0].directions).toEqual(["east"]);
-    expect(ipc.requests[0].rowFilter).toEqual({ kinds: [], tileIds: [], tags: [], sides: [] });
+    expect(ipc.requests[0].rowFilter).toEqual(ANY);
+    expect(ipc.requests[0].columnFilter).toEqual(ANY);
   });
 
   test("draws a row and a column per tile, grouped by kind, with glyph headers", async () => {
@@ -275,5 +325,179 @@ describe("adjacency-table", () => {
       expect(root(el).querySelector(".banner")?.textContent).toBe("data/tile-sets/core.toml: missing [bases]"),
     );
     expect(root(el).querySelector("table")).toBeNull();
+  });
+
+  describe("filters (DR-0027)", () => {
+    test("with nothing filtered the count line says all, and Clear all is disabled", async () => {
+      backend();
+      const el = await mount();
+      expect(countText(el)).toBe("Showing all 4 rows and 4 columns. Clear all");
+      expect(clearAll(el).disabled).toBe(true);
+    });
+
+    test("the tile's Kind filters rows only, in the switcher's one direction", async () => {
+      const ipc = backend();
+      const el = await mount();
+      toggle(el, "row", "kind", "room").click();
+
+      await vi.waitFor(() => expect(rowGlyphs(el)).toEqual(["═"]));
+      expect(columnGlyphs(el)).toEqual(["─", "┐", "═", "░"]);
+      const last = ipc.requests.at(-1)!;
+      expect(last.rowFilter).toEqual({ ...ANY, kinds: ["room"] });
+      expect(last.columnFilter).toEqual(ANY);
+      expect(last.directions).toEqual(["east"]);
+      expect(toggle(el, "row", "kind", "room").getAttribute("aria-pressed")).toBe("true");
+      expect(countText(el)).toBe("Showing 1 of 4 rows, 4 of 4 columns. Rows: Room. Clear all");
+      expect(clearAll(el).disabled).toBe(false);
+    });
+
+    test("the neighbour's Kind filters columns only, and the corner sentence picks up both", async () => {
+      const ipc = backend();
+      const el = await mount();
+      toggle(el, "row", "kind", "room").click();
+      await vi.waitFor(() => expect(rowGlyphs(el)).toEqual(["═"]));
+      toggle(el, "column", "kind", "corridor").click();
+
+      await vi.waitFor(() => expect(columnGlyphs(el)).toEqual(["─", "┐"]));
+      const last = ipc.requests.at(-1)!;
+      expect(last.rowFilter).toEqual({ ...ANY, kinds: ["room"] });
+      expect(last.columnFilter).toEqual({ ...ANY, kinds: ["corridor"] });
+      expect(cornerText(el)).toContain("Room tile, then its Corridor neighbour to the EAST");
+      expect(countText(el)).toBe("Showing 1 of 4 rows, 2 of 4 columns. Rows: Room. Columns: Corridor. Clear all");
+    });
+
+    test("Tile type is a multi-select of tile types grouped by kind", async () => {
+      const ipc = backend();
+      const el = await mount();
+      const menu = () => bar(el).querySelector('[data-group="column"] [data-facet="type"]')!;
+      expect([...menu().querySelectorAll("legend")].map((l) => l.textContent)).toEqual(["Corridor", "Room", "Hedge"]);
+
+      menu().querySelector<HTMLInputElement>('input[data-value="corridor_corner"]')!.click();
+      await vi.waitFor(() => expect(columnGlyphs(el)).toEqual(["┐"]));
+      expect(ipc.requests.at(-1)!.columnFilter).toEqual({ ...ANY, tileIds: ["corridor_corner"] });
+      expect(menu().querySelector("summary")!.textContent).toBe("Corridor corner");
+
+      menu().querySelector<HTMLInputElement>('input[data-value="hedge"]')!.click();
+      await vi.waitFor(() => expect(columnGlyphs(el)).toEqual(["┐", "░"]));
+      expect(countText(el)).toContain("Columns: Corridor corner or Hedge.");
+    });
+
+    test("Tag toggles come from the tile set", async () => {
+      const ipc = backend();
+      const el = await mount();
+      expect(toggle(el, "row", "tag", "room_edge").textContent?.trim()).toBe("room edge");
+      toggle(el, "row", "tag", "room_edge").click();
+      await vi.waitFor(() => expect(rowGlyphs(el)).toEqual(["═"]));
+      expect(ipc.requests.at(-1)!.rowFilter).toEqual({ ...ANY, tags: ["room_edge"] });
+    });
+
+    test("Side toggles are labelled by the switcher and ask for the shared edge", async () => {
+      const ipc = backend();
+      const el = await mount();
+      expect(sideLabels(el)).toEqual(["East side", "West side"]);
+
+      // East side Floor+wall: only ═, whose east side is floor with a wall end.
+      toggle(el, "row", "side", "floor_wall").click();
+      await vi.waitFor(() => expect(rowGlyphs(el)).toEqual(["═"]));
+      // West side Passage, the neighbour's side facing back: ─ and ┐.
+      toggle(el, "column", "side", "passage").click();
+      await vi.waitFor(() => expect(columnGlyphs(el)).toEqual(["─", "┐"]));
+      const last = ipc.requests.at(-1)!;
+      expect(last.rowFilter.sides).toEqual(["floor_wall"]);
+      expect(last.columnFilter.sides).toEqual(["passage"]);
+      expect(last.directions).toEqual(["east"]);
+      expect(countText(el)).toContain("Rows: East side Floor+wall. Columns: West side Passage.");
+    });
+
+    test("filters are kept across a direction switch, and the side labels follow it", async () => {
+      const ipc = backend();
+      const el = await mount();
+      toggle(el, "row", "kind", "room").click();
+      await vi.waitFor(() => expect(rowGlyphs(el)).toEqual(["═"]));
+      toggle(el, "column", "kind", "corridor").click();
+      await vi.waitFor(() => expect(columnGlyphs(el)).toEqual(["─", "┐"]));
+
+      root(el).querySelector<HTMLButtonElement>('button[data-direction="north"]')!.click();
+      await vi.waitFor(() => expect(cornerText(el)).toContain("Room tile, then its Corridor neighbour to the NORTH"));
+      const last = ipc.requests.at(-1)!;
+      expect(last.directions).toEqual(["north"]);
+      expect(last.rowFilter).toEqual({ ...ANY, kinds: ["room"] });
+      expect(last.columnFilter).toEqual({ ...ANY, kinds: ["corridor"] });
+      expect(sideLabels(el)).toEqual(["North side", "South side"]);
+      expect(toggle(el, "row", "kind", "room").getAttribute("aria-pressed")).toBe("true");
+    });
+
+    test("filters are kept across a reload", async () => {
+      const ipc = backend();
+      const el = await mount();
+      toggle(el, "row", "kind", "room").click();
+      await vi.waitFor(() => expect(rowGlyphs(el)).toEqual(["═"]));
+      root(el).querySelector<HTMLButtonElement>("#reload")!.click();
+      await vi.waitFor(() => expect(ipc.requests).toHaveLength(3));
+      expect(ipc.requests[2].rowFilter).toEqual({ ...ANY, kinds: ["room"] });
+      expect(rowGlyphs(el)).toEqual(["═"]);
+    });
+
+    test("Clear all resets both groups and is disabled again", async () => {
+      const ipc = backend();
+      const el = await mount();
+      toggle(el, "row", "kind", "room").click();
+      await vi.waitFor(() => expect(rowGlyphs(el)).toEqual(["═"]));
+      toggle(el, "column", "tag", "room_edge").click();
+      await vi.waitFor(() => expect(columnGlyphs(el)).toEqual(["═"]));
+
+      clearAll(el).click();
+      await vi.waitFor(() => expect(rowGlyphs(el)).toEqual(["─", "┐", "═", "░"]));
+      const last = ipc.requests.at(-1)!;
+      expect(last.rowFilter).toEqual(ANY);
+      expect(last.columnFilter).toEqual(ANY);
+      expect(countText(el)).toBe("Showing all 4 rows and 4 columns. Clear all");
+      expect(clearAll(el).disabled).toBe(true);
+      expect(toggle(el, "row", "kind", "room").getAttribute("aria-pressed")).toBe("false");
+    });
+
+    test("a filter that matches nothing replaces the grid; the count line and Clear all stay", async () => {
+      backend();
+      const el = await mount();
+      toggle(el, "row", "kind", "hedge").click();
+      await vi.waitFor(() => expect(rowGlyphs(el)).toEqual(["░"]));
+      toggle(el, "row", "tag", "room_edge").click();
+
+      await vi.waitFor(() => expect(root(el).querySelector("table")).toBeNull());
+      expect(root(el).querySelector(".empty")!.textContent).toBe("No tiles match these filters");
+      expect(countText(el)).toContain("Showing 0 of 4 rows, 4 of 4 columns.");
+      expect(clearAll(el).disabled).toBe(false);
+
+      clearAll(el).click();
+      await vi.waitFor(() => expect(root(el).querySelector("tbody")).not.toBeNull());
+    });
+
+    test("a selected cell that is filtered out is no longer selected", async () => {
+      backend();
+      const el = await mount();
+      cell(el, 0, 1).click();
+      await vi.waitFor(() => expect(panelText(el)).toContain("15.0%"));
+
+      // ─ stays a row but ┐ goes: the selection clears.
+      toggle(el, "column", "kind", "room").click();
+      await vi.waitFor(() => expect(columnGlyphs(el)).toEqual(["═"]));
+      expect(panelText(el)).toContain("Select a cell to see where its number comes from.");
+      expect(root(el).querySelector("td.selected")).toBeNull();
+
+      // Bringing ┐ back doesn't bring the selection back.
+      clearAll(el).click();
+      await vi.waitFor(() => expect(columnGlyphs(el)).toHaveLength(4));
+      expect(root(el).querySelector("td.selected")).toBeNull();
+    });
+
+    test("a selected cell that is still shown stays selected", async () => {
+      backend();
+      const el = await mount();
+      cell(el, 0, 1).click();
+      toggle(el, "column", "kind", "corridor").click();
+      await vi.waitFor(() => expect(columnGlyphs(el)).toEqual(["─", "┐"]));
+      expect(cell(el, 0, 1).classList).toContain("selected");
+      expect(panelText(el)).toContain("15.0%");
+    });
   });
 });

@@ -15,13 +15,14 @@ import { glyphStyles, renderGlyph, themeStyles } from "./draw-tile.ts";
 import { tileLabel, tileLook } from "./tile-glyphs.ts";
 import type { Explained } from "./table-explanation.ts";
 import "./table-explanation.ts";
+import { KIND_LABEL, noFilter, type FilterChange } from "./filter-bar.ts";
+import "./filter-bar.ts";
 import type { Direction } from "../bindings/Direction.ts";
 import type { EntryView } from "../bindings/EntryView.ts";
 import type { TableView } from "../bindings/TableView.ts";
+import type { TileFilter } from "../bindings/TileFilter.ts";
 import type { TileKind } from "../bindings/TileKind.ts";
 import type { TileView } from "../bindings/TileView.ts";
-
-const KIND_LABEL: Record<TileKind, string> = { corridor: "Corridor", room: "Room", hedge: "Hedge" };
 
 /** A (tile, orientation) by identity, so a selection survives reloads and direction switches. */
 type TileKey = string;
@@ -63,6 +64,14 @@ export class AdjacencyTable extends LitElement {
    * is in flight, and the grid's labels follow the numbers on screen.
    */
   @state() private viewDirection: Direction = "east";
+  /**
+   * The tile filter picks rows, the neighbour filter picks columns (DR-0027).
+   * Kept across a direction switch and a reload; not saved between runs.
+   */
+  @state() private rowFilter: TileFilter = noFilter();
+  @state() private columnFilter: TileFilter = noFilter();
+  /** The filters `view` was fetched with, so the corner sentence matches the grid. */
+  private viewFilters: FilterChange = { rowFilter: noFilter(), columnFilter: noFilter() };
   /** Shown as a red banner; the last good table stays (DR-0025 point 12). */
   @state() private error?: string;
   @state() private selection?: Selection;
@@ -96,6 +105,7 @@ export class AdjacencyTable extends LitElement {
       }
       .path { font-family: var(--mono); }
       .muted { color: var(--muted); }
+      .empty { color: var(--muted); padding: 2rem 0; margin: 0; }
       button {
         font: inherit;
         padding: 0.25rem 0.75rem;
@@ -193,16 +203,23 @@ export class AdjacencyTable extends LitElement {
     }
   }
 
-  /** Asks Rust for the whole table in the current direction. */
+  /**
+   * Asks Rust for the table in the current direction only, filtered. One
+   * direction per request: the side facet needs it, and at 29 × 29 a request
+   * per switch is cheap (DR-0027).
+   */
   private async fetchView(): Promise<boolean> {
     const serial = ++this.requestSerial;
     const direction = this.direction;
+    const filters = { rowFilter: this.rowFilter, columnFilter: this.columnFilter };
     this.busy = true;
     try {
-      const view = await tableView(wholeTableRequest(direction));
+      const view = await tableView({ ...wholeTableRequest(direction), ...filters });
       if (serial !== this.requestSerial) return false;
       this.viewDirection = direction;
+      this.viewFilters = filters;
       this.view = view;
+      this.dropSelectionIfHidden(view);
       return true;
     } catch (e) {
       if (serial !== this.requestSerial) return false;
@@ -223,6 +240,22 @@ export class AdjacencyTable extends LitElement {
       return;
     }
     if (await this.fetchView()) this.error = undefined;
+  }
+
+  /** DR-0027 point 8: a selected cell that is filtered out is no longer selected. */
+  private dropSelectionIfHidden(view: TableView) {
+    if (!this.selection) return;
+    const shown = (indices: number[], key: TileKey) => indices.some((i) => keyOf(view.tiles[i]) === key);
+    if (!shown(view.rows, this.selection.row) || !shown(view.columns, this.selection.column)) {
+      this.selection = undefined;
+    }
+  }
+
+  private onFilterChange(event: CustomEvent<FilterChange>) {
+    this.rowFilter = event.detail.rowFilter;
+    this.columnFilter = event.detail.columnFilter;
+    this.hover = undefined;
+    void this.fetchView();
   }
 
   private setDirection(direction: Direction) {
@@ -316,6 +349,17 @@ export class AdjacencyTable extends LitElement {
           <span class="mark"></span><span class="muted">exception applied</span>
         </span>
       </div>
+      ${v
+        ? html`<filter-bar
+            .tiles=${v.tiles}
+            .rowFilter=${this.rowFilter}
+            .columnFilter=${this.columnFilter}
+            direction=${this.direction}
+            .totalRows=${v.totalRows}
+            .totalColumns=${v.totalColumns}
+            @filter-change=${this.onFilterChange}
+          ></filter-bar>`
+        : nothing}
     `;
   }
 
@@ -333,13 +377,21 @@ export class AdjacencyTable extends LitElement {
       }
     }
     const dirWord = this.viewDirection.toUpperCase();
+    if (this.rowTiles.length === 0 || this.columnTiles.length === 0) {
+      // DR-0027 point 7: the grid gives way; the count line and Clear all stay in the bar.
+      return html`<p class="empty">No tiles match these filters</p>`;
+    }
+    const kinds = (f: TileFilter) => f.kinds.map((k) => KIND_LABEL[k]).join(" or ");
+    const rowWord = kinds(this.viewFilters.rowFilter) || "Row";
+    const columnWord = kinds(this.viewFilters.columnFilter);
+    const corner = `${rowWord} tile, then its ${columnWord ? `${columnWord} ` : ""}neighbour to the ${dirWord}`;
 
     return html`<div class="body">
       <div class="grid-wrap">
         <table
           role="grid"
           tabindex="0"
-          aria-label="Row tile, then its neighbour to the ${dirWord}"
+          aria-label=${corner}
           @keydown=${this.onGridKeydown}
           @mouseover=${this.onGridHover}
           @mouseleave=${() => (this.hover = undefined)}
@@ -347,7 +399,7 @@ export class AdjacencyTable extends LitElement {
           <thead>
             <tr>
               <th class="corner" colspan="2" rowspan="2">
-                Row tile, then its neighbour to the ${dirWord} (% of row)
+                ${corner} (% of row)
               </th>
               ${columnGroups.map(
                 (g, i) =>

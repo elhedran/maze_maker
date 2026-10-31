@@ -40,9 +40,30 @@ export const isFiltered = (f: TileFilter) =>
 /** Which group a change came from: the tile picks rows, the neighbour picks columns. */
 export type FilterGroup = "row" | "column";
 
-export interface FilterChange {
+/** Both groups' filters: what the table keeps and puts in its request. */
+export interface Filters {
   rowFilter: TileFilter;
   columnFilter: TileFilter;
+}
+
+/** A facet of one group: the TileFilter field it sets. */
+export type Facet = keyof TileFilter;
+
+/**
+ * What one click asks for. The bar sends the edit, not the resulting
+ * filters, because its properties lag the table's state until the next
+ * render: two quick clicks would otherwise build the second from stale
+ * filters and drop the first. The table applies edits to its own state.
+ */
+export type FilterEdit = { toggle: { group: FilterGroup; facet: Facet; value: string } } | { clear: true };
+
+/** Applies one edit to the current filters. */
+export function applyFilterEdit(filters: Filters, edit: FilterEdit): Filters {
+  if ("clear" in edit) return { rowFilter: noFilter(), columnFilter: noFilter() };
+  const { group, facet, value } = edit.toggle;
+  const key = group === "row" ? "rowFilter" : "columnFilter";
+  const filter = filters[key];
+  return { ...filters, [key]: { ...filter, [facet]: toggled<string>(filter[facet], value) } };
 }
 
 /** One tile type for the multi-select: DR-0015's name, not an orientation. */
@@ -183,12 +204,12 @@ export class FilterBar extends LitElement {
     types: TileType[],
     tags: string[],
   ) {
-    const set = (next: Partial<TileFilter>) => this.change(group, { ...filter, ...next });
-    const toggle = <T extends string>(label: string, values: T[], value: T, field: keyof TileFilter) =>
+    const edit = (facet: Facet, value: string) => this.send({ toggle: { group, facet, value } });
+    const toggle = <T extends string>(label: string, values: T[], value: T, facet: Facet) =>
       html`<button
         data-value=${value}
         aria-pressed=${values.includes(value) ? "true" : "false"}
-        @click=${() => set({ [field]: toggled(values, value) })}
+        @click=${() => edit(facet, value)}
       >
         ${label}
       </button>`;
@@ -220,7 +241,7 @@ export class FilterBar extends LitElement {
                             type="checkbox"
                             data-value=${t.id}
                             .checked=${filter.tileIds.includes(t.id)}
-                            @change=${() => set({ tileIds: toggled(filter.tileIds, t.id) })}
+                            @change=${() => edit("tileIds", t.id)}
                           />
                           ${t.name}</label
                         >`,
@@ -245,19 +266,11 @@ export class FilterBar extends LitElement {
     `;
   }
 
-  private change(group: FilterGroup, filter: TileFilter) {
-    const detail: FilterChange = {
-      rowFilter: group === "row" ? filter : this.rowFilter,
-      columnFilter: group === "column" ? filter : this.columnFilter,
-    };
-    this.dispatchEvent(new CustomEvent<FilterChange>("filter-change", { detail }));
+  private send(detail: FilterEdit) {
+    this.dispatchEvent(new CustomEvent<FilterEdit>("filter-edit", { detail }));
   }
 
-  private clearAll = () => {
-    this.dispatchEvent(
-      new CustomEvent<FilterChange>("filter-change", { detail: { rowFilter: noFilter(), columnFilter: noFilter() } }),
-    );
-  };
+  private clearAll = () => this.send({ clear: true });
 }
 
 declare global {
@@ -265,6 +278,6 @@ declare global {
     "filter-bar": FilterBar;
   }
   interface HTMLElementEventMap {
-    "filter-change": CustomEvent<FilterChange>;
+    "filter-edit": CustomEvent<FilterEdit>;
   }
 }

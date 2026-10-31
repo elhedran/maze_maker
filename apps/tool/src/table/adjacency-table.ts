@@ -15,7 +15,7 @@ import { glyphStyles, renderGlyph, themeStyles } from "./draw-tile.ts";
 import { tileLabel, tileLook } from "./tile-glyphs.ts";
 import type { Explained } from "./table-explanation.ts";
 import "./table-explanation.ts";
-import { KIND_LABEL, noFilter, type FilterChange } from "./filter-bar.ts";
+import { KIND_LABEL, applyFilterEdit, noFilter, type FilterEdit, type Filters } from "./filter-bar.ts";
 import "./filter-bar.ts";
 import type { Direction } from "../bindings/Direction.ts";
 import type { EntryView } from "../bindings/EntryView.ts";
@@ -71,7 +71,7 @@ export class AdjacencyTable extends LitElement {
   @state() private rowFilter: TileFilter = noFilter();
   @state() private columnFilter: TileFilter = noFilter();
   /** The filters `view` was fetched with, so the corner sentence matches the grid. */
-  private viewFilters: FilterChange = { rowFilter: noFilter(), columnFilter: noFilter() };
+  private viewFilters: Filters = { rowFilter: noFilter(), columnFilter: noFilter() };
   /** Shown as a red banner; the last good table stays (DR-0025 point 12). */
   @state() private error?: string;
   @state() private selection?: Selection;
@@ -251,9 +251,10 @@ export class AdjacencyTable extends LitElement {
     }
   }
 
-  private onFilterChange(event: CustomEvent<FilterChange>) {
-    this.rowFilter = event.detail.rowFilter;
-    this.columnFilter = event.detail.columnFilter;
+  private onFilterEdit(event: CustomEvent<FilterEdit>) {
+    const next = applyFilterEdit({ rowFilter: this.rowFilter, columnFilter: this.columnFilter }, event.detail);
+    this.rowFilter = next.rowFilter;
+    this.columnFilter = next.columnFilter;
     this.hover = undefined;
     void this.fetchView();
   }
@@ -357,7 +358,7 @@ export class AdjacencyTable extends LitElement {
             direction=${this.direction}
             .totalRows=${v.totalRows}
             .totalColumns=${v.totalColumns}
-            @filter-change=${this.onFilterChange}
+            @filter-edit=${this.onFilterEdit}
           ></filter-bar>`
         : nothing}
     `;

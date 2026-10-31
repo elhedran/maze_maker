@@ -26,7 +26,7 @@ Revised 2026-10-31 for [DR-0012](/decisions/0012-code-layout-and-core-crate.md),
   - 1.0 is done: all four "done when" points checked by Rowan on 2026-10-31.
   - The weight model is decided: a calculated base plus a few exceptions ([DR-0022](/decisions/0022-weight-model.md)), resolving [Q-0007](/questions/resolved/0007-open-details-of-table-probabilities.md).
   - 1.1 is built and waiting to land on `main`: the table design, how types stay in step and the tile set format are settled (DR-0023 to DR-0025), and so is the Phase 1 plan.
-  - Damson brings the design for exploring one tile (1.2).
+  - The design for exploring one tile (1.2) is settled ([DR-0026](/decisions/0026-explore-one-tile-design.md)).
   - Wren and Yew work on [Q-0008](/questions/open/0008-global-maze-properties.md) (global maze properties). It doesn't block Phase 1.
   - Nothing is waiting on Ian.
 - **Next:** 1.1 and 1.2. Together they are the "exploring the table" demo Ian asked for.

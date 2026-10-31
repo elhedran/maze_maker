@@ -200,7 +200,7 @@ Moved to later by Marram on 2026-11-01, then brought back the same day to run in
   - it's always visible what has been filtered out;
   - one action clears all filters.
 - **Waits on:** Damson's design for filtering (Damson and Marram). Kinds, tile types and tags on every tile are settled ([DR-0015](/decisions/0015-tile-set.md)).
-- **Status:** built, waiting to land (2026-11-01). It's on branch `claude/busy-ritchie-ebe382`, not yet on `main`. Design gate met: [DR-0027](/decisions/0027-filter-table-design.md) accepted 2026-11-01.
+- **Status:** done (2026-11-01), on `main` (e520d07). Ian (`human:ian`) approved landing it: "Yes, land 1.3". Design gate met: [DR-0027](/decisions/0027-filter-table-design.md) accepted 2026-11-01.
   - **Built:** everything in DR-0027, nothing slipped. Kind, Tile type, Tag and Side facets for the tile (rows) and the neighbour (columns); the count line with the filters in words; Clear all; the empty state. Rust filters through DR-0024's request, plus DR-0027's `sides` field; a side filter with other than one direction is a `bad_request` error (Rowan). The bar is `apps/tool/src/table/filter-bar.ts` (Ash).
   - **Verified:** 52 Rust tests and 36 Vitest tests pass, and the build passes. The facilitator drove the real Tauri window by script: corridor corners next to rooms shows 4 of 29 rows, 13 of 29 columns; the demo (Room rows, Corridor columns, East) shows 13 of 29 rows, 15 of 29 columns; side labels follow the switcher; the empty state and Clear all work. Damson checked it against DR-0027 and passed it, with no overrules.
   - **Ian, 2026-11-01, verbatim:** "new filters look good".

@@ -2,6 +2,8 @@
 
 ## 2026-11-01
 
+- **Update** Roadmap: Marram brought slice 1.3, filtering the table, back to run in parallel with 2.1, a sequencing call and a two-way door, after Ian said "Happy to use tokens faster if we can doo more work concurrently". It has its own session, worktrees and agent sessions of Rowan (Rust `sides` filter) and Ash (Lit filter bar), takes nothing from 2.1, and touches only the table view, its command and the filter code. DR-0027's slip list stands. Status lines updated.
+
 - **Update** Ian ran slice 1.1's two demo tasks himself from `main` and approved them: "demo approved - looks good.  I tried the east, tried the blank cell, also did a bit of an explore around how paths and rooms were represented". Roadmap 1.1 status and the Phase 1 plan updated; the plan's points 9 and 10 are checked.
 
 - **Update** Roadmap revised by Marram for Ian's "the data side is good enough to start leveraging in maze generation"; approved by Ian ("Approve, start 2.1"). Maze generation is next, starting with 2.1, the first sample maze.

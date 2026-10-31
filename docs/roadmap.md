@@ -36,15 +36,24 @@ What Marram changed. Moving slices is a sequencing call, a two-way door and Marr
 - **1.5 Full tile set v1 is dropped as a slice.** Wren expects Phase 2 to change the set anyway, so tiles get added when sample mazes show the need. Its one generation-critical piece, the basic check that every side of every tile can meet something, moves into 2.1. Paging waits until the table grows ([Q-0006](/questions/resolved/0006-expected-table-size.md)).
 - **No separate planning round for 2.1.** Its open items are settled at the start of the build, by the roles named in 2.1.
 
+## Update 2026-11-01: 1.3 runs in parallel with 2.1
+
+Ian (`human:ian`), verbatim, 2026-11-01:
+
+> Happy to use tokens faster if we can doo more work concurrently
+
+So Marram brought 1.3 back, a sequencing call and a two-way door ([DR-0018](/decisions/0018-one-way-doors-go-to-ian.md)). It runs now, alongside 2.1, in its own session and worktrees, with separate sessions of Rowan (Rust: DR-0027's `sides` filter, with tests) and Ash (the Lit filter bar, with Vitest tests). It takes no people or sessions from 2.1; the cost is tokens and a rebase against 2.1. It touches only the table view, its command and the filter code, to keep that rebase small. 2.1 stays first in line: if the two clash, 1.3 rebases. Its demo counts once it lands on `main` ([DR-0019](/decisions/0019-parallel-work-in-one-checkout.md)).
+
 ## Now and next
 
 - **Now:**
   - 1.0 and 1.1 are done. 1.1 is on `main` (ae9a6c3), and Ian has seen it: the table is built in Rust from `data/tile-sets/core.toml` with Wren's first numbers, and every entry explains itself.
   - Phase 1 is closed (see the revision above).
-  - The designs for 1.2 and 1.3 are settled ([DR-0026](/decisions/0026-explore-one-tile-design.md), [DR-0027](/decisions/0027-filter-table-design.md)) and kept for later.
+  - The designs for 1.2 and 1.3 are settled ([DR-0026](/decisions/0026-explore-one-tile-design.md), [DR-0027](/decisions/0027-filter-table-design.md)). 1.2 waits for 2.2.
   - [Q-0008](/questions/open/0008-global-maze-properties.md) (global maze properties) was parked until before 2.1. That trigger is now: its first part, what to measure on a sample maze, is due, and Wren answers it for 2.1.
-  - Waiting on Ian: approval of this revision.
-- **Next:** 2.1, the first sample maze. Then 2.2, which brings in 1.2's explore view.
+  - 2.1, the first sample maze, is being built.
+  - 1.3, filtering the table, is being built in parallel with 2.1 (see "Update 2026-11-01" above).
+- **Next:** 2.2, which brings in 1.2's explore view.
 
 ## How it works
 
@@ -176,9 +185,9 @@ Moved by Marram on 2026-11-01, a two-way door. It is built as part of 2.2, which
 - **Waits on:** Damson's design for exploring, which is brought together with the 1.1 table design (Damson and Marram).
 - **Status:** not started; comes with 2.2. Its design gate is met: [DR-0026](/decisions/0026-explore-one-tile-design.md) accepted (2026-10-31).
 
-### 1.3 Filter the table (moved to later)
+### 1.3 Filter the table (in progress, in parallel with 2.1)
 
-Moved by Marram on 2026-11-01, a two-way door. Generation doesn't need it, and the 29-row table is readable without it. It comes back when Ian asks for it, or when tuning in 2.3 or a bigger tile set makes the table hard to read. Nothing in Phase 2 waits on it.
+Moved to later by Marram on 2026-11-01, then brought back the same day to run in parallel with 2.1, after Ian said he was happy to spend tokens faster for more concurrent work (see "Update 2026-11-01" above). Both moves are two-way doors. Nothing in Phase 2 waits on it.
 
 - **Goal:** narrow the table to the tile types Ian cares about.
 - **Demo task:** Ian shows only pairs of a room and a corridor, and finds the least likely one.
@@ -191,7 +200,7 @@ Moved by Marram on 2026-11-01, a two-way door. Generation doesn't need it, and t
   - it's always visible what has been filtered out;
   - one action clears all filters.
 - **Waits on:** Damson's design for filtering (Damson and Marram). Kinds, tile types and tags on every tile are settled ([DR-0015](/decisions/0015-tile-set.md)).
-- **Status:** not started, unscheduled. Design gate met: [DR-0027](/decisions/0027-filter-table-design.md) accepted 2026-11-01.
+- **Status:** in progress (2026-11-01), on its own branch, in parallel with 2.1. Design gate met: [DR-0027](/decisions/0027-filter-table-design.md) accepted 2026-11-01. DR-0027's slip list stands: Kind, Tile type, the count line and Clear all are the must-haves; the Tag and Side facets and the filters in words may slip.
 
 ### 1.4 Table checks (dropped)
 
@@ -227,13 +236,13 @@ The original definition, kept for reference:
 
 - **Editing probabilities in the tool:** in Phase 2, at 2.3 ([Q-0010](/questions/resolved/0010-where-editing-goes.md)). Until then, you change probabilities by editing the tile set data and reloading it.
 - Generating mazes (that's Phase 2), and anything in the game.
-- Since 2026-11-01: exploring one tile (now in 2.2), filtering (later) and full tile set v1 (dropped).
+- Since 2026-11-01: exploring one tile (now in 2.2) and full tile set v1 (dropped). Filtering (1.3) runs in parallel with 2.1.
 
 ## Phase 2: sample mazes
 
 **Done when** Wren and Ian can judge the maps the table makes ([DR-0008](/decisions/0008-adjacency-tool-first.md)), and Ian can trace a problem he sees in a maze back to the probabilities behind it ([Q-0005](/questions/resolved/0005-what-to-find-out-from-the-table.md)).
 
-**Status:** next. 2.1 starts now.
+**Status:** in progress. 2.1 is being built.
 
 ### 2.1 First sample maze
 
@@ -272,7 +281,6 @@ The original definition, kept for reference:
 - **2.3 Tune and compare:** Ian's loop. Change probabilities, reload, regenerate with the same seed and compare (Wren's loop, moved up for Ian).
   - Demo: Ian changes a probability, regenerates the same seed, and points at what changed.
   - Editing probabilities in the tool comes in here ([Q-0010](/questions/resolved/0010-where-editing-goes.md)). If the weight model ever became weights set by hand on every pair, Marram and Yew would move editing earlier.
-  - If tuning makes the table hard to read, 1.3 (filtering) comes back here.
 - **2.4 Watch it collapse:** step through generation, seeing each cell's possibilities and where contradictions happen.
 - **2.5 Judge many samples:** generate a batch from seeds. Samples are big enough to judge pacing over a walk, not just one screen (Wren). Measures are taken from the player's side, not just as tile counts (Wren), and follow [Q-0008](/questions/open/0008-global-maze-properties.md):
   - reachable cells;
@@ -338,7 +346,7 @@ Already settled:
 | Tile set file format | architecture | Yew; Yew and one engineer | no | done ([DR-0024](/decisions/0024-tile-set-file-format.md)) |
 | Phase 1 plan | plan | Yew | no | done ([Phase 1 plan](/plans/phase-1.md)) |
 | Design for exploring, openable from anywhere | design | Damson; Damson and Marram | no | done ([DR-0026](/decisions/0026-explore-one-tile-design.md)); used in 2.2 |
-| Design for filtering | design | Damson; Damson and Marram | no | done ([DR-0027](/decisions/0027-filter-table-design.md)); 1.3 is unscheduled |
+| Design for filtering | design | Damson; Damson and Marram | no | done ([DR-0027](/decisions/0027-filter-table-design.md)); 1.3 in progress |
 | Tiles added beyond the core set | game design, [DR-0016](/decisions/0016-wren-designs-the-tile-set.md) | Wren; Wren and Marram | no | nothing scheduled; when sample mazes show the need (1.5 dropped) |
 | Paging and transport | architecture | Yew; Yew and one engineer | no | nothing scheduled; when the table grows (1.5 dropped) |
 | The WFC approach for 2.1: collapse, how neighbour weights combine, contradiction handling, determinism (seeds), the maze's edge | DR-0007, [DR-0013](/decisions/0013-table-entries-from-tile-sides.md), [DR-0022](/decisions/0022-weight-model.md) | Yew, with Wren on determinism; Yew and one engineer | no, unless Yew judges a part one-way | 2.1 (settled at the start of the build) |

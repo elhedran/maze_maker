@@ -1,0 +1,137 @@
+# The core tile set (DR-0015), in the format of DR-0024.
+#
+# The adjacency table is calculated from this file (DR-0022):
+#   entry = side-pair base x weight of row tile x weight of neighbour
+#           x exception multiplier x noise factor
+# and 0 wherever the facing sides may not meet. Which sides may meet is fixed
+# in code (DR-0015), not here.
+#
+# Edit, save, and press Reload in the tool; no rebuild needed.
+#
+# Numbers: every base, weight and multiplier starts at 1.0 with no exceptions,
+# as the Phase 1 plan says. Wren supplies the first real numbers and
+# exceptions as an edit to this file.
+#
+# Tile order is table order: kind order (corridor, room, hedge), with
+# fallbacks last within their kind (DR-0017 rule 8).
+
+format = 1
+name = "core"
+
+# Seeded variation on every allowed entry (DR-0024). amount = 0 turns it off.
+[noise]
+seed = 20261031
+amount = 0.15
+
+# One base per pair of side kinds that may meet. All six are required.
+[bases]
+hedge_hedge = 1.0
+passage_passage = 1.0
+passage_door = 1.0
+door_door = 1.0
+floor_floor = 1.0
+floor_wall_floor_wall = 1.0
+
+# Sides are N, E, S, W at rotation 0. Side kinds: hedge, passage, door,
+# floor, floor_wall_n|e|s|w (floor with the room's wall at that end).
+
+[[tile]]
+id = "corridor_straight"
+name = "Corridor straight"
+kind = "corridor"
+tags = []
+sides = ["passage", "hedge", "passage", "hedge"]
+orientations = 2
+weight = 1.0
+
+[[tile]]
+id = "corridor_corner"
+name = "Corridor corner"
+kind = "corridor"
+tags = []
+sides = ["passage", "passage", "hedge", "hedge"]
+orientations = 4
+weight = 1.0
+
+[[tile]]
+id = "corridor_t_intersection"
+name = "Corridor T intersection"
+kind = "corridor"
+tags = ["junction"]
+sides = ["passage", "passage", "hedge", "passage"]
+orientations = 4
+weight = 1.0
+
+[[tile]]
+id = "corridor_crossroads"
+name = "Corridor crossroads"
+kind = "corridor"
+tags = ["junction", "fallback"]
+sides = ["passage", "passage", "passage", "passage"]
+orientations = 1
+weight = 1.0
+
+[[tile]]
+id = "corridor_dead_end"
+name = "Corridor dead end"
+kind = "corridor"
+tags = ["fallback"]
+sides = ["passage", "hedge", "hedge", "hedge"]
+orientations = 4
+weight = 1.0
+
+[[tile]]
+id = "open_room"
+name = "Open room"
+kind = "room"
+tags = []
+sides = ["floor", "floor", "floor", "floor"]
+orientations = 1
+weight = 1.0
+
+[[tile]]
+id = "room_wall"
+name = "Room wall"
+kind = "room"
+tags = ["room_edge"]
+sides = ["hedge", "floor_wall_n", "floor", "floor_wall_n"]
+orientations = 4
+weight = 1.0
+
+[[tile]]
+id = "room_corner"
+name = "Room corner"
+kind = "room"
+tags = ["room_edge"]
+sides = ["hedge", "hedge", "floor_wall_e", "floor_wall_n"]
+orientations = 4
+weight = 1.0
+
+[[tile]]
+id = "room_doorway"
+name = "Room doorway"
+kind = "room"
+tags = ["room_edge"]
+sides = ["door", "floor_wall_n", "floor", "floor_wall_n"]
+orientations = 4
+weight = 1.0
+
+[[tile]]
+id = "hedge"
+name = "Hedge"
+kind = "hedge"
+tags = []
+sides = ["hedge", "hedge", "hedge", "hedge"]
+orientations = 1
+weight = 1.0
+
+# Exceptions multiply particular pairs, both ways round (DR-0022). Each end
+# names a tile (tile = "<id>") or a tag (tag = "<tag>") and the side it
+# presents; side = "floor_wall" matches a wall at either end. An example,
+# switched off:
+#
+# [[exception]]
+# name = "Doorway rarely faces a dead end"
+# a = { tile = "room_doorway", side = "door" }
+# b = { tile = "corridor_dead_end", side = "passage" }
+# multiplier = 0.1

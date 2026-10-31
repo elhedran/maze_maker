@@ -7,12 +7,19 @@ import type { ReloadResult } from "./bindings/ReloadResult.ts";
 import type { TableView } from "./bindings/TableView.ts";
 import type { TableViewRequest } from "./bindings/TableViewRequest.ts";
 import type { ToolError } from "./bindings/ToolError.ts";
+import type { GenerateRequest, GeneratedMaze } from "./maze/maze-types.ts";
 
 export const COMMANDS = {
   coreVersion: "core_version",
   tableView: "table_view",
   reloadTileSet: "reload_tile_set",
+  generateMaze: "generate_maze",
 } as const;
+
+/** One sample maze from the loaded tile set (DR-0028). */
+export function generateMaze(request: GenerateRequest): Promise<GeneratedMaze> {
+  return invoke<GeneratedMaze>(COMMANDS.generateMaze, { request });
+}
 
 export function coreVersion(): Promise<string> {
   return invoke<string>(COMMANDS.coreVersion);
@@ -40,6 +47,21 @@ export function wholeTableRequest(direction: Direction): TableViewRequest {
     directions: [direction],
     rows: { start: 0, count: ALL },
     columns: { start: 0, count: ALL },
+  };
+}
+
+/**
+ * Just the tile list and the load details: an empty window, so no entries.
+ * `tiles` is always the whole set in table order, whatever the window.
+ */
+export function tilesOnlyRequest(): TableViewRequest {
+  const anyTile = () => ({ kinds: [], tileIds: [], tags: [], sides: [] });
+  return {
+    rowFilter: anyTile(),
+    columnFilter: anyTile(),
+    directions: ["east"],
+    rows: { start: 0, count: 0 },
+    columns: { start: 0, count: 0 },
   };
 }
 

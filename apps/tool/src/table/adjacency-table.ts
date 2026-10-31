@@ -1,12 +1,12 @@
 import { LitElement, css, html, nothing, type PropertyValues } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { errorText, reloadTileSet, tableView, wholeTableRequest } from "../ipc.ts";
+import { errorText, tableView, wholeTableRequest } from "../ipc.ts";
+import { reportToolError } from "../tool-error.ts";
 import {
   DIRECTIONS,
   DIRECTION_KEYS,
   DIRECTION_LABEL,
   SHADE_LEGEND,
-  formatLoadTime,
   formatNumber,
   formatShare,
   shadeStep,
@@ -72,8 +72,6 @@ export class AdjacencyTable extends LitElement {
   @state() private columnFilter: TileFilter = noFilter();
   /** The filters `view` was fetched with, so the corner sentence matches the grid. */
   private viewFilters: Filters = { rowFilter: noFilter(), columnFilter: noFilter() };
-  /** Shown as a red banner; the last good table stays (DR-0025 point 12). */
-  @state() private error?: string;
   @state() private selection?: Selection;
   @state() private hover?: { row: number; column: number };
   @state() private busy = false;
@@ -103,7 +101,6 @@ export class AdjacencyTable extends LitElement {
         align-items: center;
         gap: 0.5rem 1rem;
       }
-      .path { font-family: var(--mono); }
       .muted { color: var(--muted); }
       .empty { color: var(--muted); padding: 2rem 0; margin: 0; }
       button {
@@ -122,14 +119,6 @@ export class AdjacencyTable extends LitElement {
       }
       .legend { display: flex; gap: 0.25rem; align-items: center; }
       .swatch { padding: 0 0.4rem; border: 1px solid var(--frame); }
-      .banner {
-        color: var(--problem);
-        background: var(--problem-bg);
-        border: 1px solid var(--problem);
-        padding: 0.5rem 0.75rem;
-        white-space: pre-wrap;
-        margin: 0;
-      }
       .body { display: flex; gap: 1rem; align-items: flex-start; }
       .grid-wrap { overflow: auto; max-height: calc(100vh - 8rem); }
       table:focus { outline: 2px solid var(--frame); }
@@ -204,42 +193,37 @@ export class AdjacencyTable extends LitElement {
   }
 
   /**
+   * Refetches after the app reloads the tile set (DR-0029 point 3). The
+   * selection and direction stay, since they're kept by tile identity.
+   */
+  refresh(): void {
+    void this.fetchView();
+  }
+
+  /**
    * Asks Rust for the table in the current direction only, filtered. One
    * direction per request: the side facet needs it, and at 29 × 29 a request
-   * per switch is cheap (DR-0027).
+   * per switch is cheap (DR-0027). A failure goes to the app's banner and the
+   * last good table stays (DR-0025 point 12).
    */
-  private async fetchView(): Promise<boolean> {
+  private async fetchView(): Promise<void> {
     const serial = ++this.requestSerial;
     const direction = this.direction;
     const filters = { rowFilter: this.rowFilter, columnFilter: this.columnFilter };
     this.busy = true;
     try {
       const view = await tableView({ ...wholeTableRequest(direction), ...filters });
-      if (serial !== this.requestSerial) return false;
+      if (serial !== this.requestSerial) return;
       this.viewDirection = direction;
       this.viewFilters = filters;
       this.view = view;
       this.dropSelectionIfHidden(view);
-      return true;
     } catch (e) {
-      if (serial !== this.requestSerial) return false;
-      this.error = errorText(e);
-      return false;
+      if (serial !== this.requestSerial) return;
+      reportToolError(this, errorText(e));
     } finally {
       if (serial === this.requestSerial) this.busy = false;
     }
-  }
-
-  private async reload() {
-    this.busy = true;
-    try {
-      await reloadTileSet();
-    } catch (e) {
-      this.error = errorText(e);
-      this.busy = false;
-      return;
-    }
-    if (await this.fetchView()) this.error = undefined;
   }
 
   /** DR-0027 point 8: a selected cell that is filtered out is no longer selected. */
@@ -318,7 +302,6 @@ export class AdjacencyTable extends LitElement {
   render() {
     return html`
       ${this.renderTopBar()}
-      ${this.error ? html`<pre class="banner" role="alert">${this.error}</pre>` : nothing}
       ${this.view ? this.renderBody(this.view) : html`<p class="muted">${this.busy ? "Loading the table…" : ""}</p>`}
     `;
   }
@@ -326,11 +309,6 @@ export class AdjacencyTable extends LitElement {
   private renderTopBar() {
     const v = this.view;
     return html`
-      <div class="bar">
-        <span>Tile set: <span class="path">${v?.tileSetPath ?? "—"}</span></span>
-        ${v ? html`<span class="muted">loaded ${formatLoadTime(v.loadedAt)}</span>` : nothing}
-        <button id="reload" @click=${() => this.reload()} ?disabled=${this.busy}>Reload tile set</button>
-      </div>
       <div class="bar">
         <span>Neighbour to the:</span>
         <span role="group" aria-label="Direction">

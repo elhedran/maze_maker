@@ -4,13 +4,16 @@
 //! Commands (DR-0024):
 //! - `table_view(request: TableViewRequest) -> Result<TableView, ToolError>`
 //! - `reload_tile_set() -> Result<ReloadResult, ToolError>`
+//! - `generate_maze(request: GenerateRequest) -> Result<GeneratedMaze, ToolError>`
+//!   (DR-0028)
 //! - `core_version() -> String`
 
 pub mod ipc;
+pub mod maze;
 pub mod state;
 pub mod view;
 
-use ipc::{ReloadResult, TableView, TableViewRequest, ToolError};
+use ipc::{GenerateRequest, GeneratedMaze, ReloadResult, TableView, TableViewRequest, ToolError};
 use state::ToolState;
 use std::sync::Mutex;
 
@@ -41,6 +44,16 @@ fn reload_tile_set(state: tauri::State<'_, Mutex<ToolState>>) -> Result<ReloadRe
     lock(&state).reload(&state::default_tile_set_path())
 }
 
+/// A 24 × 16 maze takes a few milliseconds in release, so it runs in the
+/// command directly rather than on a worker.
+#[tauri::command]
+fn generate_maze(
+    state: tauri::State<'_, Mutex<ToolState>>,
+    request: GenerateRequest,
+) -> Result<GeneratedMaze, ToolError> {
+    lock(&state).generate(&request)
+}
+
 pub fn run() {
     // A failed startup load doesn't stop the app: `table_view` returns the
     // errors so they show in the tool (DR-0024).
@@ -53,7 +66,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             core_version,
             table_view,
-            reload_tile_set
+            reload_tile_set,
+            generate_maze
         ])
         .run(tauri::generate_context!())
         .expect("error while running the Maze Maker tool");

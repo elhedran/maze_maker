@@ -218,6 +218,53 @@ pub struct ReloadResult {
     pub loaded_at: String,
 }
 
+/// Asks for one maze (DR-0028). Width and height must each be 1 to 64.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+pub struct GenerateRequest {
+    pub seed: u32,
+    pub width: u32,
+    pub height: u32,
+}
+
+/// A cell: column `x`, row `y`, 0-based from the north-west.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+pub struct CellPos {
+    pub x: u32,
+    pub y: u32,
+}
+
+/// One measure of the maze, worded as DR-0030 words it, e.g. name
+/// "Reachable from centre", value "412 of 480 walkable cells (86%)".
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+pub struct Measure {
+    pub name: String,
+    pub value: String,
+    pub explanation: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+pub struct GeneratedMaze {
+    /// The tile set revision used; the same numbering as `TableView`.
+    pub revision: u32,
+    pub seed: u32,
+    pub width: u32,
+    pub height: u32,
+    /// Row-major from the north-west; each an index into `TableView.tiles`
+    /// at `revision`. `null` only where a failed maze left a cell open.
+    pub cells: Vec<Option<u32>>,
+    /// The centre cell the measures use, after DR-0030's hedge fallback.
+    pub centre: CellPos,
+    /// 0 for a clean first attempt.
+    pub restarts: u32,
+    /// True when every attempt, the first and all restarts, contradicted.
+    pub failed: bool,
+    pub measures: Vec<Measure>,
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 pub enum ToolErrorKind {
@@ -226,8 +273,8 @@ pub enum ToolErrorKind {
     LoadFailed,
     /// No table has loaded yet; `messages` holds the startup load errors.
     NotLoaded,
-    /// The request can't be answered as asked, e.g. a side filter without
-    /// exactly one direction. A frontend bug, not a data problem.
+    /// The request can't be met as asked, e.g. a side filter without
+    /// exactly one direction, or a maze size outside 1 to 64.
     BadRequest,
 }
 
@@ -278,6 +325,10 @@ mod bindings {
         render::<EntryView>(&cfg, &mut out);
         render::<TableView>(&cfg, &mut out);
         render::<ReloadResult>(&cfg, &mut out);
+        render::<GenerateRequest>(&cfg, &mut out);
+        render::<CellPos>(&cfg, &mut out);
+        render::<Measure>(&cfg, &mut out);
+        render::<GeneratedMaze>(&cfg, &mut out);
         render::<ToolErrorKind>(&cfg, &mut out);
         render::<ToolError>(&cfg, &mut out);
         out

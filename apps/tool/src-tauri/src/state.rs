@@ -2,7 +2,11 @@
 //! it from the tile set file (DR-0024). Plain Rust, so tests drive it with
 //! temporary files; `lib.rs` wraps it in a `Mutex` as Tauri managed state.
 
-use crate::ipc::{ReloadResult, TableView, TableViewRequest, ToolError, ToolErrorKind};
+use crate::ipc::{
+    GenerateRequest, GeneratedMaze, ReloadResult, TableView, TableViewRequest, ToolError,
+    ToolErrorKind,
+};
+use crate::maze;
 use crate::view::{self, Loaded};
 use maze_core::{Table, TileSet};
 use std::path::{Path, PathBuf};
@@ -76,17 +80,24 @@ impl ToolState {
     /// The view of the last good table, or the load errors if nothing has
     /// loaded yet.
     pub fn table_view(&self, request: &TableViewRequest) -> Result<TableView, ToolError> {
-        match &self.current {
-            Some(loaded) => view::table_view(loaded, request),
-            None => Err(ToolError {
-                kind: ToolErrorKind::NotLoaded,
-                messages: if self.last_errors.is_empty() {
-                    vec!["No tile set has been loaded.".into()]
-                } else {
-                    self.last_errors.clone()
-                },
-            }),
-        }
+        view::table_view(self.loaded()?, request)
+    }
+
+    /// A maze from the last good table (DR-0028), or the load errors if
+    /// nothing has loaded yet.
+    pub fn generate(&self, request: &GenerateRequest) -> Result<GeneratedMaze, ToolError> {
+        maze::generated_maze(self.loaded()?, request)
+    }
+
+    fn loaded(&self) -> Result<&Loaded, ToolError> {
+        self.current.as_ref().ok_or_else(|| ToolError {
+            kind: ToolErrorKind::NotLoaded,
+            messages: if self.last_errors.is_empty() {
+                vec!["No tile set has been loaded.".into()]
+            } else {
+                self.last_errors.clone()
+            },
+        })
     }
 }
 
@@ -164,6 +175,30 @@ mod tests {
             "{:?}",
             err.messages
         );
+        let request = GenerateRequest {
+            seed: 1,
+            width: 24,
+            height: 16,
+        };
+        let err = state.generate(&request).unwrap_err();
+        assert_eq!(err.kind, ToolErrorKind::NotLoaded);
+        assert!(err.messages[0].contains("doesn't parse"));
+    }
+
+    #[test]
+    fn generate_uses_the_current_revision() {
+        let file = TempFile::new("generate", CORE);
+        let mut state = ToolState::default();
+        state.reload(&file.0).unwrap();
+        state.reload(&file.0).unwrap();
+        let request = GenerateRequest {
+            seed: 9,
+            width: 4,
+            height: 3,
+        };
+        let maze = state.generate(&request).unwrap();
+        assert_eq!(maze.revision, 2);
+        assert_eq!(maze.cells.len(), 12);
     }
 
     #[test]

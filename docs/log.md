@@ -2,6 +2,10 @@
 
 ## 2026-10-31
 
+- **Update** Slice 1.0 done: Rowan checked all four done-when points (fresh clone from the README, DR-0012 layout, Rust value in the real Tauri window, Rust and TypeScript tests). First frontend tests added.
+
+- **Decision** DR-0020 accepted (Ash, Yew; written by Rowan): Vitest and happy-dom for frontend tests, with the backend faked by `mockIPC`.
+
 - **Decision** DR-0019 accepted (Yew, Marram; drafted by the facilitator): parallel work shares one checkout with rules. One agent changes code at a time, parallel briefs name each agent's files, shared files and new record numbers belong to the facilitator, and commits are by path, never `git add -A`. Revisit when two engineers need to build code at once, on another collision, or when Ian adds a remote.
 
 - **Update** Roadmap revised by Marram for DR-0012 and DR-0014 to DR-0018, and the resolved Q-0006, Q-0009 and Q-0010: gates are the team's two-way doors except three one-way doors kept with Ian (replacing WFC, new game technology, anything costing Ian money or time); 1.0 is built and being checked against its done-when. No phase or deliverable changed.

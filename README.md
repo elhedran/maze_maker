@@ -42,7 +42,11 @@ The tool, from `apps/tool/`:
 npm install                  # once, and after package.json changes
 npm run tauri dev            # run the tool; rebuilds on Rust and frontend edits
 npm run build                # type-check and build the frontend into dist/
+npm test                     # run the frontend tests once (Vitest)
+npm run test:watch           # rerun them on every edit
 npm run tauri build          # release build and installers, in target/release/bundle/
 ```
 
 `npm run dev` serves only the frontend at http://localhost:1420. Tauri commands don't work there, so the page shows an error instead of the core version.
+
+Rust tests sit next to the code in `#[cfg(test)]` modules. Frontend tests are `*.test.ts` files next to the component. They run in [happy-dom](https://github.com/capricorn86/happy-dom), with the Tauri backend faked by `mockIPC` from `@tauri-apps/api/mocks`, so they need no running app.

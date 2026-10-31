@@ -20,7 +20,7 @@ Revised 2026-10-31 for [DR-0012](/decisions/0012-code-layout-and-core-crate.md),
 ## Now and next
 
 - **Now:**
-  - 1.0 is built (commit `1e81339`). Rowan is checking it against its "done when".
+  - 1.0 is done: all four "done when" points checked by Rowan on 2026-10-31.
   - The weight model, point 10 of [Q-0007](/questions/open/0007-open-details-of-table-probabilities.md): Yew chose a calculated base plus a few exceptions, as a two-way door. It needs one engineer's approval, then Yew's record. This is the critical path to 1.1.
   - Damson brings the design for the table and for exploring one tile. How tiles look is settled ([DR-0017](/decisions/0017-tile-glyphs-and-colours.md)).
   - Yew brings the Phase 1 plan, how Rust and TypeScript types stay in step, and then the tile set file format.
@@ -104,7 +104,7 @@ How the team took it:
   - one Rust command reaches a Lit component;
   - Rust and TypeScript tests run.
 - **Waits on:** nothing. [DR-0012](/decisions/0012-code-layout-and-core-crate.md) is accepted. Yew's Phase 1 plan now gates 1.1 instead.
-- **Status:** built; being checked against its done-when. The scaffold is commit `1e81339`. How code is shared with the game in full waits until the game starts (Yew).
+- **Status:** done (2026-10-31). Rowan checked all four points, including a run from a fresh clone and the value from Rust in the real Tauri window. Frontend tests use Vitest ([DR-0020](/decisions/0020-vitest-for-frontend-tests.md)). How code is shared with the game in full waits until the game starts (Yew).
 
 ### 1.1 First look at the table
 

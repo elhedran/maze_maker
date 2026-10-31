@@ -8,24 +8,24 @@ import { customElement, property } from "lit/decorators.js";
 import { themeStyles } from "./draw-tile.ts";
 import { DIRECTION_LABEL } from "./format.ts";
 import type { Direction } from "../bindings/Direction.ts";
+import type { SideFilter } from "../bindings/SideFilter.ts";
 import type { TileFilter } from "../bindings/TileFilter.ts";
 import type { TileKind } from "../bindings/TileKind.ts";
 import type { TileView } from "../bindings/TileView.ts";
 
-/** The side kinds a filter can name; `floor_wall` is any wall end (DR-0027 point 2). */
-export type SideChoice = TileFilter["sides"][number];
 
 export const KIND_LABEL: Record<TileKind, string> = { corridor: "Corridor", room: "Room", hedge: "Hedge" };
 const KINDS: TileKind[] = ["corridor", "room", "hedge"];
 
-const SIDE_LABEL: Record<SideChoice, string> = {
+/** The side kinds a filter can name; Floor+wall is any wall end (DR-0027 point 2). */
+const SIDE_LABEL: Record<SideFilter, string> = {
   hedge: "Hedge",
   passage: "Passage",
   door: "Door",
   floor: "Floor",
   floor_wall: "Floor+wall",
 };
-const SIDES = Object.keys(SIDE_LABEL) as SideChoice[];
+const SIDES = Object.keys(SIDE_LABEL) as SideFilter[];
 
 const OPPOSITE: Record<Direction, Direction> = { north: "south", east: "west", south: "north", west: "east" };
 

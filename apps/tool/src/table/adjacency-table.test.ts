@@ -7,6 +7,7 @@ import type { Direction } from "../bindings/Direction.ts";
 import type { EntryView } from "../bindings/EntryView.ts";
 import type { TableView } from "../bindings/TableView.ts";
 import type { TableViewRequest } from "../bindings/TableViewRequest.ts";
+import type { SideFilter } from "../bindings/SideFilter.ts";
 import type { TileFilter } from "../bindings/TileFilter.ts";
 import type { TileView } from "../bindings/TileView.ts";
 import type { ToolError } from "../bindings/ToolError.ts";
@@ -110,7 +111,7 @@ function matches(tile: TileView, f: TileFilter, sideIndex: number): boolean {
     (f.kinds.length === 0 || f.kinds.includes(tile.kind)) &&
     (f.tileIds.length === 0 || f.tileIds.includes(tile.id)) &&
     (f.tags.length === 0 || f.tags.some((t) => tile.tags.includes(t))) &&
-    (f.sides.length === 0 || f.sides.includes(sideKind as TileFilter["sides"][number]))
+    (f.sides.length === 0 || f.sides.includes(sideKind as SideFilter))
   );
 }
 

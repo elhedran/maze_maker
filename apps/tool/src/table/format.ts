@@ -1,7 +1,9 @@
 // Formatting for the table view (DR-0025). The numbers come from Rust; this
 // only turns them into text and shade steps, never recalculates them.
 
-import type { Direction, SideKind } from "./types.ts";
+import type { Direction } from "../bindings/Direction.ts";
+import type { Facing } from "../bindings/Facing.ts";
+import type { SideKind } from "../bindings/SideKind.ts";
 
 export const DIRECTIONS: Direction[] = ["north", "east", "south", "west"];
 
@@ -73,8 +75,8 @@ const lower = (side: SideKind) => sideName(side).toLowerCase();
  * The clash line for a 0 (DR-0025 point 11):
  * "Passage meets Floor, wall at N end. A passage only meets a passage or a door."
  */
-export function clashLine(facing: [SideKind, SideKind], mayMeet: SideKind[]): string {
-  const [mine, theirs] = facing;
+export function clashLine(facing: Facing, mayMeet: SideKind[]): string {
+  const { row: mine, column: theirs } = facing;
   const meets = `${sideName(mine)} meets ${sideName(theirs)}.`;
   if (mayMeet.length === 0) return `${meets} A ${lower(mine)} meets nothing.`;
   const options = mayMeet.map((s) => `a ${lower(s)}`).join(" or ");

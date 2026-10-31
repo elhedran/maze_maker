@@ -26,7 +26,8 @@ describe("maze-tool-app", () => {
     mockIPC((cmd) => {
       calls.push(cmd);
       if (cmd === "core_version") return "9.9.9";
-      throw new Error(`unexpected command ${cmd}`);
+      // The table view has its own tests; here it only has to not crash the app.
+      throw new Error(`not under test: ${cmd}`);
     });
 
     const el = mount();
@@ -34,7 +35,8 @@ describe("maze-tool-app", () => {
     await vi.waitFor(() =>
       expect(el.shadowRoot?.querySelector("#core-version")?.textContent).toBe("9.9.9"),
     );
-    expect(calls).toEqual(["core_version"]);
+    expect(calls).toContain("core_version");
+    expect(el.shadowRoot?.querySelector("adjacency-table")).not.toBeNull();
   });
 
   test("shows an error when the command fails", async () => {
@@ -45,6 +47,7 @@ describe("maze-tool-app", () => {
     const el = mount();
 
     await vi.waitFor(() => expect(text(el)).toContain("Could not reach maze-core"));
+    expect(text(el)).not.toContain("Error:");
     expect(text(el)).toContain("backend down");
     expect(el.shadowRoot?.querySelector("#core-version")).toBeNull();
   });

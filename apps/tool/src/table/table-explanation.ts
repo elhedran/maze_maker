@@ -3,14 +3,17 @@ import { customElement, property } from "lit/decorators.js";
 import { clashLine, formatNumber, formatShare, sideName } from "./format.ts";
 import { glyphStyles, renderGlyph, themeStyles } from "./draw-tile.ts";
 import { tileLabel, tileLook } from "./tile-glyphs.ts";
-import type { Direction, ExceptionInfo, TableEntry, TileInfo } from "./types.ts";
+import type { Direction } from "../bindings/Direction.ts";
+import type { EntryView } from "../bindings/EntryView.ts";
+import type { ExceptionView } from "../bindings/ExceptionView.ts";
+import type { TileView } from "../bindings/TileView.ts";
 
 /** What the panel explains: one entry and the tiles and exceptions it refers to. */
 export interface Explained {
-  entry: TableEntry;
-  rowTile: TileInfo;
-  columnTile: TileInfo;
-  exceptions: ExceptionInfo[];
+  entry: EntryView;
+  rowTile: TileView;
+  columnTile: TileView;
+  exceptions: ExceptionView[];
 }
 
 /**
@@ -54,6 +57,7 @@ export class TableExplanation extends LitElement {
       li { padding: 0.1rem 0; }
       .op { display: inline-block; width: 1.2em; color: var(--muted); }
       .hint { color: var(--muted); }
+      .rule { margin-left: 1.2em; color: var(--muted); font-family: var(--mono); font-size: 12px; }
     `,
   ];
 
@@ -78,10 +82,10 @@ export class TableExplanation extends LitElement {
     const facing = html`
       <h3>Facing sides</h3>
       <ol>
-        <li>${rowGlyph} ${this.direction} side: ${sideName(entry.facing[0])}</li>
+        <li>${rowGlyph} ${this.direction} side: ${sideName(entry.facing.row)}</li>
         <li>
           ${tileLook(columnTile.id, columnTile.orientation).glyph} ${OPPOSITE[this.direction]} side:
-          ${sideName(entry.facing[1])}
+          ${sideName(entry.facing.column)}
         </li>
       </ol>
     `;
@@ -96,11 +100,12 @@ export class TableExplanation extends LitElement {
     const share = formatShare(entry.probability);
     const exceptionLines =
       entry.exceptions.length === 0
-        ? html`<li><span class="op">×</span>exceptions: none</li>`
+        ? html`<li><span class="op">×</span> exceptions: none</li>`
         : entry.exceptions.map((i) => {
             const e = x.exceptions[i];
             return html`<li class="exception">
-              <span class="op">×</span>${e ? `${e.name} ${formatNumber(e.multiplier)}` : `exception ${i}`}
+              <span class="op">×</span> ${e ? `${e.name} ${formatNumber(e.multiplier)}` : `exception ${i}`}
+              ${e ? html`<div class="rule">${e.rule}</div>` : ""}
             </li>`;
           });
 
@@ -109,13 +114,13 @@ export class TableExplanation extends LitElement {
       ${facing}
       <h3>Where it comes from</h3>
       <ol class="sum">
-        <li><span class="op"></span>${sideName(entry.facing[0])}–${sideName(entry.facing[1])} base ${formatNumber(entry.base)}</li>
-        <li><span class="op">×</span>${rowTile.name} ${formatNumber(entry.rowWeight)}</li>
-        <li><span class="op">×</span>${columnTile.name} ${formatNumber(entry.columnWeight)}</li>
+        <li><span class="op"></span> ${sideName(entry.facing.row)}–${sideName(entry.facing.column)} base ${formatNumber(entry.base)}</li>
+        <li><span class="op">×</span> ${rowTile.name} ${formatNumber(entry.rowWeight)}</li>
+        <li><span class="op">×</span> ${columnTile.name} ${formatNumber(entry.columnWeight)}</li>
         ${exceptionLines}
-        <li class="noise"><span class="op">×</span>noise ${formatNumber(entry.noise)}</li>
-        <li><span class="op">=</span>entry ${formatNumber(entry.weight)}</li>
-        <li><span class="op">÷</span>row total ${formatNumber(entry.rowTotal)} = ${share}%</li>
+        <li class="noise"><span class="op">×</span> noise ${formatNumber(entry.noise)}</li>
+        <li><span class="op">=</span> entry ${formatNumber(entry.weight)}</li>
+        <li><span class="op">÷</span> row total ${formatNumber(entry.rowTotal)} = ${share}%</li>
       </ol>`;
   }
 }

@@ -3,7 +3,7 @@
 
 import { css, html } from "lit";
 import { tileLook } from "./tile-glyphs.ts";
-import type { TileInfo } from "./types.ts";
+import type { TileView } from "../bindings/TileView.ts";
 
 /** DR-0017's colour tokens, light and dark, plus the table's grey ramp. */
 export const themeStyles = css`
@@ -102,7 +102,7 @@ export const glyphStyles = css`
   .tint-lower-right { background-size: 50% 50%; background-position: right bottom; }
 `;
 
-export function renderGlyph(tile: TileInfo, label: string) {
+export function renderGlyph(tile: TileView, label: string) {
   const look = tileLook(tile.id, tile.orientation);
   const tint = look.tint === "none" ? "" : `tint-${look.tint}`;
   const fallback = tile.tags.includes("fallback") ? "fallback" : "";

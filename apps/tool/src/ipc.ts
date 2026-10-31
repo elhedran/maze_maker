@@ -2,12 +2,11 @@
 // their mockIPC tests call these functions, never bare `invoke` strings.
 
 import { invoke } from "@tauri-apps/api/core";
-import type {
-  Direction,
-  ReloadResult,
-  TableView,
-  TableViewRequest,
-} from "./table/types.ts";
+import type { Direction } from "./bindings/Direction.ts";
+import type { ReloadResult } from "./bindings/ReloadResult.ts";
+import type { TableView } from "./bindings/TableView.ts";
+import type { TableViewRequest } from "./bindings/TableViewRequest.ts";
+import type { ToolError } from "./bindings/ToolError.ts";
 
 export const COMMANDS = {
   coreVersion: "core_version",
@@ -45,17 +44,17 @@ export function wholeTableRequest(direction: Direction): TableViewRequest {
 }
 
 /**
- * Turns a rejected command into text to show as given. Tauri passes the
- * serialized `ToolError` through; until its binding exists this accepts a
- * string, a list, or an object with `message` or `errors`.
+ * Turns a rejected command into text to show as given. Our commands reject
+ * with a `ToolError` (one readable message per load error); Tauri itself can
+ * reject with a string, and anything else is shown as JSON rather than lost.
  */
 export function errorText(error: unknown): string {
   if (typeof error === "string") return error;
   if (error instanceof Error) return error.message;
   if (Array.isArray(error)) return error.map(errorText).join("\n");
   if (error && typeof error === "object") {
-    const e = error as { message?: unknown; errors?: unknown };
-    if (e.errors !== undefined) return errorText(e.errors);
+    const e = error as Partial<ToolError> & { message?: unknown };
+    if (Array.isArray(e.messages)) return e.messages.join("\n");
     if (typeof e.message === "string") return e.message;
   }
   return JSON.stringify(error);

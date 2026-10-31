@@ -15,13 +15,17 @@ import { glyphStyles, renderGlyph, themeStyles } from "./draw-tile.ts";
 import { tileLabel, tileLook } from "./tile-glyphs.ts";
 import type { Explained } from "./table-explanation.ts";
 import "./table-explanation.ts";
-import type { Direction, TableEntry, TableView, TileInfo, TileKind } from "./types.ts";
+import type { Direction } from "../bindings/Direction.ts";
+import type { EntryView } from "../bindings/EntryView.ts";
+import type { TableView } from "../bindings/TableView.ts";
+import type { TileKind } from "../bindings/TileKind.ts";
+import type { TileView } from "../bindings/TileView.ts";
 
 const KIND_LABEL: Record<TileKind, string> = { corridor: "Corridor", room: "Room", hedge: "Hedge" };
 
 /** A (tile, orientation) by identity, so a selection survives reloads and direction switches. */
 type TileKey = string;
-const keyOf = (tile: TileInfo): TileKey => `${tile.id}#${tile.orientation}`;
+const keyOf = (tile: TileView): TileKey => `${tile.id}#${tile.orientation}`;
 
 interface Selection {
   row: TileKey;
@@ -35,7 +39,7 @@ interface KindGroup {
   count: number;
 }
 
-function groupsOf(tiles: TileInfo[]): KindGroup[] {
+function groupsOf(tiles: TileView[]): KindGroup[] {
   const groups: KindGroup[] = [];
   tiles.forEach((tile, i) => {
     const last = groups[groups.length - 1];
@@ -66,9 +70,9 @@ export class AdjacencyTable extends LitElement {
   @state() private busy = false;
 
   // Derived from `view` in willUpdate, so render stays a plain read.
-  private rowTiles: TileInfo[] = [];
-  private columnTiles: TileInfo[] = [];
-  private entries = new Map<string, TableEntry>();
+  private rowTiles: TileView[] = [];
+  private columnTiles: TileView[] = [];
+  private entries = new Map<string, EntryView>();
 
   /** Ignores a response that arrives after a newer request was sent. */
   private requestSerial = 0;
@@ -261,7 +265,7 @@ export class AdjacencyTable extends LitElement {
     return row < 0 || column < 0 ? undefined : { row, column };
   }
 
-  private entryAt(row: number, column: number): TableEntry | undefined {
+  private entryAt(row: number, column: number): EntryView | undefined {
     const v = this.view!;
     return this.entries.get(`${v.rows[row]},${v.columns[column]}`);
   }
@@ -385,8 +389,8 @@ export class AdjacencyTable extends LitElement {
   private renderCell(
     r: number,
     c: number,
-    rowTile: TileInfo,
-    columnTile: TileInfo,
+    rowTile: TileView,
+    columnTile: TileView,
     groupStart: boolean,
     selected?: { row: number; column: number },
   ) {
@@ -424,12 +428,12 @@ export class AdjacencyTable extends LitElement {
 }
 
 /** Header hover and screen-reader label: "Corridor corner, open N and E · weight 3.0". */
-function headerTitle(tile: TileInfo): string {
+function headerTitle(tile: TileView): string {
   return `${tileLabel(tile)} · weight ${formatNumber(tile.weight)}`;
 }
 
 /** "─ Corridor straight, E–W, then ┐ Corridor corner, open S and W to its east: 15.0%". */
-function cellTitle(rowTile: TileInfo, columnTile: TileInfo, direction: Direction, entry?: TableEntry): string {
+function cellTitle(rowTile: TileView, columnTile: TileView, direction: Direction, entry?: EntryView): string {
   const a = `${tileLook(rowTile.id, rowTile.orientation).glyph} ${tileLabel(rowTile)}`;
   const b = `${tileLook(columnTile.id, columnTile.orientation).glyph} ${tileLabel(columnTile)}`;
   const share = entry && entry.probability > 0 ? `${formatShare(entry.probability)}%` : "can't happen";

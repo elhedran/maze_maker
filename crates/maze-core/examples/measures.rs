@@ -268,6 +268,14 @@ fn main() {
         "  closed: steps after which no endpoint was outward (rule 6 says 0; step 1's tests check"
     );
     println!("  after every patch). stored: median cells at the end of a walk.");
+    println!(
+        "  \"closed\" is sampled after every step; the per-patch guarantee (rule 6 after every patch)"
+    );
+    println!("  is a step 1 test.");
+    println!(
+        "  Pressure sweep: Wren's value from 2.3 doesn't exist yet; re-run at it when set. Wren keeps"
+    );
+    println!("  world pressure at 1 for now.");
     let base = &runs[0];
     let trend: Vec<String> = base
         .frontier
@@ -416,19 +424,28 @@ fn main() {
         .max(1e-3);
     // Rule 8's worst path: R + 1 = 4 tries of up to 21 runs each, a check
     // after each try's completed run, then 21 spine runs and the fallback.
+    // The code checks only the 4 tries; a fifth check is counted for
+    // margin (Yew's review), so the bound only gets looser.
     let slowest = base.times.last().copied().unwrap_or_default();
     let check = rows.last().map(|r| r.3).unwrap_or_default();
     let fall = fallback.times.last().copied().unwrap_or_default();
     println!(
-        "  forced worst case, estimated from parts: 105 runs at the slowest patch ({}), 4 checks",
+        "  forced worst case, estimated from parts: 105 runs at the slowest patch ({}), 5 checks",
         us(Some(slowest))
     );
     println!(
         "    at the last box ({}) and the slowest fallback patch ({}): {:.0} ms.",
         us(Some(check)),
         us(Some(fall)),
-        (slowest * 105 + check * 4 + fall).as_secs_f64() * 1e3
+        (slowest * 105 + check * 5 + fall).as_secs_f64() * 1e3
     );
+    println!(
+        "    A conservative upper bound: it mixes scales (the slowest patch comes from small worlds,"
+    );
+    println!(
+        "    the check time from the largest one), and counts a fifth check for margin (the code"
+    );
+    println!("    checks the 4 tries; the spine stage's run isn't checked).");
     println!(
         "  the check grows with the box around everything stored: at {ns:.1} ns a cell it reaches 1 ms"
     );

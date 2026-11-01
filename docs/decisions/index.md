@@ -39,6 +39,9 @@ One file per decision ([DR-0001](/decisions/0001-record-every-decision.md)). Onl
 
 ## Proposed
 
+- [DR-0039 How the world view shows a grown world, walked and replayed](/decisions/0039-world-view-design.md) - The World tab for 2.6 step 3: a world seed, a walker (a seeded random walk, or the arrow keys), the view following the player, overlays for stored cells, the frontier and the last patch, a patch side panel, and Replay with a same-world check. Approved by Marram with four scope cuts; waits on Ash, standing in for the author.
+- [DR-0041 The data contract for the world view](/decisions/0041-data-contract-for-the-world-view.md) - Four world commands in a new src-tauri module, with their own state that keeps the tile set the world was grown with; per-patch deltas; the frontier with outward flags; replay streamed from the growth log with Rust's same-world check; positions as i32; accessor-only additions to maze-core. Waits on Rowan and Ash.
+
 
 
 

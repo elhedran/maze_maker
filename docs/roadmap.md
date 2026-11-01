@@ -248,7 +248,7 @@ The original definition, kept for reference:
 
 **Done when** Wren and Ian can judge the maps the table makes ([DR-0008](/decisions/0008-adjacency-tool-first.md)), and Ian can trace a problem he sees in a maze back to the probabilities behind it ([Q-0005](/questions/resolved/0005-what-to-find-out-from-the-table.md)).
 
-**Status:** in progress. 2.1 is being built.
+**Status:** in progress. 2.1 is built and demoed, waiting for Ian's OK to land.
 
 ### 2.1 First sample maze
 
@@ -273,12 +273,21 @@ The original definition, kept for reference:
   1. **The WFC approach (Yew, approved by Yew and one engineer).** One record covering the DR-0007 follow-ups that 2.1 needs: how a cell is chosen and collapsed, how the weights of several neighbours combine (deferred to 2.1 by [DR-0013](/decisions/0013-table-entries-from-tile-sides.md) and [DR-0022](/decisions/0022-weight-model.md)), contradiction handling, determinism (seeded randomness), and what lies past the maze's edge. Persistence and infinite WFC stay out; they wait for 2.6. Fallback tiles are already low-weight tiles in the set ([DR-0015](/decisions/0015-tile-set.md), [DR-0016](/decisions/0016-wren-designs-the-tile-set.md)). Yew judges whether any part is a one-way door; if one is, it goes to Ian. This record also stands as 2.1's plan.
   2. **Which [Q-0008](/questions/open/0008-global-maze-properties.md) measures 2.1 shows (Wren, approved by Wren and Marram).** This is Q-0008's first part, now due. Marram's suggestion is one cheap measure for "there is always a way onward", such as the share of cells reachable from the centre. Zero measures is acceptable if Wren prefers to wait for 2.5. How properties are enforced stays parked until before the game.
   3. **The generation view (Damson, approved by Damson and Marram).** Kept small: a seed field, Generate, the maze, the contradiction note and Wren's measures. Damson works it out with the engineer building the view, and records it in a short record.
-- **Status (2026-11-01, paused for the evening):** built on two branches, not yet joined or demoed.
-  - **Gates settled:** [DR-0028](/decisions/0028-wfc-approach-for-2-1.md) (WFC approach and plan), [DR-0029](/decisions/0029-generation-view-design.md) (generation view) and [DR-0030](/decisions/0030-measures-for-2-1.md) (measures), all accepted, on `claude/slice-2-1-2468a5`.
-  - **Rowan, `rowan/2.1-wfc`** (c036edb): WFC and both measures in `maze-core`, the `generate_maze` command, ts-rs bindings. `cargo test --workspace` and clippy pass. Over 200 seeds, 0 failures and 0 restarts. A 24×16 maze takes 32 ms in debug.
-  - **Ash, `ash/2.1-generation-view`** (e9314b1): Maze and Table tabs under a shared tile set bar, and the maze view to DR-0029 against a stubbed command. 54 Vitest tests and the build pass. Local types sit in `maze/maze-types.ts`.
-  - **Left:** rebase both branches onto `claude/slice-2-1-2468a5`; swap Ash's local types for Rowan's bindings (an import change); rerun the tests; run the demo in the real Tauri window; Wren reviews a few mazes; README check; land after Ian's go-ahead.
-  - **Blocking:** nothing.
+- **Status (2026-11-01):** built, checked and demoed, on branch `claude/slice-2-1-2468a5`; waiting for Ian's OK to land on `main`. Ian (`human:ian`), verbatim: "just saw a demo of the generated maze - looking good so far." That is not yet an OK to land.
+  - **Records:** [DR-0028](/decisions/0028-wfc-approach-for-2-1.md) (WFC approach and plan), [DR-0029](/decisions/0029-generation-view-design.md) (generation view) and [DR-0030](/decisions/0030-measures-for-2-1.md) (measures), all accepted.
+  - **Built:** Rowan built WFC and the two measures in `maze-core`, the `generate_maze` command and ts-rs bindings. Ash built Maze and Table tabs under a shared tile set bar and the maze view, now on the real command. The branches were rebased onto slice 1.3 and joined.
+  - **Tests:** 74 Rust tests pass, covering determinism, every neighbouring pair allowed over 200 seeds, the basic check, and a contradiction that fails cleanly after 20 restarts. 67 Vitest tests pass. Clippy and the build are clean. A 24×16 maze takes about 1.8 ms in release.
+  - **Demo, run by the facilitator in the real Tauri window, driven by script:**
+    - Generate draws the maze in DR-0017's glyphs.
+    - The same seed gives the same maze, and a new seed gives a different one. Enter generates too.
+    - Hover shows the tile name, and the centre is outlined.
+    - Editing `core.toml` (hedge weight 1.5 to 6.0) and pressing Reload regenerates the same seed into a different maze; reachable went from 20% to 80%. Reverting the edit restores the maze.
+    - A broken `core.toml` shows the red banner and keeps the last good maze.
+    - With the fallback and hedge weights at 0, seed 11 showed "restarted 1 time".
+  - **Reviews:**
+    - Damson passed the view against DR-0029, with nothing blocking. Follow-up: the tile set path wraps mid-word; show the file name with the full path on hover.
+    - Wren reviewed six mazes ([review](/plans/2.1-maze-review.md)). They look like hedge mazes but are poor to walk: 8–88% reachable from the centre, and 5–19 separate areas. Wren's tuning ideas are for 2.3 and 2.5.
+  - **Not verified:** the give-up message after 20 restarts was not seen in the window, because the core set never failed. It is covered by Rust and Vitest tests.
 
 ### 2.2 Why is this here? (includes 1.2)
 

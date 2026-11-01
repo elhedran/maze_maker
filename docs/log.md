@@ -2,6 +2,11 @@
 
 ## 2026-11-01
 
+- **Update** Slice 2.1, the first sample maze, is built and checked on `claude/slice-2-1-2468a5`, waiting for Ian's OK to land. Ian (`human:ian`), verbatim: "just saw a demo of the generated maze - looking good so far."
+  - Rowan's WFC and Ash's view were rebased onto slice 1.3 and joined, and the view now uses the real `generate_maze`. 74 Rust and 67 Vitest tests pass.
+  - The facilitator ran every demo task in the real Tauri window by script: seed and Generate, same seed and new seed, edit `core.toml` and Reload, the measures, a bad file, and a restart note.
+  - Damson passed the view against DR-0029, with one follow-up: the tile set path wraps. Wren's review of six mazes is in `/plans/2.1-maze-review.md`. The mazes look right but are poorly connected (8–88% reachable), and Wren's tuning ideas are for 2.3 and 2.5.
+
 - **Update** Slice 2.1 paused for the evening at a green point, with the work on two branches. Rowan's `rowan/2.1-wfc` (c036edb) has WFC, the measures, `generate_maze` and the bindings, with Rust tests passing. Ash's `ash/2.1-generation-view` (e9314b1) has the Maze tab and view against a stub, with 54 tests passing. Next: join them, run the demo in Tauri, and have Wren review mazes. Status is in the roadmap under 2.1.
 - **Decision** DR-0028 accepted (written by Yew; approved by Rowan, and by Ash standing in for the author under DR-0018). Its IPC section now matches the built contract (`centre`, string `Measure.value`).
 - **Decision** DR-0029 accepted (written by Damson; approved by Marram, and by Ash standing in for the author), with Ash's build notes.

@@ -85,6 +85,20 @@ Damson (`ux-designer/1`), a two-way door: one view in the tool, nothing builds o
 
 - **Damson (`ux-designer/1`):** "restarted 2 times" means little without knowing the limit; if Ian asks, show "2 of 10".
 
+# Review against the build
+
+Damson (`ux-designer/1`), 2026-11-01. **Pass.** Checked against screenshots from the real Tauri window, Ash's scripted checks and the code in `apps/tool/src/maze/`.
+
+- All four demo steps work: Generate, same seed gives the same maze, Random seed, edit `core.toml` and Reload regenerates the shown seed. A broken file shows Rust's error in the shared banner and keeps the last good maze.
+- Cells come out square and the lines join; hedge, rooms and corridors read as a hedge maze at a glance. There's one centre outline, in the text colour. The hover readout sits under the maze and covers nothing. The status line follows the maze, not the field. The measures panel matches DR-0030.
+- Ash's build notes are accepted: the size and restarts stay on the status line after a reload, columns and rows count from 0, there's a u32 limit message, and the gave-up message shows the real restart count.
+- The empty, generating, gave-up and bad-seed states are covered by tests and the code, not by screenshots. That's enough for 2.1.
+
+Follow-ups, none blocking:
+
+1. The tile set path in the shared bar wraps mid-word ("tile-/sets"). Show the file name, with the full path on hover. This comes from 1.3.
+2. The `demo-4` screenshot shows seed 12 on its first try, so the restart wording ("restarted 1 time") was only seen in the scripted run. Look at it on screen during Ian's demo. My concern about "2 of 20" still stands until Ian asks.
+
 # Links
 
 - Roadmap, slice 2.1: [roadmap](/roadmap.md)

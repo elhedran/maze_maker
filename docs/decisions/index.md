@@ -40,10 +40,7 @@ One file per decision ([DR-0001](/decisions/0001-record-every-decision.md)). Onl
 - [DR-0038 How the tool edits core.toml, records the edits and compares, with opening pressure in the single maze](/decisions/0038-editing-core-toml.md) - Saves write the tile set file with toml_edit after the loader accepts the new text, and append each number to a sibling core.edits.toml; edit_numbers and compare_mazes commands; opening pressure in generate_maze; DR-0034's trace gains a pressure factor applied last. Also slice 2.3's technical plan.
 - [DR-0039 How the world view shows a grown world, walked and replayed](/decisions/0039-world-view-design.md) - The World tab for 2.6 step 3: a world seed, a walker (a seeded random walk, or the arrow keys), the view following the player, overlays for stored cells, the frontier and the last patch, a patch side panel, and Replay with a same-world check. Approved by Marram (with four scope cuts) and Ash, standing in for the author.
 - [DR-0041 The data contract for the world view](/decisions/0041-data-contract-for-the-world-view.md) - Four world commands in a new src-tauri module, with their own state that keeps the tile set the world was grown with; per-patch deltas; the frontier with outward flags; replay streamed from the growth log with Rust's same-world check; positions as i32; accessor-only additions to maze-core. Approved by Rowan and Ash.
-
-## Proposed
-
-- [DR-0047 Store sealed regions as hedge](/decisions/0047-store-sealed-hedge.md) - Amends DR-0036: after each patch, every bounded unsettled region no stored cell faces with a walkable side is stored as the Hedge tile, final, with no seed; the patch logs it as `sealed`. A two-way door.
+- [DR-0047 Store sealed regions as hedge](/decisions/0047-store-sealed-hedge.md) - Amends DR-0036: after each patch, every bounded unsettled region no stored cell faces with a walkable side is stored as the Hedge tile, final, with no seed; the patch logs it as `sealed`. A two-way door. Approved by Rowan, and Ash standing in for the architect.
 
 ## Archived
 

@@ -98,7 +98,8 @@ pub fn frontier(world: &World) -> Frontier {
 /// Where stored cells lie in the window of the patch that stored them:
 /// `[d]` counts cells `d` cells in from the window's outer ring (the ring
 /// is 0; the last entry gathers everything further in), as (room cells,
-/// all cells). If rooms avoid patch edges, room cells are rarer near the
+/// all cells). Only the cells runs kept (`Patch::stored`): sealed hedge
+/// (DR-0047) lies anywhere and isn't counted. If rooms avoid patch edges, room cells are rarer near the
 /// ring than stored cells are in general.
 pub fn edge_profile(world: &World) -> [(usize, usize); 4] {
     let set = world.tile_set();
@@ -566,7 +567,12 @@ mod tests {
         let mut world = a_world(&set, &table, 4);
         world.random_walk((0, 0), 8, 150);
         let profile = edge_profile(&world);
-        assert_eq!(profile.iter().map(|x| x.1).sum::<usize>(), world.len());
+        // Sealed hedge (DR-0047) isn't placed by a run, so isn't counted.
+        let sealed: usize = world.log().iter().map(|p| p.sealed.len()).sum();
+        assert_eq!(
+            profile.iter().map(|x| x.1).sum::<usize>(),
+            world.len() - sealed
+        );
         let room_cells: usize = rooms(&world).iter().map(|r| r.cells).sum();
         assert_eq!(profile.iter().map(|x| x.0).sum::<usize>(), room_cells);
         // Every patch but the first has its anchor on its window's ring.

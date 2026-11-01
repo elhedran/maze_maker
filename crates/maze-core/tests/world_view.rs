@@ -257,7 +257,22 @@ fn discards_and_stored_cells_fill_each_window_exactly() {
                 }
                 assert!(thrown.is_disjoint(&stored) && thrown.is_disjoint(&earlier));
                 assert!(stored.is_disjoint(&earlier));
-                let all: BTreeSet<Pos> = thrown.union(&stored).chain(&earlier).copied().collect();
+                // DR-0047: sealed cells in the window are stored, so not
+                // discards.
+                let sealed: BTreeSet<Pos> = patch
+                    .sealed
+                    .iter()
+                    .copied()
+                    .filter(|p| window.contains(p))
+                    .collect();
+                assert!(sealed.is_disjoint(&thrown) && sealed.is_disjoint(&earlier));
+                assert!(sealed.is_disjoint(&stored));
+                let all: BTreeSet<Pos> = thrown
+                    .union(&stored)
+                    .chain(&earlier)
+                    .chain(&sealed)
+                    .copied()
+                    .collect();
                 assert_eq!(all, window, "seed {seed}");
             },
         );

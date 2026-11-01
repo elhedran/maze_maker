@@ -4,7 +4,7 @@ title: Store sealed regions as hedge
 description: Amends DR-0036. After each patch, every bounded region of unsettled cells that no stored cell faces with a walkable side is stored as the Hedge tile, at once and for good. Nothing can ever grow there, so the world knows where its walls are, which the 3D game needs. It uses no seed, so a patch stays a pure function of the world before it; rule 4's "every stored cell is joined to the origin" test becomes "joined, or sealed hedge".
 status: stable
 decision_id: DR-0047
-decision_status: proposed
+decision_status: accepted
 decision_kind: architecture
 major: false
 owners: [architect/1]
@@ -18,6 +18,9 @@ verified:
   - by: engineer-ash/1
     at: 2026-11-01T12:30:47Z
     note: "Approves, standing in for the architect. Checked against world.rs at 9e16692. Seeds are complete: a region is split off or loses its last facing endpoint only where the patch stores cells, so every newly sealed region touches a kept cell. Bounds hold: a bounded region lies inside the stored box, so sealing never grows `cells.bounds`. Seal-tile pairs are covered by rule 7's hedge clause, sealed against sealed included. Rule 6 is unaffected. For the build: share one visited set across seeds so a region that is not sealed is flooded once. Reusing the accepted attempt's `has_outward` rim flood as the bounded test avoids most of the second O(bounds) pass. Otherwise, floods from seeds on the outer frontier cover the whole outer unsettled area every patch."
+  - by: engineer-rowan/1
+    at: 2026-11-01T12:33:00Z
+    note: "Approves as worded; built on r3-sealed-hedge. Checked point 3's claim that only regions next to the kept cells can become sealed (any other region is unchanged by the patch, so it was bounded and faced before, and stored cells never change). Build notes: each bounded region is flooded whole with one visited set across all seeds, since stopping a flood early would let a later seed find part of it and wrongly call it sealed. Per Yew's scope note, `regions_beside` returns each region's cells, bounded and faced. Per Ash's note, the accepted checked attempt's rule 6 rim flood is handed to the search (spine and fallback patches make their own), so the unbounded region is flooded once per patch. Pinned world re-pinned on purpose: 671 cells, 10 patches to 1185 cells, 18 patches."
 ---
 
 # Context

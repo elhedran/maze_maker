@@ -7,7 +7,7 @@
 use maze_core::completeness::is_fallback;
 use maze_core::world::{Anchor, Pos, Settings, Stage, World, step};
 use maze_core::{Direction, SideKind, Table, TileSet};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 const CORE: &str = include_str!("../../../data/tile-sets/core.toml");
 
@@ -40,9 +40,59 @@ fn walkable(side: SideKind) -> bool {
     side != SideKind::Hedge
 }
 
+/// DR-0047's seal tile, found here apart from `world.rs`: the first
+/// fallback variant with hedge on all four sides.
+fn seal_tile(set: &TileSet) -> usize {
+    (0..set.variants.len())
+        .find(|&v| {
+            is_fallback(set, &set.variants[v])
+                && set.variants[v].sides.iter().all(|&s| s == SideKind::Hedge)
+        })
+        .expect("an all-hedge fallback tile")
+}
+
+/// The 4-connected regions of unsettled cells inside the box (lo, hi)
+/// that don't reach its rim: the bounded regions, when the box is one
+/// cell bigger than the stored cells' bounding box.
+fn bounded_regions(now: &Snapshot, lo: Pos, hi: Pos) -> Vec<Vec<Pos>> {
+    let inside = |(x, y): Pos| (lo.0..=hi.0).contains(&x) && (lo.1..=hi.1).contains(&y);
+    let on_rim = |(x, y): Pos| x == lo.0 || x == hi.0 || y == lo.1 || y == hi.1;
+    let mut seen = BTreeSet::new();
+    let mut out = Vec::new();
+    for y in lo.1..=hi.1 {
+        for x in lo.0..=hi.0 {
+            if now.contains_key(&(x, y)) || !seen.insert((x, y)) {
+                continue;
+            }
+            let mut region = vec![(x, y)];
+            let mut at = 0;
+            while at < region.len() {
+                let p = region[at];
+                at += 1;
+                for d in Direction::ALL {
+                    let q = step(p, d);
+                    if inside(q) && !now.contains_key(&q) && seen.insert(q) {
+                        region.push(q);
+                    }
+                }
+            }
+            if !region.iter().any(|&p| on_rim(p)) {
+                out.push(region);
+            }
+        }
+    }
+    out
+}
+
 /// DR-0036's guarantees for the world as it stands, against `before`, the
-/// world before the last patch. Returns the world now.
-fn assert_guarantees(world: &World, table: &Table, before: &Snapshot) -> Snapshot {
+/// world before the last patch, with DR-0047's sealed hedge: `sealed` is
+/// every cell some patch so far has sealed. Returns the world now.
+fn assert_guarantees(
+    world: &World,
+    table: &Table,
+    before: &Snapshot,
+    sealed: &BTreeSet<Pos>,
+) -> Snapshot {
     let set = world.tile_set();
     let side = |v: usize, d: Direction| set.variants[v].side(d);
     let now = snapshot(world);
@@ -87,10 +137,23 @@ fn assert_guarantees(world: &World, table: &Table, before: &Snapshot) -> Snapsho
             }
         }
     }
-    assert_eq!(
-        seen.len(),
-        now.len(),
-        "some stored cells aren't joined to the origin"
+    // DR-0047: every stored cell is joined to the origin, or is sealed
+    // and the seal tile.
+    let seal = seal_tile(set);
+    for (p, &v) in &now {
+        if !seen.contains_key(p) {
+            assert!(
+                sealed.contains(p),
+                "{p:?} isn't joined to the origin, nor sealed"
+            );
+        }
+        if sealed.contains(p) {
+            assert_eq!(v, seal, "sealed {p:?} isn't the seal tile");
+        }
+    }
+    assert!(
+        sealed.iter().all(|p| now.contains_key(p)),
+        "a sealed cell isn't stored"
     );
     // Rule 6: an outward endpoint. Flood the unsettled cells from just
     // outside the stored cells' bounding box.
@@ -119,6 +182,17 @@ fn assert_guarantees(world: &World, table: &Table, before: &Snapshot) -> Snapsho
         }
     }
     assert!(outward, "no outward endpoint: the player could be boxed in");
+    // DR-0047: nothing sealed is left unstored. Every bounded unsettled
+    // region has a stored cell showing a walkable side into it.
+    for region in bounded_regions(&now, lo, hi) {
+        let faced = region.iter().any(|&p| {
+            Direction::ALL.into_iter().any(|d| {
+                now.get(&step(p, d))
+                    .is_some_and(|&u| walkable(side(u, d.opposite())))
+            })
+        });
+        assert!(faced, "bounded region at {:?} was left unsealed", region[0]);
+    }
     now
 }
 
@@ -129,6 +203,7 @@ fn replay_checking(walked: &World, set: &TileSet, table: &Table) -> World {
     let settings = walked.settings();
     let mut world = World::replay(set, table, walked.seed(), settings, &[]).unwrap();
     let mut before = Snapshot::new();
+    let mut sealed = BTreeSet::new();
     for logged in walked.log() {
         let (again, _) = world.patch(logged.anchor);
         assert_eq!(
@@ -156,20 +231,47 @@ fn replay_checking(walked: &World, set: &TileSet, table: &Table) -> World {
                 );
             }
         }
-        before = assert_guarantees(&world, table, &before);
+        // DR-0047: each sealed cell was unsettled before, isn't in
+        // `stored`, and lies in a region (of this patch's sealed cells)
+        // that touches a kept cell. The list is in (y, x) order.
+        let stored: BTreeSet<Pos> = patch.stored.iter().copied().collect();
+        let this: BTreeSet<Pos> = patch.sealed.iter().copied().collect();
+        let mut ordered = patch.sealed.clone();
+        ordered.sort_by_key(|&(x, y)| (y, x));
+        assert_eq!(ordered, patch.sealed, "sealed isn't in (y, x) order");
+        assert_eq!(this.len(), patch.sealed.len(), "a sealed cell repeats");
+        for &p in &patch.sealed {
+            assert!(!before.contains_key(&p), "sealed {p:?} was stored before");
+            assert!(!stored.contains(&p), "sealed {p:?} is also in stored");
+            let mut region = vec![p];
+            let mut seen = BTreeSet::from([p]);
+            let mut touches = false;
+            while let Some(q) = region.pop() {
+                for d in Direction::ALL {
+                    let r = step(q, d);
+                    touches |= stored.contains(&r);
+                    if this.contains(&r) && seen.insert(r) {
+                        region.push(r);
+                    }
+                }
+            }
+            assert!(touches, "sealed {p:?} doesn't touch the patch's kept cells");
+        }
+        sealed.extend(this);
+        before = assert_guarantees(&world, table, &before, &sealed);
     }
     world
 }
 
 /// Runs `walks` seeded random walks of `steps` steps on 4 threads, checks
 /// each patch by patch, and returns each walk's log of
-/// (patches, spines, fallbacks).
+/// (patches, spines, fallbacks, sealed cells).
 fn check_walks(
     settings: Settings,
     extra: &str,
     walks: u32,
     steps: usize,
-) -> Vec<(usize, usize, usize)> {
+) -> Vec<(usize, usize, usize, usize)> {
     let (set, table) = core_with(extra);
     let threads = 4;
     std::thread::scope(|scope| {
@@ -188,6 +290,7 @@ fn check_walks(
                             log.len(),
                             log.iter().filter(|p| p.spine).count(),
                             log.iter().filter(|p| p.fallback).count(),
+                            log.iter().map(|p| p.sealed.len()).sum(),
                         ));
                     }
                     out
@@ -211,8 +314,13 @@ fn a_hundred_walks_keep_every_guarantee_after_every_patch() {
     let patches: usize = stats.iter().map(|s| s.0).sum();
     let spines: usize = stats.iter().map(|s| s.1).sum();
     let fallbacks: usize = stats.iter().map(|s| s.2).sum();
-    println!("100 walks: {patches} patches, {spines} spines, {fallbacks} fallbacks");
+    let sealed: usize = stats.iter().map(|s| s.3).sum();
+    println!(
+        "100 walks: {patches} patches, {spines} spines, {fallbacks} fallbacks, {sealed} sealed cells"
+    );
     assert_eq!(stats.len(), 100);
+    // Otherwise the DR-0047 checks above never ran on a sealed cell.
+    assert!(sealed > 0, "no walk ever sealed a cell");
 }
 
 #[test]
@@ -314,7 +422,7 @@ fn one_world_is_pinned() {
     );
     assert_eq!(
         (world.len(), world.log().len(), fingerprint(&world)),
-        (671, 10, 0x2b3a_a791_2aa4_c5d8)
+        (1185, 18, 0xcef7_8323_62c5_c85e)
     );
 }
 

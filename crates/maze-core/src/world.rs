@@ -126,6 +126,10 @@ pub struct Patch {
     pub stored: Vec<Pos>,
     /// The spine's cells from the anchor out; empty without a spine.
     pub spine_cells: Vec<Pos>,
+    /// Cells it stored as the seal tile because nothing can ever reach
+    /// them (DR-0047), in (y, x) order. Never in `stored`; may lie outside
+    /// the window.
+    pub sealed: Vec<Pos>,
 }
 
 /// The sparse table (DR-0035): square pages of palette indices in a sorted
@@ -534,6 +538,12 @@ impl World {
         for (&p, &v) in patch.stored.iter().zip(&tiles) {
             self.store(p, v);
         }
+        if !patch.sealed.is_empty() {
+            let seal = self.seal_tile();
+            for &p in &patch.sealed {
+                self.store(p, seal);
+            }
+        }
         self.log.push(patch);
         self.log.last().expect("just pushed")
     }
@@ -607,23 +617,25 @@ impl World {
             attempt += 1;
             self.solver.run(s, s, start, seed)
         };
-        let done = |tiles: Vec<usize>, attempts, spine: &[usize], fallback| {
-            let kept = self.keep(&window, &start.settled, &tiles, a);
-            let patch = Patch {
-                anchor,
-                window: window.nw,
-                attempts,
-                spine: !spine.is_empty(),
-                fallback,
-                stored: (0..cells)
-                    .filter(|&i| kept[i])
-                    .map(|i| window.pos(i))
-                    .collect(),
-                spine_cells: spine.iter().map(|&i| window.pos(i)).collect(),
+        let done =
+            |tiles: Vec<usize>, attempts, spine: &[usize], fallback, flood: Option<RimFlood>| {
+                let kept = self.keep(&window, &start.settled, &tiles, a);
+                let patch = Patch {
+                    anchor,
+                    window: window.nw,
+                    attempts,
+                    spine: !spine.is_empty(),
+                    fallback,
+                    stored: (0..cells)
+                        .filter(|&i| kept[i])
+                        .map(|i| window.pos(i))
+                        .collect(),
+                    spine_cells: spine.iter().map(|&i| window.pos(i)).collect(),
+                    sealed: self.sealed(&window, &kept, &tiles, flood),
+                };
+                let tiles = (0..cells).filter(|&i| kept[i]).map(|i| tiles[i]).collect();
+                (patch, tiles)
             };
-            let tiles = (0..cells).filter(|&i| kept[i]).map(|i| tiles[i]).collect();
-            (patch, tiles)
-        };
 
         if self.settings.first_stage == Stage::Checked {
             'tries: for _ in 0..=self.settings.retries {
@@ -632,8 +644,9 @@ impl World {
                         continue;
                     };
                     let kept = self.keep(&window, &start.settled, &tiles, a);
-                    if self.has_outward(&window, &kept, &tiles) {
-                        return done(tiles, attempt, &[], false);
+                    let flood = self.rim_flood(&window, &kept, &tiles);
+                    if flood.outward {
+                        return done(tiles, attempt, &[], false, Some(flood));
                     }
                     continue 'tries;
                 }
@@ -667,7 +680,7 @@ impl World {
         if self.settings.first_stage <= Stage::Spine {
             for _ in 0..=MAX_RESTARTS {
                 if let Some(tiles) = run(&spined) {
-                    return done(tiles, attempt, &spine, false);
+                    return done(tiles, attempt, &spine, false, None);
                 }
             }
         }
@@ -686,7 +699,7 @@ impl World {
                 anchor.cell
             )
         });
-        done(tiles, attempt, &spine, true)
+        done(tiles, attempt, &spine, true, None)
     }
 
     /// The new cells joined to the anchor through walkable sides (DR-0036
@@ -718,20 +731,9 @@ impl World {
 
     /// DR-0036 rule 6's reference check: with the kept cells stored, some
     /// stored cell shows a walkable side to an unsettled cell joined to the
-    /// unbounded unsettled region.
+    /// unbounded unsettled region. The flood itself is `rim_flood`.
     fn has_outward(&self, window: &Window, kept: &[bool], tiles: &[usize]) -> bool {
-        let new = |p: Pos| window.index(p).filter(|&i| kept[i]).map(|i| tiles[i]);
-        let tile = |p: Pos| self.get(p).or_else(|| new(p));
-        let mut boxes = vec![window.corners()];
-        boxes.extend(self.cells.bounds);
-        let area = Area::around(&boxes);
-        let reached = area.flood_from_rim(|p| tile(p).is_none());
-        (0..reached.len()).filter(|&i| reached[i]).any(|i| {
-            let u = area.pos(i);
-            Direction::ALL.into_iter().any(|d| {
-                tile(step(u, d)).is_some_and(|v| walkable(self.set.variants[v].side(d.opposite())))
-            })
-        })
+        self.rim_flood(window, kept, tiles).outward
     }
 
     /// The spine (DR-0036 rule 6): local cells from the anchor through its
@@ -858,7 +860,9 @@ impl World {
             + self
                 .log
                 .iter()
-                .map(|p| (p.stored.capacity() + p.spine_cells.capacity()) * pos)
+                .map(|p| {
+                    (p.stored.capacity() + p.spine_cells.capacity() + p.sealed.capacity()) * pos
+                })
                 .sum::<usize>();
         let palette = self.palette.capacity() * std::mem::size_of::<(String, u32)>()
             + self
@@ -943,6 +947,72 @@ mod tests {
         cells.store((2, 3), 1);
         cells.store((2, 3), 2);
     }
+
+    /// DR-0047's scripted case: a ring of stored hedge around two
+    /// unsettled cells, with one gap. A patch that keeps a hedge tile in
+    /// the gap seals the two; one that shows a passage into them, or a
+    /// ring with a second gap to the outside, seals nothing.
+    #[test]
+    fn closing_a_ring_seals_what_it_encloses() {
+        let set = TileSet::from_toml(include_str!("../../../data/tile-sets/core.toml"))
+            .expect("core.toml loads");
+        let table = Table::calculate(&set);
+        let build = |holes: &[Pos]| {
+            let mut world = World::empty(&set, &table, 1, Settings::default()).unwrap();
+            let seal = world.seal_tile();
+            for y in 0..=2 {
+                for x in 0..=3 {
+                    if !holes.contains(&(x, y)) {
+                        world.store((x, y), seal);
+                    }
+                }
+            }
+            world
+        };
+        // The gap at (3, 1) is the patch's one-cell window, kept.
+        let gap = Window {
+            nw: (3, 1),
+            size: 1,
+        };
+        let inside = [(1, 1), (2, 1)];
+        let ring = build(&[(1, 1), (2, 1), (3, 1)]);
+        let seal = ring.seal_tile();
+        assert!(
+            set.variants[seal]
+                .sides
+                .iter()
+                .all(|&s| s == SideKind::Hedge)
+        );
+        assert_eq!(ring.sealed(&gap, &[true], &[seal], None), inside.to_vec());
+
+        // A passage into the pocket: something faces it, so it stays open.
+        let west = (0..set.variants.len())
+            .find(|&v| set.variants[v].side(Direction::West) == SideKind::Passage)
+            .expect("a tile with a west passage");
+        assert_eq!(ring.sealed(&gap, &[true], &[west], None), Vec::<Pos>::new());
+
+        // A second gap, at (0, 1), lets the pocket reach the unbounded
+        // region.
+        let leaky = build(&[(0, 1), (1, 1), (2, 1), (3, 1)]);
+        assert_eq!(
+            leaky.sealed(&gap, &[true], &[seal], None),
+            Vec::<Pos>::new()
+        );
+        let flood = leaky.rim_flood(&gap, &[true], &[seal]);
+        let regions = leaky.regions_beside(&gap, &[true], &[seal], &flood);
+        // One unbounded region, met from both sides of the gap, reported
+        // once; nothing stored faces it, so no outward endpoint either.
+        assert_eq!(regions.len(), 1);
+        assert!(!regions[0].bounded && !regions[0].faced && regions[0].cells.is_empty());
+        // The closed ring: the outside, met first (east of the gap), then
+        // the bounded pocket (west), unfaced.
+        let flood = ring.rim_flood(&gap, &[true], &[seal]);
+        let regions = ring.regions_beside(&gap, &[true], &[seal], &flood);
+        assert_eq!(regions.len(), 2);
+        assert!(!regions[0].bounded);
+        assert!(regions[1].bounded && !regions[1].faced);
+        assert_eq!(regions[1].cells.len(), 2);
+    }
 }
 
 // Accessors for the tool's World tab (DR-0041). Additions only, kept in
@@ -1025,4 +1095,176 @@ impl World {
             .filter(|&p| self.get(p).is_none())
             .collect()
     }
+}
+
+// Sealed hedge (DR-0047), kept in one block so it rebases cleanly past
+// other work on this file. The hooks elsewhere: `Patch::sealed`, its one
+// line in `World::patch`, the store loop in `grow_at`, and `memory`.
+
+impl World {
+    /// The seal tile (DR-0047 point 4): the first variant, in variant
+    /// order, that is a fallback tile with hedge on all four sides. Rule
+    /// 7's completeness check, which every `World` passed, requires one.
+    fn seal_tile(&self) -> usize {
+        (0..self.set.variants.len())
+            .find(|&v| {
+                self.fallback[v]
+                    && self.set.variants[v]
+                        .sides
+                        .iter()
+                        .all(|&s| s == SideKind::Hedge)
+            })
+            .expect("the completeness check (DR-0036 rule 7) requires an all-hedge fallback tile")
+    }
+
+    /// DR-0036 rule 6's reference flood, with the kept cells counted as
+    /// stored: unsettled cells flooded from the rim of the box one cell
+    /// bigger than the stored bounds and the window. Every unsettled cell
+    /// outside the box of stored and kept cells is unbounded, and the rim
+    /// lies outside that box, so `reached` is exactly the unbounded
+    /// region's cells inside the box. `has_outward` reads `outward`, and
+    /// the accepted attempt's flood goes on to the sealing search, so a
+    /// patch floods the outer unsettled cells once (Ash's note).
+    fn rim_flood(&self, window: &Window, kept: &[bool], tiles: &[usize]) -> RimFlood {
+        let new = |p: Pos| window.index(p).filter(|&i| kept[i]).map(|i| tiles[i]);
+        let tile = |p: Pos| self.get(p).or_else(|| new(p));
+        let mut boxes = vec![window.corners()];
+        boxes.extend(self.cells.bounds);
+        let area = Area::around(&boxes);
+        let reached = area.flood_from_rim(|p| tile(p).is_none());
+        let outward = (0..reached.len()).filter(|&i| reached[i]).any(|i| {
+            let u = area.pos(i);
+            Direction::ALL.into_iter().any(|d| {
+                tile(step(u, d)).is_some_and(|v| walkable(self.set.variants[v].side(d.opposite())))
+            })
+        });
+        RimFlood {
+            area,
+            reached,
+            outward,
+        }
+    }
+
+    /// The cells the patch must seal: every region next to its kept cells
+    /// that is bounded and that nothing faces into, in (y, x) order
+    /// (DR-0047 points 2, 3). Only a region next to a kept cell can have
+    /// just become sealed; the rest were sealed, and stored, before.
+    /// `flood` is the accepted attempt's rim flood, if it made one.
+    fn sealed(
+        &self,
+        window: &Window,
+        kept: &[bool],
+        tiles: &[usize],
+        flood: Option<RimFlood>,
+    ) -> Vec<Pos> {
+        let flood = flood.unwrap_or_else(|| self.rim_flood(window, kept, tiles));
+        let mut out: Vec<Pos> = self
+            .regions_beside(window, kept, tiles, &flood)
+            .into_iter()
+            .filter(|r| r.bounded && !r.faced)
+            .flat_map(|r| r.cells)
+            .collect();
+        out.sort_by_key(|&(x, y)| (y, x));
+        out
+    }
+
+    /// DR-0047 rule 3's search, as one function so that a later
+    /// incremental rule 6 check extends it instead of adding a second
+    /// flood (Yew). With the kept cells counted as stored: every region of
+    /// unsettled cells next to a kept cell, each once, found from the kept
+    /// cells in the window's row-major order and N, E, S, W from each.
+    ///
+    /// `flood` (`rim_flood` for the same window and kept cells) settles
+    /// which seeds are unbounded, so the unbounded region is never flooded
+    /// again; it comes out once, first met, with no cells. Each bounded
+    /// region is flooded whole, with one visited set across all seeds, so
+    /// the search costs O(bounds area) at most on top of the rim flood.
+    fn regions_beside(
+        &self,
+        window: &Window,
+        kept: &[bool],
+        tiles: &[usize],
+        flood: &RimFlood,
+    ) -> Vec<Region> {
+        let new = |p: Pos| window.index(p).filter(|&i| kept[i]).map(|i| tiles[i]);
+        let tile = |p: Pos| self.get(p).or_else(|| new(p));
+        let area = &flood.area;
+        let mut seen = vec![false; area.width * area.height];
+        let mut unbounded_met = false;
+        let mut out = Vec::new();
+        for k in (0..kept.len()).filter(|&k| kept[k]) {
+            for d in Direction::ALL {
+                let seed = step(window.pos(k), d);
+                // A kept cell is inside the box, so its neighbours are too.
+                let Some(i) = area.index(seed) else {
+                    continue;
+                };
+                if seen[i] || tile(seed).is_some() {
+                    continue;
+                }
+                if flood.reached[i] {
+                    if !unbounded_met {
+                        unbounded_met = true;
+                        out.push(Region {
+                            cells: Vec::new(),
+                            bounded: false,
+                            faced: flood.outward,
+                        });
+                    }
+                    continue;
+                }
+                // Bounded: its flood never meets a reached cell or the rim.
+                seen[i] = true;
+                let mut region = vec![i];
+                let mut faced = false;
+                let mut at = 0;
+                while let Some(&i) = region.get(at) {
+                    at += 1;
+                    let p = area.pos(i);
+                    for d in Direction::ALL {
+                        let q = step(p, d);
+                        match tile(q) {
+                            Some(v) => faced |= walkable(self.set.variants[v].side(d.opposite())),
+                            None => {
+                                let j = area.index(q).expect("a bounded region is inside the box");
+                                if !seen[j] {
+                                    seen[j] = true;
+                                    region.push(j);
+                                }
+                            }
+                        }
+                    }
+                }
+                out.push(Region {
+                    cells: region.into_iter().map(|i| area.pos(i)).collect(),
+                    bounded: true,
+                    faced,
+                });
+            }
+        }
+        out
+    }
+}
+
+/// DR-0036 rule 6's flood for one attempt (`World::rim_flood`).
+struct RimFlood {
+    area: Area,
+    /// Per cell of `area`: unsettled and joined to its rim, so unbounded.
+    reached: Vec<bool>,
+    /// Some stored or kept cell shows a walkable side into the unbounded
+    /// region: an outward endpoint exists.
+    outward: bool,
+}
+
+/// A maximal 4-connected set of unsettled cells, as `regions_beside`
+/// found it.
+struct Region {
+    /// Its cells, in the order the flood reached them; empty for the
+    /// unbounded region, which the rim flood covered.
+    cells: Vec<Pos>,
+    /// It doesn't reach the unbounded unsettled region.
+    bounded: bool,
+    /// Some stored (or kept) cell shows a walkable side into it. For the
+    /// unbounded region, that is rule 6's outward endpoint.
+    faced: bool,
 }

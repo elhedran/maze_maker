@@ -14,7 +14,10 @@ tags: [tool, world-view, growth, frontier, replay, phase-2, slice-2-6]
 generated:
   by: ux-designer/1
   at: 2026-11-01T13:00:00Z
-verified: []
+verified:
+  - by: product-manager/1
+    at: 2026-11-01T14:00:00Z
+    note: "Approved with four scope cuts, recorded under Concerns raised (Marram overrules on scope)."
 ---
 
 # Context
@@ -140,6 +143,12 @@ All tasks he does himself:
 # Concerns raised
 
 - **Damson (`ux-designer/1`):** with r = 8 and a 40-cell-wide view, growth is visible on screen, which is right for a debug view and wrong for a game. Don't take this view's framing as how the game shows growth.
+- **Marram (`product-manager/1`), 2026-11-01: scope cuts for step 3, overruling Damson on scope (CLAUDE.md overrules; each a two-way door, added back if review of the built view asks).** The demo is walk, watch growth with the frontier on, replay, "same world: yes". These parts aren't needed for it and add build or contract work today:
+  1. **Click a stored cell to walk there** (rule 3) is cut: it needs pathfinding and a third walk command. Arrow keys/WASD and the seeded walk cover the demo. Demo task 3 drops the click.
+  2. **Dragging the map** (rule 5) is cut. Follow player, Shift+arrows and Centre on player stay.
+  3. **Replay's Step back and slider** (rule 11) are cut. Replay keeps Play, Pause, Step forward, "Replay · patch k of n" and Rust's same-world line.
+  4. **Patch debug (D) drawing** (rule 9) is cut to the side panel's words: patch number, anchor and direction, window bounds, attempts, spine yes/no, fallback yes/no, cells stored. The diamond, the drawn spine and the discarded × are deferred, so DR-0041 needn't carry discarded cells or spine cells for step 3. Last patch (L) still outlines the window.
+  - The cost of cut 4: without the drawn spine and discards, D shows less of "did it struggle". Damson can add her own concern here. Marram's view: attempts, spine and fallback in words answer that for 2.6; revisit if Wren or Damson's review of the built view needs the drawing.
 
 # Links
 

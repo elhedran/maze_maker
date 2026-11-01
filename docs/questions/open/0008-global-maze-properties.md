@@ -12,7 +12,7 @@ related:
   - /decisions/0007-wave-function-collapse.md
   - /decisions/0015-tile-set.md
   - /decisions/0028-wfc-approach-for-2-1.md
-  - /decisions/0031-endless-generation-approach.md
+  - /decisions/archive/0031-endless-generation-approach.md
   - /plans/2.1-maze-review.md
   - /roadmap.md
 tags: [generation, wfc, game-design]
@@ -60,7 +60,7 @@ Ian (`human:ian`), verbatim, given as steering for the product manager for futur
 
 > Ok, on that not I have some future steering for the product manager for future phases around improving the mazes.  I'd like two changes - the first is we only generate based of "open" endpoints, endpoints connected to existing maze.  This basically means looking for where a path ends, a room door opens etc rather than just every space next to where the player has been, within the bounds of the player space radius.  The second change is to add some pressure to bias towards an opening maze.  that means that if a piece that goes down would only connect to already closed maze, that should get a reduced probability.
 
-Then Ian (`human:ian`), verbatim, on [DR-0031](/decisions/0031-endless-generation-approach.md):
+Then Ian (`human:ian`), verbatim, on [DR-0031](/decisions/archive/0031-endless-generation-approach.md):
 
 > In regards to DR-0031 the world needs to be stored anyway - we want to know where the player has been, we will add loot, and hence we need to know what is looted, etc.  However given how this works, there should be quite an efficient in-memory data structure for this (sparse big table).
 

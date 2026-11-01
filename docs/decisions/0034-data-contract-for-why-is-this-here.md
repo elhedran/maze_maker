@@ -27,7 +27,7 @@ verified:
 
 Slice 2.2 ([roadmap](/roadmap.md)): click a cell of a generated maze, and the explore view ([DR-0026](/decisions/0026-explore-one-tile-design.md), folded in from 1.2) opens on it and shows how its neighbours combined. That leaves two technical questions. DR-0026 leaves it to Yew whether the arms reuse `table_view` or get a command of their own. And someone has to decide what data "why is this here" needs for one cell. Damson's DR-0033 designs the link in parallel, on the assumption written in rules 4 to 7. If it needs something different, this record changes before the build relies on it.
 
-Slice 2.6 changes `crates/maze-core/src/wfc.rs` at the same time ([DR-0031](/decisions/0031-endless-generation-approach.md) rules 3 and 6). The roadmap says 2.2's shape wins if the two clash there. Better that they don't clash, so 2.2's change is one hook (rule 5).
+Slice 2.6 changes `crates/maze-core/src/wfc.rs` at the same time ([DR-0031](/decisions/archive/0031-endless-generation-approach.md) rules 3 and 6). The roadmap says 2.2's shape wins if the two clash there. Better that they don't clash, so 2.2's change is one hook (rule 5).
 
 # Decision
 
@@ -185,7 +185,7 @@ Rowan generates the bindings for the types above first, unchanged, so Ash's stub
 
 - Explore view: [DR-0026](/decisions/0026-explore-one-tile-design.md); the explanation panel: [DR-0025](/decisions/0025-table-view-design.md)
 - WFC, determinism and the scoring formula: [DR-0028](/decisions/0028-wfc-approach-for-2-1.md); the generation view: [DR-0029](/decisions/0029-generation-view-design.md)
-- Chunks, which change `wfc.rs` in parallel: [DR-0031](/decisions/0031-endless-generation-approach.md)
+- Chunks, which change `wfc.rs` in parallel: [DR-0031](/decisions/archive/0031-endless-generation-approach.md)
 - IPC types: [DR-0023](/decisions/0023-rust-typescript-types-in-step.md); the table view command: [DR-0024](/decisions/0024-tile-set-file-format.md)
 - Weights: [DR-0022](/decisions/0022-weight-model.md); code layout, no I/O in core: [DR-0012](/decisions/0012-code-layout-and-core-crate.md)
 - Parallel work: [DR-0019](/decisions/0019-parallel-work-in-one-checkout.md); two-way doors: [DR-0018](/decisions/0018-one-way-doors-go-to-ian.md)

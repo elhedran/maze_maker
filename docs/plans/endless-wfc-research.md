@@ -22,7 +22,7 @@ generated:
 
 # Endless WFC: research for 2.6 and the game
 
-By Yew (architect). This is the research [DR-0007](/decisions/0007-wave-function-collapse.md) asks for ("Infinite WFC has known problems where newly generated areas meet old ones") and the [roadmap](/roadmap.md) gates slice 2.6 and the game on. The approach it recommends is proposed in [DR-0031](/decisions/0031-endless-generation-approach.md).
+By Yew (architect). This is the research [DR-0007](/decisions/0007-wave-function-collapse.md) asks for ("Infinite WFC has known problems where newly generated areas meet old ones") and the [roadmap](/roadmap.md) gates slice 2.6 and the game on. The approach it recommends is proposed in [DR-0031](/decisions/archive/0031-endless-generation-approach.md).
 
 > **Superseded recommendation (2026-11-01).** Ian decided the world is stored and grows along the player's path ([DR-0035](/decisions/0035-the-world-is-stored.md)), so seam-first chunks gave way to growth from open endpoints ([DR-0036](/decisions/0036-growth-from-open-endpoints.md)). The prior art, the six questions and the fallback proof ("Why the fallback can't fail") still hold, and DR-0036 rule 7 builds on them. The chunk design, the measures and the definition of done below are replaced by DR-0036's.
 
@@ -190,7 +190,7 @@ Nothing in 2.1 needs to change before 2.6 starts. The 2.1 single-maze path can s
 
 ## Links
 
-- Proposed record: [DR-0031](/decisions/0031-endless-generation-approach.md)
+- Proposed record: [DR-0031](/decisions/archive/0031-endless-generation-approach.md)
 - WFC and its follow-ups: [DR-0007](/decisions/0007-wave-function-collapse.md)
 - 2.1's WFC and measures: [DR-0028](/decisions/0028-wfc-approach-for-2-1.md), [DR-0030](/decisions/0030-measures-for-2-1.md)
 - Tile set and fallbacks: [DR-0015](/decisions/0015-tile-set.md), [DR-0016](/decisions/0016-wren-designs-the-tile-set.md)

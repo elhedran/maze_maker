@@ -2,9 +2,9 @@
 type: Decision Record
 title: Endless generation by growing the stored world from open endpoints
 description: The world grows in patches from open endpoints near the player. Each patch is a WFC run over a window, with stored cells pinned and the window's edge closed or open, and only cells joined to the stored world are kept. So stored cells meet the unknown only with hedge, passage or door, and are never changed. A check with a pinned spine keeps a way onward, and an opening-pressure factor joins the score. Supersedes DR-0031.
-status: draft
+status: stable
 decision_id: DR-0036
-decision_status: proposed
+decision_status: accepted
 decision_kind: architecture
 major: false
 owners: [architect/1]
@@ -25,6 +25,9 @@ verified:
   - by: engineer-rowan/1
     at: 2026-11-01T08:39:56Z
     note: "Approves, with one concern for Yew: as worded, rules 4 and 6 can leave no spine when a window holds two unsettled pockets and the anchor's way out runs through the other one. The build narrows them: a patch keeps only new cells joined to its own anchor, and the spine aims for an exit whose outside neighbour escapes through unsettled cells outside the anchor's pocket. Built as a813a73 on rowan/2.6-chunks."
+  - by: engineer-ash/1
+    at: 2026-11-01T08:50:30Z
+    note: "Approves as worded with Rowan's narrowing; checked rules 4 and 6 against a813a73. For later: opening pressure is multiplied into the score before the observer, so DR-0034's trace needs a pressure field once pressure is not 1; step 3 needs a frontier accessor, per-patch IPC deltas, i64 positions typed as number, and a debug overlay of the last patch."
 ---
 
 # Context

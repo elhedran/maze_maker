@@ -1,14 +1,14 @@
 ---
 type: Roadmap
 title: Maze Maker roadmap
-description: Phases, deliverables and demos for Maze Maker. Phase 1 is closed and 2.1 is done; slice 2.2 is in progress, and 2.6 pauses while Yew re-checks DR-0031 after Ian's steering on growing mazes.
+description: Phases, deliverables and demos for Maze Maker. Phase 1 is closed; 2.1 and 2.2 are on main. 2.3 Tune and compare starts on the tool track, and 2.6 grows a stored world from open endpoints (DR-0035, DR-0036) on the engine track, with step 1 built.
 status: stable
 owners: [product-manager/1]
 approvers: [human:ian]
 tags: [roadmap, phase-1, phase-2, adjacency-table, tooling, demos, generation]
 generated:
   by: product-manager/1
-  at: 2026-11-01T00:10:00+01:00
+  at: 2026-11-01T08:50:20Z
 verified:
   - by: human:ian
     at: 2026-11-01T00:20:00+01:00
@@ -38,6 +38,8 @@ What Marram changed. Moving slices is a sequencing call, a two-way door and Marr
 
 ## Update 2026-11-01: 1.3 runs in parallel with 2.1
 
+1.3 has since landed on `main` (see 1.3 below). This section is kept as the record of the call.
+
 Ian (`human:ian`), verbatim, 2026-11-01:
 
 > Happy to use tokens faster if we can doo more work concurrently
@@ -50,7 +52,7 @@ Ian (`human:ian`), verbatim, 2026-11-01, as steering for the product manager for
 
 > Ok, on that not I have some future steering for the product manager for future phases around improving the mazes.  I'd like two changes - the first is we only generate based of "open" endpoints, endpoints connected to existing maze.  This basically means looking for where a path ends, a room door opens etc rather than just every space next to where the player has been, within the bounds of the player space radius.  The second change is to add some pressure to bias towards an opening maze.  that means that if a piece that goes down would only connect to already closed maze, that should get a reduced probability.
 
-Then Ian (`human:ian`), verbatim, 2026-11-01, on [DR-0031](/decisions/0031-endless-generation-approach.md):
+Then Ian (`human:ian`), verbatim, 2026-11-01, on [DR-0031](/decisions/archive/0031-endless-generation-approach.md):
 
 > In regards to DR-0031 the world needs to be stored anyway - we want to know where the player has been, we will add loot, and hence we need to know what is looted, etc.  However given how this works, there should be quite an efficient in-memory data structure for this (sparse big table).
 
@@ -86,7 +88,7 @@ Updated 2026-11-01 by Marram, when Ian asked to start 2.6 (see 2.6 below), and a
   - **Tool track: 2.2 is done and on `main`** (Ian approved its demo on 2026-11-01).
   - **Engine track: 2.6 step 1**, the chunk generator in `maze-core`, with no window. It pauses at its next green point, after Ian's steering, keeping the per-cell starting masks and the completeness check.
 - **Next:**
-  - engine track: waits on Yew's record replacing [DR-0031](/decisions/0031-endless-generation-approach.md) (expected DR-0036), which gives 2.6 its new shape; the facilitator briefs what follows once Yew has ruled;
+  - engine track: waits on Yew's record replacing [DR-0031](/decisions/archive/0031-endless-generation-approach.md) (expected DR-0036), which gives 2.6 its new shape; the facilitator briefs what follows once Yew has ruled;
   - tool track: 2.3 once 2.2 lands, with opening pressure in it (Ian's steering);
   - then 2.4 and 2.5.
 
@@ -367,7 +369,7 @@ Started 2026-11-01. Ian (`human:ian`), verbatim:
 
 Marram's calls, all sequencing and scope, so two-way doors ([DR-0018](/decisions/0018-one-way-doors-go-to-ian.md)): 2.6 runs as an engine track beside 2.2, in three steps, and moves ahead of 2.4 and 2.5. Steps 1 and 2 are `maze-core` only, with no design gate and no window, so they take nothing from 2.2. As a whole, 2.6 still ends on screen (step 3).
 
-- **Goal:** grow a maze past its edge in chunks, to test where new areas meet old ones. Seam-first chunks on 2.1's generator ([DR-0031](/decisions/0031-endless-generation-approach.md)); the measures and definition of done are in [Endless WFC](/plans/endless-wfc-research.md).
+- **Goal:** grow a maze past its edge in chunks, to test where new areas meet old ones. Seam-first chunks on 2.1's generator ([DR-0031](/decisions/archive/0031-endless-generation-approach.md)); the measures and definition of done are in [Endless WFC](/plans/endless-wfc-research.md).
 - **Step 1, the chunk generator (now).**
   - **In it:** DR-0031 rules 1 to 6: border labels and gates from each border's canonical key, per-cell starting masks, the gate check, the spine, the fallback run with the spine, and the fixed attempt order. A chunk's result reports attempts, spine and fallback, and carries its gate positions and spine cells (Ash's DR-0031 note), so step 3 needs no core change. S = 16; R is the engineers' call.
   - **Not in it:** the measures (step 2); any view, IPC or window (step 3); new dependencies.
@@ -468,7 +470,7 @@ Already settled:
 | The WFC approach for 2.1: collapse, how neighbour weights combine, contradiction handling, determinism (seeds), the maze's edge | DR-0007, [DR-0013](/decisions/0013-table-entries-from-tile-sides.md), [DR-0022](/decisions/0022-weight-model.md) | Yew, with Wren on determinism; Yew and one engineer | no, unless Yew judges a part one-way | 2.1 (settled at the start of the build) |
 | Which global properties to measure | [Q-0008](/questions/open/0008-global-maze-properties.md) | Wren, Yew advises on cost; Wren and Marram | no | 2.1 (Wren picks what 2.1 shows, at the start of the build); 2.5 for the full set |
 | Design for the generation view (small, settled during the 2.1 build) and the link from maze to table | design | Damson; Damson and Marram | no | 2.1, 2.2 |
-| Research into infinite WFC | DR-0007 | Yew | no, unless Yew judges a part one-way | done ([DR-0031](/decisions/0031-endless-generation-approach.md)); being re-checked by Yew after Ian's steering of 2026-11-01, likely superseded (expected DR-0036), which gives 2.6 its new shape |
+| Research into infinite WFC | DR-0007 | Yew | no, unless Yew judges a part one-way | done ([DR-0031](/decisions/archive/0031-endless-generation-approach.md)); being re-checked by Yew after Ian's steering of 2026-11-01, likely superseded (expected DR-0036), which gives 2.6 its new shape |
 | Persistence | DR-0007 | Ian, 2026-11-01: the world is stored; recorded as DR-0035, drafted by the facilitator, pending Ian's approval of its wording | **yes**: Ian decided it | 2.6's new shape; the game |
 | How global properties are enforced | [Q-0008](/questions/open/0008-global-maze-properties.md) | Yew, with Wren | no, unless Yew judges it one-way | Ian's steering of 2026-11-01: opening pressure in 2.3, growing from open endpoints with 2.6's new shape; the rest, the game |
 | How code is shared with the game, in full | DR-0008, [DR-0012](/decisions/0012-code-layout-and-core-crate.md) | Yew; Yew and one engineer | no | the game |

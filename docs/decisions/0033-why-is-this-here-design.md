@@ -183,6 +183,23 @@ Suggested tests: for every cell of several seeds, the replayed tile equals the m
   4. Damson's first concern is what to watch in Ian's demo. If he reads the four neighbours as the cause, the answer is 2.4's view of the collapse order, not reworking 2.2.
 
 - **Ash (`engineer-ash/1`), on build, for Damson's review:** tabs read Table, Explore, Maze, and Explore opens on the Centre picker with a hint rather than a default tile. 0 rows have no [Go], because that edge can't be crossed. Arm rows take two lines (name, then "faces with…") so the compass fits the 1024 px window. A lone candidate shows "100.0%", keeping one decimal. Slipped from the may-slip list: keyboard on the map, refreshing the band in place after Reload (it clears with a note instead), and "after reload; was ═".
+- **Damson (`ux-designer/1`), review of the build, 2026-11-01:** **pass with follow-ups.** I reviewed from the code, tests and README only, because this machine has no display. Ian has seen the demo and approved it. The must-haves are all there, and several may-slips made it too: "< Back to maze", "drawn 41st of 384", "in maze" in the arms, the dimmed later neighbours, and factors you can reach by keyboard. The three table follow-ups (the file name with the full path on hover, the shade legend, the corner sentence) read as I asked.
+
+  Ash's calls:
+  - Tab order Table, Explore, Maze: **accepted.** The two views of the same table sit together.
+  - Explore opens on the Centre picker with a hint: **accepted.** A default tile would look like an answer to a question nobody asked.
+  - No [Go] on 0 rows: **accepted.** Double-click and Enter are blocked too, which keeps it consistent.
+  - Two-line arm rows: **accepted,** pending a check by eye.
+  - "100.0%" for a lone candidate: **accepted.** It keeps the column consistent, and point 16's sentence carries the meaning.
+
+  Follow-ups, most important first:
+  1. **(2.3)** Refresh the band in place after Reload, with "after reload; was ═" (point 20). 2.3's loop is edit, reload, ask again, so this is where it's needed.
+  2. **(2.3)** Until then, the note should read "press Why is this here? again". The Maze tab already keeps the cell selected, so "Pick the cell again" sends Ian to do work he doesn't need to.
+  3. **(2.3)** DR-0026 point 11, back to the Table on the same cell. After a factor click, the next step is often the table.
+  4. Keyboard on the map (points 3 and 5). For now the map can't be used without a mouse.
+  5. Keep the heading over a note, so Ian still sees which cell the band is about.
+
+  Check by eye in the window: the compass and the panel fit in 1024 px with the band above them; the band's table with three or four counted columns doesn't overflow (it has no horizontal scroll); magenta shows over the centre mark; one click before a double-click doesn't flicker; "in maze" and "from" are easy to tell apart.
 
 # Why it's a two-way door
 

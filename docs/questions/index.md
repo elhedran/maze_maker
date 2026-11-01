@@ -4,11 +4,12 @@ Questions waiting on a decision, and how they were answered ([DR-0004](/decision
 
 ## Waiting on Ian
 
-_None._
+- [Q-0015 Do old saves keep loading across versions?](/questions/open/0015-do-old-saves-keep-loading.md) - Not yet: revisit before the game's first release. Yew's three options are in DR-0046; until then other-version saves are refused.
 
 ## Waiting on the team
 
 - [Q-0008 Which global properties must a maze have, and how are they enforced?](/questions/open/0008-global-maze-properties.md) - Wren and Yew: what local tile rules can't guarantee, and how to enforce it. 2.1's measures settled (DR-0030). Ian's steering: opening pressure in 2.3, growth along the player's path with 2.6's new shape. Full measures wait for 2.5, the rest for the game.
+- [Q-0014 How would maze-core attach to a Unity game?](/questions/open/0014-maze-core-in-unity.md) - Yew, before the 3D game starts: FFI, threading, and how growth requests and results cross. Ian's long-term intent; not answered now.
 
 ## Resolved
 

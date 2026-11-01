@@ -158,6 +158,17 @@ How the team took it:
   - These are inputs to Damson's design for the table, which settles them.
 - **Wren:** room or corridor is a property of each tile. [DR-0015](/decisions/0015-tile-set.md) gives every tile a kind (corridor, room or hedge).
 
+## What Ian has asked for (2026-11-01): the long-term intent
+
+Ian (`human:ian`), verbatim, 2026-11-01:
+
+> I suppose this is where I give some additional context.  The very long term intent is to use this game as a minimal tech demo of a given approach (infinite maze) - we will later make a different 3d game (probably in unity) based on it - but that will need human designed art assets etc.  Its impact here is just to keep in mind while we are making a 2d game, part of it beyond being fun is to learn what we bring to the 3d game, and hopefully have a maze generation algorithm in that can be attached to that unity game running in its own thread and working with the unity game.
+
+What Marram takes from this (context, not a new slice):
+
+- The 2D game is a tech demo of the infinite maze, and fun is the test. What we learn from it goes into a later 3D game, probably in Unity.
+- `maze-core` is the part meant to carry over, so it stays UI-free and app-agnostic ([DR-0012](/decisions/0012-code-layout-and-core-crate.md)). How it would attach to Unity, on its own thread, is [Q-0014](/questions/open/0014-maze-core-in-unity.md), to revisit before the 3D game starts. Nothing is planned for it now.
+
 ## Phase 1: the table and the viewer
 
 **Done when** Ian can do the demo tasks from 1.1 on the core tile set, without help: "see and understand the table" ([DR-0008](/decisions/0008-adjacency-tool-first.md)). Yew's plan makes these tasks measurable.
@@ -452,6 +463,12 @@ Marram's calls, all sequencing and scope, so two-way doors ([DR-0018](/decisions
 ## The game (outline)
 
 The game is its own app (`apps/game/`, [DR-0012](/decisions/0012-code-layout-and-core-crate.md)). Since 2026-11-01 it runs now, as its own track alongside Phase 2 ([DR-0042](/decisions/0042-the-game-starts-now.md), amending [DR-0008](/decisions/0008-adjacency-tool-first.md)'s "the game comes after"). DR-0008's "don't start on game features without a decision record" still holds: G.1's records are DR-0043 to DR-0045.
+
+**The long-term intent** (Ian, 2026-11-01, verbatim; see "What Ian has asked for (2026-11-01)"):
+
+> I suppose this is where I give some additional context.  The very long term intent is to use this game as a minimal tech demo of a given approach (infinite maze) - we will later make a different 3d game (probably in unity) based on it - but that will need human designed art assets etc.  Its impact here is just to keep in mind while we are making a 2d game, part of it beyond being fun is to learn what we bring to the 3d game, and hopefully have a maze generation algorithm in that can be attached to that unity game running in its own thread and working with the unity game.
+
+So each game slice also asks what it teaches us for the 3D game, and keeps generation in `maze-core`, where a Unity game could use it later ([Q-0014](/questions/open/0014-maze-core-in-unity.md)). The 3D game isn't planned here.
 
 - **Waits on,** for G.1:
   - **how code is shared with the tool,** and whether G.1 needs any new technology: DR-0043 (Yew; Yew and one engineer). New technology that changes the tech stack would be Ian's ([DR-0018](/decisions/0018-one-way-doors-go-to-ian.md));

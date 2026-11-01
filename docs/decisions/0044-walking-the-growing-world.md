@@ -55,6 +55,13 @@ Ian (`human:ian`) started the game alongside Phase 2 ([DR-0042](/decisions/0042-
 
 Requests to change the generator (weights, opening pressure, P, r, how growth meets the player) go in that review as requests for the 2.3 and 2.6 sessions, and not into `maze-core` from the game branch.
 
+## What this teaches the 3D game (added 2026-11-01)
+
+Ian (`human:ian`), 2026-11-01, verbatim: "The very long term intent is to use this game as a minimal tech demo of a given approach (infinite maze) - we will later make a different 3d game (probably in unity) based on it - but that will need human designed art assets etc. Its impact here is just to keep in mind while we are making a 2d game, part of it beyond being fun is to learn what we bring to the 3d game, and hopefully have a maze generation algorithm in that can be attached to that unity game running in its own thread and working with the unity game."
+
+- **Fun that doesn't depend on art is in the layout:** the walk-choose-walk rhythm, rooms that feel like rare finds, short dead ends, a way onward that's always there, and a world that stays as you left it. A 3D game inherits all of this from the generator.
+- **What won't carry over is the view from above.** A player walking at ground level in 3D can't see over the hedges, so rule 4's glimpse of a room past the hedge goes. The fun review asks which joys come from the layout itself and which come only from seeing over the hedges. It also asks whether growth ever showed itself, because in 3D it has to stay out of sight. Requests for the generator follow from those answers. The review's checklist carries this same heading.
+
 # Why it's a two-way door
 
 Nothing persists in G.1. Keys, view radius, the trail and how the unknown looks are settings or drawing. Changing any of them later costs a small edit. The movement rule is DR-0036's existing "joined" rule, so it adds nothing new to reverse.

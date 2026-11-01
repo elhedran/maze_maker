@@ -51,8 +51,8 @@ So Marram brought 1.3 back, a sequencing call and a two-way door ([DR-0018](/dec
   - Phase 1 is closed (see the revision above).
   - The designs for 1.2 and 1.3 are settled ([DR-0026](/decisions/0026-explore-one-tile-design.md), [DR-0027](/decisions/0027-filter-table-design.md)). 1.2 waits for 2.2.
   - [Q-0008](/questions/open/0008-global-maze-properties.md) (global maze properties) was parked until before 2.1. That trigger is now: its first part, what to measure on a sample maze, is due, and Wren answers it for 2.1.
-  - 2.1, the first sample maze, is being built.
-  - 1.3, filtering the table, is being built in parallel with 2.1 (see "Update 2026-11-01" above).
+  - 2.1, the first sample maze, is done and on `main`.
+  - 1.3, filtering the table, is done and on `main`.
 - **Next:** 2.2, which brings in 1.2's explore view.
 
 ## How it works
@@ -248,7 +248,7 @@ The original definition, kept for reference:
 
 **Done when** Wren and Ian can judge the maps the table makes ([DR-0008](/decisions/0008-adjacency-tool-first.md)), and Ian can trace a problem he sees in a maze back to the probabilities behind it ([Q-0005](/questions/resolved/0005-what-to-find-out-from-the-table.md)).
 
-**Status:** in progress. 2.1 is built and demoed, waiting for Ian's OK to land.
+**Status:** in progress. 2.1 is done and on `main`; 2.2 is next.
 
 ### 2.1 First sample maze
 
@@ -273,7 +273,7 @@ The original definition, kept for reference:
   1. **The WFC approach (Yew, approved by Yew and one engineer).** One record covering the DR-0007 follow-ups that 2.1 needs: how a cell is chosen and collapsed, how the weights of several neighbours combine (deferred to 2.1 by [DR-0013](/decisions/0013-table-entries-from-tile-sides.md) and [DR-0022](/decisions/0022-weight-model.md)), contradiction handling, determinism (seeded randomness), and what lies past the maze's edge. Persistence and infinite WFC stay out; they wait for 2.6. Fallback tiles are already low-weight tiles in the set ([DR-0015](/decisions/0015-tile-set.md), [DR-0016](/decisions/0016-wren-designs-the-tile-set.md)). Yew judges whether any part is a one-way door; if one is, it goes to Ian. This record also stands as 2.1's plan.
   2. **Which [Q-0008](/questions/open/0008-global-maze-properties.md) measures 2.1 shows (Wren, approved by Wren and Marram).** This is Q-0008's first part, now due. Marram's suggestion is one cheap measure for "there is always a way onward", such as the share of cells reachable from the centre. Zero measures is acceptable if Wren prefers to wait for 2.5. How properties are enforced stays parked until before the game.
   3. **The generation view (Damson, approved by Damson and Marram).** Kept small: a seed field, Generate, the maze, the contradiction note and Wren's measures. Damson works it out with the engineer building the view, and records it in a short record.
-- **Status (2026-11-01):** built, checked and demoed, on branch `claude/slice-2-1-2468a5`; waiting for Ian's OK to land on `main`. Ian (`human:ian`), verbatim: "just saw a demo of the generated maze - looking good so far." That is not yet an OK to land.
+- **Status:** done (2026-11-01), on `main` and pushed. Ian (`human:ian`), verbatim: "just saw a demo of the generated maze - looking good so far." Then: "Yes, land 2.1".
   - **Records:** [DR-0028](/decisions/0028-wfc-approach-for-2-1.md) (WFC approach and plan), [DR-0029](/decisions/0029-generation-view-design.md) (generation view) and [DR-0030](/decisions/0030-measures-for-2-1.md) (measures), all accepted.
   - **Built:** Rowan built WFC and the two measures in `maze-core`, the `generate_maze` command and ts-rs bindings. Ash built Maze and Table tabs under a shared tile set bar and the maze view, now on the real command. The branches were rebased onto slice 1.3 and joined.
   - **Tests:** 74 Rust tests pass, covering determinism, every neighbouring pair allowed over 200 seeds, the basic check, and a contradiction that fails cleanly after 20 restarts. 67 Vitest tests pass. Clippy and the build are clean. A 24×16 maze takes about 1.8 ms in release.

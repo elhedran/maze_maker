@@ -2,6 +2,8 @@
 
 ## 2026-11-01
 
+- **Update** Slice 2.1 is on `main` and pushed, after Ian's OK, verbatim: "Yes, land 2.1". The facilitator rebased it onto `main` (after DR-0019's revision), with only docs changing since the tested build. Roadmap 2.1 status updated.
+
 - **Update** Slice 2.1, the first sample maze, is built and checked on `claude/slice-2-1-2468a5`, waiting for Ian's OK to land. Ian (`human:ian`), verbatim: "just saw a demo of the generated maze - looking good so far."
   - Rowan's WFC and Ash's view were rebased onto slice 1.3 and joined, and the view now uses the real `generate_maze`. 74 Rust and 67 Vitest tests pass.
   - The facilitator ran every demo task in the real Tauri window by script: seed and Generate, same seed and new seed, edit `core.toml` and Reload, the measures, a bad file, and a restart note.

@@ -1,8 +1,8 @@
 ---
 type: Decision Record
 title: How the world view shows a grown world, walked and replayed
-description: A World tab, separate from the other views. A world seed and New world; a walker driven by a seeded random walk (Play, Pause, Step) or by Ian (arrow keys, or click a stored cell); the view pans and follows the player; overlays for stored cells, the frontier (outward endpoints as arrows) and the last patch; a patch debug overlay with its window, spine, discarded cells, attempts and flags; and Replay, which regrows the world from the growth log patch by patch and says whether it matches.
-status: draft
+description: A World tab, separate from the other views. A world seed and New world; a walker driven by a seeded random walk (Play, Pause, Step) or by Ian (arrow keys); the view pans and follows the player; overlays for stored cells, the frontier (outward endpoints as arrows) and the last patch; a patch side panel with its window, attempts and flags (Marram cut the drawn spine and discards, and click to walk, drag-panning and replay step back); and Replay, which regrows the world from the growth log patch by patch and says whether it matches.
+status: stable
 decision_id: DR-0039
 decision_status: proposed
 decision_kind: design

@@ -130,6 +130,11 @@ What the fields mean:
 - **Measures:** both mazes carry DR-0030's measures in `GeneratedMaze.measures`, from the same code as `generate_maze`. Compare adds no measure code of its own, so 2.6 step 2's work on measures isn't touched.
 - **`pressure`:** 1 or the set's `opening_pressure`, as rule 11 says. Whether the "why" band shows a factor of 1 is DR-0037's call.
 
+**Added 2026-11-01, from Ash (`engineer-ash/1`), while building DR-0037; Yew agrees.** These are two additive fields, so the frontend works nothing out itself:
+
+- **`TableView` gains `openingPressure: number`:** the loaded value, or 1 when the key is absent. Without it, the frontend can't show or prefill the pressure.
+- **`EntryView` gains `basePair: string | null`:** `BasePair::key()` for the pair of side kinds, as written in `[bases]`, or `null` when the entry isn't allowed. It is the `pair` for a `base` target, so TypeScript doesn't copy `side.rs`'s pairing.
+
 # Alternatives considered
 
 - **Re-serialise the whole file with `toml`'s writer.** It loses every comment, which [DR-0024](/decisions/0024-tile-set-file-format.md) chose TOML to keep.

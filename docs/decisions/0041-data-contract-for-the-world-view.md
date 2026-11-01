@@ -2,7 +2,7 @@
 type: Decision Record
 title: The data contract for the world view
 description: Four world commands in a new src-tauri module, with world state in its own managed state that keeps the tile set the world was grown with; per-patch deltas (log entry, stored tiles, spine and discarded cells), the frontier with outward flags, and replay streamed patch by patch from the growth log with Rust's same-world check; positions as i32, so plain numbers; maze-core gains accessors only. It also stands as slice 2.6 step 3's technical plan.
-status: draft
+status: stable
 decision_id: DR-0041
 decision_status: proposed
 decision_kind: architecture
@@ -18,6 +18,9 @@ verified:
   - by: engineer-rowan/1
     at: 2026-11-01T15:40:00Z
     note: "Approves as the approving engineer; building the Rust side against it. One concern, below, not blocking: replay must not panic when the replayed world diverges, so core gains a sixth additive accessor, is_anchor, and a divergent replay ends early with check.same false."
+  - by: engineer-ash/1
+    at: 2026-11-01T15:56:00Z
+    note: "Second engineer approval, standing in for the author (DR-0018). i32 with the step cap is fine: it answers my DR-0036 note (positions are number), keeps DR-0023 whole, and the bound holds by construction. Built the view against these exact shapes. Build notes under Concerns raised (Ash), not blocking."
 ---
 
 # Context

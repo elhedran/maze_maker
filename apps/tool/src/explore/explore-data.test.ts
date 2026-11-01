@@ -72,7 +72,7 @@ describe("loadExplore", () => {
         centreSide: "hedge" as const,
         neighbours: direction === "east" ? [entryFor(EAST, 0, 6), entryFor(EAST, 0, 2), odd] : [],
         zeros: direction === "east" ? [entryFor(EAST, 0, 4), entryFor(EAST, 0, 1)] : [],
-      })) as ExploreView["arms"],
+      })) as unknown as ExploreView["arms"],
     };
     backendWith(view);
     const east = (await loadExplore({ id: "corridor_straight", orientation: 1 })).centre!.arms.east;

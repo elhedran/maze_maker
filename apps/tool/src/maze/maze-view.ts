@@ -146,6 +146,11 @@ export class MazeView extends LitElement {
    * Called by the app after a successful tile set reload (DR-0029 point 3):
    * if a maze is shown, make it again from the same seed and new data.
    */
+  /** True when a maze is on screen, so a change has a before and after (DR-0037 point 7). */
+  get hasMaze(): boolean {
+    return !!this.maze;
+  }
+
   regenerateAfterReload(): void {
     if (this.maze) void this.generate(this.maze.seed, true);
   }

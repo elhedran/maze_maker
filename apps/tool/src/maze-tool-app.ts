@@ -12,6 +12,10 @@ import "./world/world-view.ts";
 import type { AdjacencyTable } from "./table/adjacency-table.ts";
 import type { ExploreView } from "./explore/explore-view.ts";
 import type { MazeView } from "./maze/maze-view.ts";
+// Slice 2.3, saving a number (DR-0037 point 6, DR-0038).
+import { editNumbers } from "./ipc.ts";
+import { SAVE_NUMBER_EVENT, SHOW_COMPARE_EVENT, type SaveRequest, type Saved } from "./edit/save-number.ts";
+import type { NumberEdit } from "./pending-bindings.ts";
 
 type Tab = "table" | "explore" | "maze" | "world";
 
@@ -37,6 +41,8 @@ export class MazeToolApp extends LitElement {
   @state() private error?: string;
   @state() private reloading = false;
   @state() private tab: Tab = "table";
+  /** The loaded tile set's revision; a save names it so Rust can refuse a stale one (DR-0038 rule 3). */
+  private revision?: number;
 
   @query("adjacency-table") private table?: AdjacencyTable;
   @query("explore-view") private explore?: ExploreView;
@@ -89,12 +95,17 @@ export class MazeToolApp extends LitElement {
     this.addEventListener(TOOL_ERROR_EVENT, this.onToolError);
     this.addEventListener(OPEN_EXPLORE_EVENT, this.onOpenExplore);
     this.addEventListener(BACK_TO_MAZE_EVENT, this.onBackToMaze);
+    this.addEventListener(SAVE_NUMBER_EVENT, this.onSaveNumber);
+    this.addEventListener(SHOW_COMPARE_EVENT, this.onShowCompare);
     coreVersion()
       .then((version) => (this.coreVersion = version))
       .catch((e: unknown) => (this.coreError = errorText(e)));
     // Only the load details for the bar; each view fetches what it shows.
     tableView(tilesOnlyRequest())
-      .then((view) => (this.tileSet = { path: view.tileSetPath, loadedAt: view.loadedAt }))
+      .then((view) => {
+        this.tileSet = { path: view.tileSetPath, loadedAt: view.loadedAt };
+        this.revision = view.revision;
+      })
       .catch((e: unknown) => (this.error = errorText(e)));
   }
 
@@ -102,6 +113,8 @@ export class MazeToolApp extends LitElement {
     this.removeEventListener(TOOL_ERROR_EVENT, this.onToolError);
     this.removeEventListener(OPEN_EXPLORE_EVENT, this.onOpenExplore);
     this.removeEventListener(BACK_TO_MAZE_EVENT, this.onBackToMaze);
+    this.removeEventListener(SAVE_NUMBER_EVENT, this.onSaveNumber);
+    this.removeEventListener(SHOW_COMPARE_EVENT, this.onShowCompare);
     super.disconnectedCallback();
   }
 
@@ -130,6 +143,7 @@ export class MazeToolApp extends LitElement {
     try {
       const result = await reloadTileSet();
       this.tileSet = { path: result.tileSetPath, loadedAt: result.loadedAt };
+      this.revision = result.revision;
       this.error = undefined;
     } catch (e) {
       this.error = errorText(e);
@@ -137,11 +151,49 @@ export class MazeToolApp extends LitElement {
     } finally {
       this.reloading = false;
     }
+    this.afterLoad();
+  }
+
+  /** After any successful load, Reload or a save: every view refetches where it is (DR-0029 point 3, DR-0037 point 6). */
+  private afterLoad() {
     this.table?.refresh();
     this.explore?.refresh();
     this.mazeView?.regenerateAfterReload();
     this.renderRoot.querySelector("world-view")?.tileSetReloaded();
   }
+
+  // ---- Slice 2.3: saving a number (DR-0037 points 6 and 7, DR-0038) ----
+
+  /** An editor asks to save; the answer goes back in the event (see `requestSave`). */
+  private onSaveNumber = (event: Event) => {
+    const request = (event as CustomEvent<SaveRequest>).detail;
+    request.result = this.saveNumber(request.edit);
+  };
+
+  /** DR-0037 point 7: [See before and after] shows the Maze tab. */
+  private onShowCompare = () => {
+    this.tab = "maze";
+  };
+
+  /**
+   * Rust writes core.toml and reloads it; then the same path as Reload. A
+   * rejection (`refused`, `stale`, a failed write) goes back to the editor,
+   * which shows it at the field, not in the banner (DR-0037 point 16).
+   */
+  private async saveNumber(edit: NumberEdit): Promise<Saved> {
+    if (this.revision === undefined) throw new Error("No tile set is loaded. Press Reload tile set.");
+    const result = await editNumbers({ revision: this.revision, edits: [edit] });
+    this.tileSet = { path: result.reload.tileSetPath, loadedAt: result.reload.loadedAt };
+    this.revision = result.reload.revision;
+    this.error = undefined;
+    const record = result.edits[0];
+    if (!record) throw new Error("edit_numbers saved nothing.");
+    const canCompare = this.mazeView?.hasMaze ?? false;
+    this.afterLoad();
+    return { record, warnings: result.warnings, canCompare };
+  }
+
+  // ---- end of slice 2.3's saving ----
 
   render() {
     return html`

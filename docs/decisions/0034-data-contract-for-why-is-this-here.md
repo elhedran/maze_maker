@@ -8,7 +8,7 @@ decision_status: proposed
 decision_kind: architecture
 major: false
 owners: [architect/1]
-approvers: [architect/1, engineer-rowan/1]   # architect/1 is the author; Ash stands in for the architect (DR-0018)
+approvers: [engineer-ash/1, engineer-rowan/1]   # Ash stands in for the architect, architect/1, who is the author (DR-0018)
 supersedes: []
 tags: [explore-view, wfc, trace, determinism, ipc, slice-2-2, plan]
 generated:

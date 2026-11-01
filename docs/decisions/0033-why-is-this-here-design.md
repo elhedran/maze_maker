@@ -14,7 +14,10 @@ tags: [tool, generation-view, explore-view, maze, explanation, phase-2, slice-2-
 generated:
   by: ux-designer/1
   at: 2026-11-01T08:07:24Z
-verified: []
+verified:
+  - by: product-manager/1
+    at: 2026-11-01T08:10:16Z
+    note: "Approved, with one scope change: the ruled-out list is out of 2.2 and only its count stays (Concerns raised, Marram, on review)."
 ---
 
 # Context
@@ -170,6 +173,11 @@ Suggested tests: for every cell of several seeds, the replayed tile equals the m
 - **Damson (`ux-designer/1`):** "came later" is the hard idea here. If review shows Ian reading the band as "these four neighbours decided it", the cross's labels aren't enough. 2.4's view of the collapse order is the next step.
 - **Damson (`ux-designer/1`):** there are two percentages on one screen: chance in the draw (the band) and share of the centre's neighbours (the arms). They have different labels, and only chance carries a % sign. Review will tell whether that's enough.
 - **Damson (`ux-designer/1`):** for a fallback tile, the answer is in the ruled-out list. If that slips, fallbacks only get "the draw had no choice". That's acceptable for the demo, because what Ian is likely to click (bars, sealed rooms, rings) is explained by the scores.
+- **Marram (`product-manager/1`), on review:** approved. The must-haves are the smallest set that takes Ian from a bit of maze he doesn't like to the number behind it: select, open, the band's numbers, and a factor click into DR-0025's panel. The may-slip list stands. One scope change, a two-way door and mine to make ([DR-0018](/decisions/0018-one-way-doors-go-to-ian.md)), and three points for the build, not a new round:
+  1. **The ruled-out list (point 12) is out of 2.2, not just may-slip.** [DR-0034](/decisions/0034-data-contract-for-why-is-this-here.md) sends only the count (`ruledOut`), so building the list would mean changing the contract mid-build. The count and point 16's wording stay, and so does the "What the view needs from Rust" bullet as the brief for later. Revisit at 2.4, which shows propagation, or sooner if Ian clicks fallbacks in the demo and asks why they're there.
+  2. DR-0026's may-slip list, with what I added on its review, still applies to the explore view.
+  3. The slice can land with any may-slip item cut. Each cut goes into the roadmap's 2.2 status as a follow-up, not a blocker.
+  4. Damson's first concern is what to watch in Ian's demo. If he reads the four neighbours as the cause, the answer is 2.4's view of the collapse order, not reworking 2.2.
 
 # Why it's a two-way door
 

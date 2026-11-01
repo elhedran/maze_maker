@@ -294,12 +294,29 @@ The original definition, kept for reference:
 ### 2.2 Why is this here? (includes 1.2)
 
 - **Goal:** click a spot in a maze, and the explore view from 1.2 opens on it, showing how its neighbours combined (Damson).
-- **Demo:** Ian clicks a bit of maze he doesn't like and sees why it's there. 1.2's demo tasks come with it: Ian names a corridor corner's most likely east neighbour, and clicks from a corridor into a room and back out, through doorways.
-- **What's in it:** 1.2's explore view, built to [DR-0026](/decisions/0026-explore-one-tile-design.md), plus the link from the maze.
-- **Waits on:** Damson's design for the link (Damson and Marram), and Yew's data contract for it (Yew and one engineer). The explore view's design is settled.
-- **Status:** in progress (2026-11-01): design gates, then the build.
-  - **Gates**, settled at the start of the build: Damson's link design (DR-0033) and Yew's data contract (DR-0034).
-  - **Build:** Rowan (Rust) and Ash (the explore view and the link), each in their own worktree (`rowan/2.2-cell-why`, `ash/2.2-explore-view`).
+- **Demo tasks** (Ian, without help): the 2.2 task, and 1.2's two tasks with it.
+  - Ian generates a maze, clicks a bit he doesn't like (a long one-deep room bar from Wren's [2.1 review](/plans/2.1-maze-review.md), say), presses [Why is this here?], and sees why it's there: which neighbours counted when it was drawn, the chance each candidate had, and, from a click on a factor, the number behind it.
+  - Ian names a corridor corner's most likely east neighbour.
+  - Ian clicks from a corridor into a room and back out, through doorways.
+- **What's in it, and what isn't:**
+  - 1.2's explore view in its own Explore tab, built to [DR-0026](/decisions/0026-explore-one-tile-design.md)'s must-haves.
+  - The link from the maze and the "Why it's here" band, built to [DR-0033](/decisions/0033-why-is-this-here-design.md)'s must-haves. "Why" means what WFC saw when it drew the cell, replayed from the seed, not what is around the cell now.
+  - Not in it: the ruled-out list, only its count (Marram, on review of DR-0033; revisit at 2.4); "what would fit here now" (2.3 or 2.4); refreshing the band in place after Reload (it clears with a note instead); editing in the tool (2.3).
+- **Done when:**
+  - **Explore, 1.2's done-when:** it works for every tile and orientation in the core set, and agrees with the 1.1 table. A test checks all 29 pairs in four directions: each arm is exactly that row's entries from the 1.1 table, sorted in Rust, with the 0s split off and counted.
+  - **The trace is the maze on screen:** any cell of a generated maze can be traced. Tests show the replay picks each cell's tile over 200 seeds and leaves generation as it was, so 2.1's seeds give the same mazes and 2.1's tests pass unchanged.
+  - **Its numbers are the solver's and the table's:** weight × factors equals the solver's score exactly, the chances add up to 100%, and each factor carries its 1.1 table entry, so DR-0025's panel explains it. Rust sorts and works out every number, and the frontend only formats them ([DR-0005](/decisions/0005-tauri-rust-backend-lit-frontend.md), [DR-0025](/decisions/0025-table-view-design.md)).
+  - **Never wrong, never a crash:** a reloaded tile set (`stale`), a cell outside the maze, a bad size, no tile set and a failed maze each have a test, and none of them panics. After a Reload the band never shows an old trace.
+  - **Checks:** the bindings are regenerated, and the Rust tests, Vitest, clippy and the build are clean.
+  - **The view:** DR-0026's and DR-0033's must-haves are built, and Damson has reviewed the view against both records. Any may-slip item that was cut is listed under Status as a follow-up.
+  - **The demo:** the facilitator has run all three demo tasks in the real Tauri window. The steps are in the README, and the slice is on `main` with a line in `/log.md`.
+  - The technical half is DR-0034's build plan and tests ([DR-0034](/decisions/0034-data-contract-for-why-is-this-here.md)).
+- **Waits on:** DR-0033 (Damson's link design; Damson and Marram) and DR-0034 (Yew's data contract, which is also 2.2's plan; Yew and one engineer). Both are two-way doors, settled at the start of the build. The explore view's design is settled (DR-0026).
+- **Status:** in progress (2026-11-01). The build has started while the gates are approved.
+  - **Gates, approvals pending:**
+    - [DR-0033](/decisions/0033-why-is-this-here-design.md): Marram approved it, with the ruled-out list out of 2.2; Ash's approval, standing in for Damson, is pending.
+    - [DR-0034](/decisions/0034-data-contract-for-why-is-this-here.md): approvals pending. It gained four small additions, A1 to A4, so that it serves DR-0033: each of the four neighbours marked counted, came later or edge; candidates sorted in Rust; a ruled-out count; and each factor carrying its table entry.
+  - **Build:** Rowan does the Rust side: the observer hook in `wfc.rs`, the trace, the `explore_tile` and `trace_cell` commands, and the bindings. Ash does the frontend: the Explore tab, the link and the band. Each works in their own worktree (`rowan/2.2-cell-why`, `ash/2.2-explore-view`), against DR-0034's types.
   - **Alongside 2.6** (Marram's call): 2.2 holds `README.md`, and its shape wins if the two clash in `wfc.rs`.
 
 ### 2.6 Beyond the edge (in progress, in parallel with 2.2)

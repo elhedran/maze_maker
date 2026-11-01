@@ -66,16 +66,16 @@ And Ian (`human:ian`), verbatim, 2026-11-01, on what he meant:
 - **Change 2, opening pressure:** a candidate whose open sides all face settled cells, so that it adds no new open endpoint, gets a multiplier below 1 in [DR-0028](/decisions/0028-wfc-approach-for-2-1.md) rule 3's score.
 - **Considered and not taken:** growing each chunk from its gates, so that the world needn't be stored and DR-0031 holds. Ian means growth that follows the player's path, and the world is stored anyway.
 
-**What it changes now:**
+**What it changed, and where that stands now** (updated 2026-11-01, after the records landed):
 
-- **2.6's approach may change.** Yew is re-checking DR-0031 against Ian's steering and is likely to supersede it (expected as DR-0036). Ian's decision that the world is stored is being recorded as DR-0035, drafted by the facilitator and pending Ian's approval of its wording. That settles the game's persistence gate.
-- **2.6 step 1 pauses at its next green point.** It keeps what survives: the per-cell starting masks and the completeness check. 2.6's new shape waits on Yew's record, and so does the sequencing of what follows; the facilitator briefs it once Yew has ruled. Marram doesn't redraw 2.6 here.
-- **2.2 is unchanged.**
+- **The world is stored:** [DR-0035](/decisions/0035-the-world-is-stored.md), accepted with Ian's approval. It settles the game's persistence gate.
+- **2.6's new shape:** [DR-0036](/decisions/0036-growth-from-open-endpoints.md), Yew's patch growth from open endpoints, superseding DR-0031. It is accepted (Rowan and Ash approved; Rowan's narrowing of rules 4 and 6 is folded in). 2.6 below is redrawn for it, and its step 1 is built to it.
+- **2.2 was unchanged,** and has landed.
 
 **Where Marram puts each change.** This is sequencing, a two-way door and Marram's call ([DR-0018](/decisions/0018-one-way-doors-go-to-ian.md)).
 
-- **Change 2, opening pressure, goes in 2.3 Tune and compare.** It is one tunable factor in the solver's score, whatever grows the maze, so it doesn't wait on Yew's record. It works on today's single maze, and 2.3's demo already fits it: Ian changes the pressure, regenerates the same seed, and sees the reachable share and separate areas ([DR-0030](/decisions/0030-measures-for-2-1.md)) move. 2.2's "why" trace shows it as a factor. It goes after the same pockets as Wren's tuning idea 4, damping corner-into-corner ([2.1 review](/plans/2.1-maze-review.md)), so 2.3 tries the two side by side. **Revisit before 2.3's build starts**, when 2.2 lands.
-- **Change 1, growing from open endpoints, is the core of 2.6's new shape**, so it is picked up there. Where it lands in the sequence is set once Yew has ruled. **Revisit when Yew's record replacing DR-0031 is accepted.**
+- **Change 2, opening pressure, goes in 2.3 Tune and compare.** It is one tunable factor in the solver's score, whatever grows the maze, so it doesn't wait on Yew's record. It works on today's single maze, and 2.3's demo already fits it: Ian changes the pressure, regenerates the same seed, and sees the reachable share and separate areas ([DR-0030](/decisions/0030-measures-for-2-1.md)) move. 2.2's "why" trace shows it as a factor. It goes after the same pockets as Wren's tuning idea 4, damping corner-into-corner ([2.1 review](/plans/2.1-maze-review.md)), so 2.3 tries the two side by side. **Revisited 2026-11-01, when 2.2 landed:** DR-0036 rule 9 defines the factor, and 2.6 step 1 builds it into the engine for world growth only. 2.3 brings it into the tool's single maze and its "why" trace, and tunes it (see 2.3).
+- **Change 1, growing from open endpoints, is the core of 2.6's new shape**, so it is picked up there. **Revisited 2026-11-01:** 2.6 is redrawn for DR-0036 (see 2.6), and stays on the engine track beside 2.3.
 - **Not 2.5:** it judges batches, so both changes should be in before it, and its measures should judge the maze they make.
 - **The how is settled at pickup, with no planning round.** Yew settles the fit with DR-0028 and with the record that replaces DR-0031, and whether any part is a one-way door; if one is, it goes to Ian. Wren settles what the player feels, and the tuning.
 

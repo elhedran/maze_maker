@@ -21,6 +21,9 @@ tauri = { version = "2", features = [] }
 maze-core.workspace = true
 ts-rs = "12.0.1"
 serde = { version = "1.0.229", features = ["derive"] }
+# Writes edited numbers into the tile set file, keeping comments and layout
+# (DR-0038 rule 1). Already in Cargo.lock through Tauri's build tools.
+toml_edit = "0.25"
 
 [dev-dependencies]
 serde_json = "1.0.154"

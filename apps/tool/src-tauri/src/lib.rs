@@ -12,8 +12,14 @@
 //!   (DR-0034)
 //! - `world_start`, `world_walk`, `world_replay_start`, `world_replay_step`:
 //!   the World tab, in `world.rs` (DR-0041)
+//! - `edit_numbers(request: EditRequest) -> Result<EditResult, ToolError>`
+//!   (DR-0038)
+//! - `compare_mazes(request: CompareRequest) -> Result<CompareResult, ToolError>`
+//!   (DR-0038)
 //! - `core_version() -> String`
 
+pub mod compare;
+pub mod edit;
 pub mod ipc;
 pub mod maze;
 pub mod state;
@@ -82,6 +88,27 @@ fn trace_cell(
     lock(&state).trace(&request)
 }
 
+// Editing and compare (DR-0038).
+
+/// Saves numbers into the tile set file and reloads it. Small file work
+/// and one load, so it runs in the command directly.
+#[tauri::command]
+fn edit_numbers(
+    state: tauri::State<'_, Mutex<ToolState>>,
+    request: ipc::EditRequest,
+) -> Result<ipc::EditResult, ToolError> {
+    lock(&state).edit(&state::default_tile_set_path(), &request)
+}
+
+/// Two generations' work, so like `generate_maze` it runs directly.
+#[tauri::command]
+fn compare_mazes(
+    state: tauri::State<'_, Mutex<ToolState>>,
+    request: ipc::CompareRequest,
+) -> Result<ipc::CompareResult, ToolError> {
+    lock(&state).compare(&request)
+}
+
 pub fn run() {
     // A failed startup load doesn't stop the app: `table_view` returns the
     // errors so they show in the tool (DR-0024).
@@ -102,7 +129,9 @@ pub fn run() {
             world::world_start,
             world::world_walk,
             world::world_replay_start,
-            world::world_replay_step
+            world::world_replay_step,
+            edit_numbers,
+            compare_mazes
         ])
         .run(tauri::generate_context!())
         .expect("error while running the Maze Maker tool");

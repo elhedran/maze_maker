@@ -37,12 +37,11 @@ One file per decision ([DR-0001](/decisions/0001-record-every-decision.md)). Onl
 - [DR-0035 The world is stored, and grows along the player's path](/decisions/0035-the-world-is-stored.md) - Ian's decision: what is generated is kept, with where the player has been and later loot; growth follows the player's path; the store is an efficient in-memory sparse table. A one-way door.
 - [DR-0036 Endless generation by growing the stored world from open endpoints](/decisions/0036-growth-from-open-endpoints.md) - The stored world grows in patches, one WFC run over a window past each open endpoint near the player, with stored cells pinned, only joined cells kept, a frontier of hedge, passage or door, a guaranteed way onward and an opening-pressure factor. Supersedes DR-0031.
 - [DR-0037 How the tool edits a number and compares the same seed before and after](/decisions/0037-compare-and-edit-design.md) - Numbers in the explanation panel that live in the tile set are edited in place with their reach spelled out; a saved change puts the Maze tab into a side-by-side before-and-after of the same seed with unchanged cells faded and both measures; opening pressure sits under the seed row; a refused edit shows the loader's reason at the field; the "why" band refreshes in place after a reload.
+- [DR-0038 How the tool edits core.toml, records the edits and compares, with opening pressure in the single maze](/decisions/0038-editing-core-toml.md) - Saves write the tile set file with toml_edit after the loader accepts the new text, and append each number to a sibling core.edits.toml; edit_numbers and compare_mazes commands; opening pressure in generate_maze; DR-0034's trace gains a pressure factor applied last. Also slice 2.3's technical plan.
 
 ## Proposed
 
-- [DR-0038 How the tool edits core.toml, records the edits and compares, with opening pressure in the single maze](/decisions/0038-editing-core-toml.md) - Saves write the tile set file with toml_edit after the loader accepts the new text, and append each number to a sibling core.edits.toml; edit_numbers and compare_mazes commands; opening pressure in generate_maze; DR-0034's trace gains a pressure factor applied last. Also slice 2.3's technical plan.
-
-
+None.
 
 ## Archived
 

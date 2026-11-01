@@ -30,8 +30,8 @@ struct Args {
 
 fn args() -> Args {
     let mut out = Args {
-        walks: 10,
-        steps: 100,
+        walks: 6,
+        steps: 40,
         seed: 1,
     };
     let mut it = std::env::args().skip(1);
@@ -56,7 +56,7 @@ fn args() -> Args {
 
 fn usage(why: &str) -> ! {
     eprintln!(
-        "{why}\nusage: measures [--walks N (default 10)] [--steps N (default 100)] [--seed N (default 1)]"
+        "{why}\nusage: measures [--walks N (default 6)] [--steps N (default 40)] [--seed N (default 1)]"
     );
     std::process::exit(2)
 }

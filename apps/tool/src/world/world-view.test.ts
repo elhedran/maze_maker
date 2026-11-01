@@ -277,6 +277,17 @@ describe("world-view", () => {
     expect(text(el, "#readout")).toBe("");
   });
 
+  test("the readout, Centre and legend sit in the side column, readout first, above the patch", async () => {
+    backend();
+    const el = await grown();
+    // At the default 1024×768 window anything under the map is below the fold (Damson, fix 2).
+    const side = $(el, ".side")!;
+    const order = [...side.children].map((c) => c.id || c.className);
+    expect(order).toEqual(["readout", "bar", "patch-panel", "legend muted"]);
+    expect($(el, ".stage #readout, .stage #centre, .stage .legend")).toBeNull();
+    expect($(el, ".side #centre")).not.toBeNull();
+  });
+
   test("Play walks Steps steps, one call per step, then stops", async () => {
     const b = backend();
     const el = await grown();

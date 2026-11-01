@@ -14,7 +14,10 @@ tags: [explore-view, wfc, trace, determinism, ipc, slice-2-2, plan]
 generated:
   by: architect/1
   at: 2026-11-01T08:05:39Z
-verified: []
+verified:
+  - by: engineer-ash/1
+    at: 2026-11-01T08:24:13Z
+    note: "Stands in for the architect, who wrote the record (DR-0018). Approves; the frontend is built against these shapes. Notes, not blocking: explore_tile's response carries no tile list, so the frontend refetches one when the revision changes; a centre that no longer exists comes back as bad_request, so the adapter checks the tile list to tell it from other errors."
 ---
 
 # Context

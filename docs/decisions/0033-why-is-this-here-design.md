@@ -2,9 +2,9 @@
 type: Decision Record
 title: How a maze cell opens the explore view and shows why its tile is there
 description: Click selects a maze cell and "Why is this here?" (or double-click) opens the Explore tab on its tile through DR-0026 point 10, with a band above the compass that replays the cell's draw - which neighbours were settled, each candidate's weight times its pair factors, its chance, and the one drawn.
-status: draft
+status: stable
 decision_id: DR-0033
-decision_status: proposed
+decision_status: accepted
 decision_kind: design
 major: false
 owners: [ux-designer/1]
@@ -18,6 +18,9 @@ verified:
   - by: product-manager/1
     at: 2026-11-01T08:10:16Z
     note: "Approved, with one scope change: the ruled-out list is out of 2.2 and only its count stays (Concerns raised, Marram, on review)."
+  - by: engineer-ash/1
+    at: 2026-11-01T08:24:13Z
+    note: "Stands in for the author, Damson (DR-0018). Approves; built on ash/2.2-explore-view against DR-0034's types. Build calls for Damson's review are under Concerns raised (Ash, on build)."
 ---
 
 # Context
@@ -178,6 +181,8 @@ Suggested tests: for every cell of several seeds, the replayed tile equals the m
   2. DR-0026's may-slip list, with what I added on its review, still applies to the explore view.
   3. The slice can land with any may-slip item cut. Each cut goes into the roadmap's 2.2 status as a follow-up, not a blocker.
   4. Damson's first concern is what to watch in Ian's demo. If he reads the four neighbours as the cause, the answer is 2.4's view of the collapse order, not reworking 2.2.
+
+- **Ash (`engineer-ash/1`), on build, for Damson's review:** tabs read Table, Explore, Maze, and Explore opens on the Centre picker with a hint rather than a default tile. 0 rows have no [Go], because that edge can't be crossed. Arm rows take two lines (name, then "faces with…") so the compass fits the 1024 px window. A lone candidate shows "100.0%", keeping one decimal. Slipped from the may-slip list: keyboard on the map, refreshing the band in place after Reload (it clears with a note instead), and "after reload; was ═".
 
 # Why it's a two-way door
 

@@ -407,12 +407,13 @@ describe("adjacency-table", () => {
       expect(toggle(el, "row", "kind", "room").getAttribute("aria-pressed")).toBe("true");
     });
 
+    // Reload lives in the app bar now (DR-0029); after reloading, the app calls refresh().
     test("filters are kept across a reload", async () => {
       const ipc = backend();
       const el = await mount();
       toggle(el, "row", "kind", "room").click();
       await vi.waitFor(() => expect(rowGlyphs(el)).toEqual(["═"]));
-      root(el).querySelector<HTMLButtonElement>("#reload")!.click();
+      el.refresh();
       await vi.waitFor(() => expect(ipc.requests).toHaveLength(3));
       expect(ipc.requests[2].rowFilter).toEqual({ ...ANY, kinds: ["room"] });
       expect(rowGlyphs(el)).toEqual(["═"]);

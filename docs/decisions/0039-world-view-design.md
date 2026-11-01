@@ -18,6 +18,9 @@ verified:
   - by: product-manager/1
     at: 2026-11-01T14:00:00Z
     note: "Approved with four scope cuts, recorded under Concerns raised (Marram overrules on scope)."
+  - by: engineer-ash/1
+    at: 2026-11-01T15:55:00Z
+    note: "Stands in for the author, Damson (DR-0018), as for DR-0033. Approves with Marram's four cuts; building on ash/2.6-world-view against DR-0041. Build calls for Damson's review are under Concerns raised (Ash, on build)."
 ---
 
 # Context
@@ -149,6 +152,8 @@ All tasks he does himself:
   3. **Replay's Step back and slider** (rule 11) are cut. Replay keeps Play, Pause, Step forward, "Replay · patch k of n" and Rust's same-world line.
   4. **Patch debug (D) drawing** (rule 9) is cut to the side panel's words: patch number, anchor and direction, window bounds, attempts, spine yes/no, fallback yes/no, cells stored. The diamond, the drawn spine and the discarded × are deferred, so DR-0041 needn't carry discarded cells or spine cells for step 3. Last patch (L) still outlines the window.
   - The cost of cut 4: without the drawn spine and discards, D shows less of "did it struggle". Damson can add her own concern here. Marram's view: attempts, spine and fallback in words answer that for 2.6; revisit if Wren or Damson's review of the built view needs the drawing.
+
+- **Ash (`engineer-ash/1`), on build, for Damson's review (two-way doors):** the map is a fixed 40 × 24 cell window rather than resizing to fill the panel, so the follow-player and pan rules stay simple and testable; widen it at review if it feels cramped. New world reveals its first patches one per tick, as a walk step does, so the origin patch is seen arriving first. In replay the player isn't drawn, since the log holds anchors, not the walk. Replay ends when Rust's `check` arrives, even before the last patch (Rowan's note on DR-0041). The world's four commands live in `apps/tool/src/world/`, not `ipc.ts`, to keep clear of the parallel 2.3 work.
 
 # Links
 

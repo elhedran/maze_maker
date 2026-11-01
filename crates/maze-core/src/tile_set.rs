@@ -5,7 +5,9 @@
 //! (DR-0012: no I/O in core). Every validation error is collected and
 //! returned together, each naming the tile, base or exception at fault.
 
+use crate::completeness::{self, describe_sides};
 use crate::side::{BasePair, Direction, SideKind, SideMatch};
+use crate::table::Table;
 use serde::Deserialize;
 use std::collections::HashSet;
 use std::fmt;
@@ -202,6 +204,20 @@ pub enum LoadError {
         second: String,
         example: String,
     },
+    /// DR-0031 rule 6: no fallback tile (weight above 0, every side hedge
+    /// or passage) has exactly these sides.
+    NoFallbackTile {
+        sides: [SideKind; 4],
+    },
+    /// DR-0031 rule 6: two fallback tiles whose facing sides are both
+    /// `side` have a table entry weight of 0. One per cause; `row` and
+    /// `column` are the first such pair in table order.
+    FallbackPairIsZero {
+        cause: String,
+        row: String,
+        column: String,
+        side: SideKind,
+    },
 }
 
 impl fmt::Display for LoadError {
@@ -257,6 +273,21 @@ impl fmt::Display for LoadError {
             } => write!(
                 f,
                 "Exceptions \"{first}\" and \"{second}\" both match the same pair ({example}); at most one exception may apply to a pair."
+            ),
+            LoadError::NoFallbackTile { sides } => write!(
+                f,
+                "No tile of weight above 0 has {}. Endless mazes need it: their fallback run uses only hedge and corridor tiles, and needs one for every mix of hedge and passage on a cell's four sides (DR-0031 rule 6).",
+                describe_sides(*sides)
+            ),
+            LoadError::FallbackPairIsZero {
+                cause,
+                row,
+                column,
+                side,
+            } => write!(
+                f,
+                "{cause}, so {row} and {column} can't meet {side} to {side}. Endless mazes need it: their fallback run uses only hedge and corridor tiles, and needs every hedge-to-hedge and passage-to-passage pairing of them above 0 (DR-0031 rule 6).",
+                side = side.key()
             ),
         }
     }
@@ -339,9 +370,26 @@ pub fn distinct_rotations(sides: [SideKind; 4]) -> Vec<(u32, [SideKind; 4])> {
 }
 
 impl TileSet {
-    /// Parses and validates a tile set (DR-0024). On failure, returns every
-    /// problem found.
+    /// Parses and validates a tile set (DR-0024), and checks it can make
+    /// endless mazes (DR-0031 rule 6, `completeness::check`). The tool's
+    /// Reload comes through here, so its banner shows every error. On
+    /// failure, returns every problem found; the completeness check reads
+    /// the table, so it runs only once everything else passes.
     pub fn from_toml(text: &str) -> Result<TileSet, Vec<LoadError>> {
+        let set = TileSet::from_toml_allow_incomplete(text)?;
+        let errors = completeness::check(&set, &Table::calculate(&set));
+        if errors.is_empty() {
+            Ok(set)
+        } else {
+            Err(errors)
+        }
+    }
+
+    /// As `from_toml`, without DR-0031's completeness check: for small sets
+    /// that can't make endless mazes and aren't meant to, such as test
+    /// fixtures for the table or for 2.1's restarts. Every other check
+    /// still runs. The tool and the game load with `from_toml`.
+    pub fn from_toml_allow_incomplete(text: &str) -> Result<TileSet, Vec<LoadError>> {
         let raw: RawTileSet =
             toml::from_str(text).map_err(|e| vec![LoadError::Parse(e.to_string())])?;
         let mut errors = Vec::new();

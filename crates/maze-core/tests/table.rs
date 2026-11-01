@@ -160,7 +160,7 @@ fn orientations_follow_dr_0017_order() {
 #[test]
 fn symmetric_a_east_of_b_equals_b_west_of_a() {
     for text in [CORE.to_string(), fixture(EXCEPTION)] {
-        let set = TileSet::from_toml(&text).unwrap();
+        let set = TileSet::from_toml_allow_incomplete(&text).unwrap();
         let table = Table::calculate(&set);
         let n = table.size();
         for d in Direction::ALL {
@@ -195,7 +195,7 @@ fn rows_sum_to_one_and_never_nan() {
 fn a_row_with_zero_total_has_probability_zero_not_nan() {
     // A hedge tile of weight 0: every entry in its rows is 0.
     let text = fixture("").replace("weight = 4.0", "weight = 0.0");
-    let set = TileSet::from_toml(&text).unwrap();
+    let set = TileSet::from_toml_allow_incomplete(&text).unwrap();
     let table = Table::calculate(&set);
     let hedge = variant_index(&set, "hedge", 0);
     assert_eq!(table.row_total(Direction::East, hedge), 0.0);
@@ -211,7 +211,7 @@ fn side_rules_always_win() {
     let text = fixture(&format!("{EXCEPTION}\n[noise]\nseed = 3\namount = 0.9\n"))
         .replace("weight = 1.5", "weight = 1000.0")
         .replace("multiplier = 0.5", "multiplier = 1e6");
-    let set = TileSet::from_toml(&text).unwrap();
+    let set = TileSet::from_toml_allow_incomplete(&text).unwrap();
     let table = Table::calculate(&set);
     for d in Direction::ALL {
         for r in 0..table.size() {
@@ -259,7 +259,7 @@ multiplier = 0.5
 
 #[test]
 fn known_entries_by_hand() {
-    let set = TileSet::from_toml(&fixture(EXCEPTION)).unwrap();
+    let set = TileSet::from_toml_allow_incomplete(&fixture(EXCEPTION)).unwrap();
     let table = Table::calculate(&set);
     let straight_ew = variant_index(&set, "corridor_straight", 1);
     let straight_ns = variant_index(&set, "corridor_straight", 0);
@@ -301,8 +301,10 @@ fn known_entries_by_hand() {
 
 #[test]
 fn noise_changes_allowed_entries_within_amount() {
-    let plain = Table::calculate(&TileSet::from_toml(&fixture("")).unwrap());
-    let noisy_set = TileSet::from_toml(&fixture("\n[noise]\nseed = 42\namount = 0.2\n")).unwrap();
+    let plain = Table::calculate(&TileSet::from_toml_allow_incomplete(&fixture("")).unwrap());
+    let noisy_set =
+        TileSet::from_toml_allow_incomplete(&fixture("\n[noise]\nseed = 42\namount = 0.2\n"))
+            .unwrap();
     let noisy = Table::calculate(&noisy_set);
     let mut changed = 0;
     for d in Direction::ALL {

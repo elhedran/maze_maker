@@ -125,7 +125,7 @@ weight = 1.0
 
 #[test]
 fn a_contradiction_fails_after_the_restart_limit() {
-    let set = TileSet::from_toml(ALWAYS_CONTRADICTS).unwrap();
+    let set = TileSet::from_toml_allow_incomplete(ALWAYS_CONTRADICTS).unwrap();
     let table = Table::calculate(&set);
     let maze = generate(&set, &table, 5, 3, 3).unwrap();
     assert!(maze.failed);
@@ -142,7 +142,7 @@ fn a_tile_of_weight_zero_is_never_placed() {
     let text = ALWAYS_CONTRADICTS
         .replace("hedge_hedge = 0.0", "hedge_hedge = 1.0")
         .replace("weight = 1.0", "weight = 0.0");
-    let set = TileSet::from_toml(&text).unwrap();
+    let set = TileSet::from_toml_allow_incomplete(&text).unwrap();
     let table = Table::calculate(&set);
     let maze = generate(&set, &table, 5, 1, 1).unwrap();
     assert!(maze.failed);
@@ -182,7 +182,7 @@ sides = ["passage", "hedge", "hedge", "hedge"]
 orientations = 4
 weight = 3.0
 "#;
-    let set = TileSet::from_toml(text).unwrap();
+    let set = TileSet::from_toml_allow_incomplete(text).unwrap();
     let table = Table::calculate(&set);
     for seed in 0..50 {
         let maze = generate(&set, &table, seed, 6, 5).unwrap();

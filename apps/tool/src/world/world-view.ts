@@ -198,10 +198,13 @@ export class WorldView extends LitElement {
         outline: 2px solid var(--text);
         outline-offset: 1px;
       }
-      .readout { min-height: 1.4em; }
-      .side { flex: 0 0 18rem; display: flex; flex-direction: column; gap: 0.25rem; font-family: var(--mono); }
-      .side .gap { height: 0.5rem; }
-      .legend { font-size: 0.85rem; }
+      /* Two lines: in the side column a cell's readout often wraps, and a
+         reserved second line stops the column jumping as the pointer moves. */
+      .readout { min-height: 2.8em; }
+      .side { flex: 0 0 18rem; display: flex; flex-direction: column; gap: 0.5rem; }
+      .patch-lines { display: flex; flex-direction: column; gap: 0.25rem; font-family: var(--mono); }
+      .patch-lines .gap { height: 0.5rem; }
+      .legend { margin: 0; font-size: 0.85rem; }
     `,
   ];
 
@@ -639,15 +642,6 @@ export class WorldView extends LitElement {
           @mouseleave=${() => (this.hover = undefined)}
           @click=${() => (this.playing = false)}
         >${this.renderRows()}</div>
-        <span id="readout" class="readout">${this.blocked ?? (this.hover ? this.cellText(this.hover.x, this.hover.y) : "")}</span>
-        <span class="bar">
-          <button id="centre" @click=${() => this.centre()} ?disabled=${this.follow}>Centre on player (C)</button>
-          ${this.follow ? html`<span class="muted">Following the player</span>` : nothing}
-        </span>
-        <p class="legend muted">
-          Legend: inverted cell = player · → outward endpoint · ○ open, not outward · dashed = last patch window ·
-          dimmed = older patches · ${this.overlays.stored ? "blank" : "░"} = unsettled · dotted = origin
-        </p>
       </div>
       ${this.renderSide()}
     </div>`;
@@ -663,14 +657,30 @@ export class WorldView extends LitElement {
     return html`<span id="status">${parts.join(" · ")}</span>`;
   }
 
+  /**
+   * The column beside the map: readout, Centre, the last patch, then the legend.
+   * They sat under the map until Damson moved them here (2.6 step 3 review, fix 2),
+   * because at the default 1024×768 window "Hedge to the north" fell below the fold.
+   */
   private renderSide() {
     const model = this.model;
     const last = model.lastPatch;
     const of = this.replay ? this.replay.total : this.patchTotal;
-    return html`<div class="side" id="patch-panel" aria-label="Last patch">
-      ${last ? patchPanel(last, of, this.overlays.debug).map((line) => html`<span>${line}</span>`) : nothing}
-      <span class="gap"></span>
-      <span id="frontier-count">${frontierText(model.frontier.length, model.outwardCount)}</span>
+    return html`<div class="side">
+      <span id="readout" class="readout">${this.blocked ?? (this.hover ? this.cellText(this.hover.x, this.hover.y) : "")}</span>
+      <span class="bar">
+        <button id="centre" @click=${() => this.centre()} ?disabled=${this.follow}>Centre on player (C)</button>
+        ${this.follow ? html`<span class="muted">Following the player</span>` : nothing}
+      </span>
+      <div class="patch-lines" id="patch-panel" aria-label="Last patch">
+        ${last ? patchPanel(last, of, this.overlays.debug).map((line) => html`<span>${line}</span>`) : nothing}
+        <span class="gap"></span>
+        <span id="frontier-count">${frontierText(model.frontier.length, model.outwardCount)}</span>
+      </div>
+      <p class="legend muted">
+        Legend: inverted cell = player · → outward endpoint · ○ open, not outward · dashed = last patch window ·
+        dimmed = older patches · ${this.overlays.stored ? "blank" : "░"} = unsettled · dotted = origin
+      </p>
     </div>`;
   }
 

@@ -416,7 +416,7 @@ Marram's calls, all sequencing and scope, so two-way doors ([DR-0018](/decisions
     - Ian runs `cargo test -p maze-core` and reads the 2.6 tests passing, named for what they check.
     - Ian sets `passage_passage` to 0 in `core.toml` and presses Reload: the tool refuses the set and says why. He puts it back, and Reload works.
   - **Landing (Marram's call):** step 1 can land on `main` before the rest of 2.6, with Ian's OK after the demo, once the rebase is green. It is additive and leaves 2.1's path alone while the pressure is 1. 2.6 isn't done until step 3.
-- **Step 2, the measures (built, no window).** DR-0036's list, re-cut for patches, from a release build:
+- **Step 2, the measures (done, on `main`; no window).** DR-0036's list, re-cut for patches, from a release build:
   - per patch: the restart, spine and fallback rates;
   - the frontier (open and outward endpoints) over a walk, with pressure at 1 and at Wren's value from 2.3;
   - room sizes at P = 16 and P = 32, and whether rooms avoid the edges of patches (Yew's concern 1);

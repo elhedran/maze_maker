@@ -101,7 +101,7 @@ impl ToolState {
         maze::cell_trace(self.loaded()?, request)
     }
 
-    fn loaded(&self) -> Result<&Loaded, ToolError> {
+    pub fn loaded(&self) -> Result<&Loaded, ToolError> {
         self.current.as_ref().ok_or_else(|| ToolError {
             kind: ToolErrorKind::NotLoaded,
             messages: if self.last_errors.is_empty() {

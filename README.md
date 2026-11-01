@@ -71,3 +71,18 @@ From `apps/tool/`, run `npm run tauri dev` and pick the **Maze** tab. The tile s
 4. **Change the data, see the maze change.** Edit a weight in `data/tile-sets/core.toml`, save, and press **Reload tile set**. The maze regenerates from the same seed with the new numbers, and the status line says "regenerated after reload". If the file is wrong, the red banner lists the errors and the last good maze stays.
 
 If generation gives up after its restarts, the maze area says so in red and suggests another seed or a look at the table for tiles that can't meet.
+
+## Demo: slice 2.2, why is this here?
+
+From `apps/tool/`, run `npm run tauri dev`. There are three tabs now: **Table**, **Explore** and **Maze**.
+
+1. **A bit of maze you don't like, and why it's there.** In the **Maze** tab, press **Generate** and click a cell, for example a wall along a long one-deep room. It gets a magenta outline, and the line under the maze names it next to **Why is this here?**. Press the button, or double-click the cell. The **Explore** tab opens on that tile, with a band above it that replays how the cell was drawn ([DR-0033](docs/decisions/0033-why-is-this-here-design.md)):
+   - the heading gives the seed, the cell and when it was drawn ("drawn 41st of 384");
+   - the cross shows the four neighbours. **Counted** ones were settled before the draw and are all the score used. Ones that **came later** were drawn to fit this cell, so they don't count. **Edge** means past the maze's edge;
+   - the table lists every tile still possible at the draw: its weight, times one factor per counted neighbour, equals its score, and its chance is that score's share of the sum. The tile drawn is in bold and marked "drawn".
+
+   Click a factor. The panel on the right explains that pair the way the table does, with its base, weights, exceptions and noise, so you can see which number in `data/tile-sets/core.toml` to change. **< Back to maze** returns to the same maze with the cell still selected.
+2. **A corridor corner's most likely east neighbour.** In **Explore**, pick `└ Corridor corner, open N and E` in **Centre**. Each side of the tile lists what can go there, highest share first, with the side kinds that meet shown on the shared edge. The top row of **EAST** is the answer. Click it for the panel.
+3. **From a corridor into a room and back out, through doorways.** Pick `─ Corridor straight, E–W`. In **EAST**, press **Go** on `╢ Room doorway, door W`: the passage meets the door. Then go east to `· Open room`, then to `╟ Room doorway, door E`, and back out to `─`. After each step the tile you came from is selected and marked "from", so the panel shows the edge you just crossed. **< Back** (or Alt+Left) goes back one step. Click any glyph in the trail to jump back to it.
+
+"+ N can't go here" at the foot of each side opens the 0s. **Explore this tile** in the table's panel opens the same view on the selected pair. After **Reload tile set**, the band says the tile set was reloaded: pick the cell again in the Maze tab.

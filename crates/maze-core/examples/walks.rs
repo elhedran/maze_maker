@@ -331,8 +331,18 @@ struct Walk {
     two_ways_onward: usize,
     rooms_seen: usize,
     rooms_entered: usize,
+    /// Cells in each room seen.
+    room_sizes: Vec<usize>,
     quiet_runs: Vec<usize>,
     dead_ends: Vec<usize>,
+    /// Walks counted (1 per seed; the sum in the "all" row).
+    walks: usize,
+    /// Ways out of the start cell, and how many lead onward in view
+    /// (fun_walk.rs's checklist item 1); summed in the "all" row.
+    start_ways: usize,
+    start_ways_onward: usize,
+    /// Walks whose start has 2+ ways onward.
+    starts_with_two: usize,
 }
 
 impl Walk {
@@ -341,6 +351,23 @@ impl Walk {
             .iter()
             .filter(|&&l| l > LONG_DEAD_END)
             .count()
+    }
+
+    fn add(&mut self, w: &Walk) {
+        self.moved += w.moved;
+        self.boxed_in += w.boxed_in;
+        self.room_in_view += w.room_in_view;
+        self.choice_in_view += w.choice_in_view;
+        self.two_ways_onward += w.two_ways_onward;
+        self.rooms_seen += w.rooms_seen;
+        self.rooms_entered += w.rooms_entered;
+        self.room_sizes.extend(&w.room_sizes);
+        self.quiet_runs.extend(&w.quiet_runs);
+        self.dead_ends.extend(&w.dead_ends);
+        self.walks += w.walks;
+        self.start_ways += w.start_ways;
+        self.start_ways_onward += w.start_ways_onward;
+        self.starts_with_two += w.starts_with_two;
     }
 }
 
@@ -351,13 +378,22 @@ fn walk_one(set: &TileSet, table: &Table, seed: u32, steps: usize) -> Walk {
     let mut policy: Box<dyn Policy> = Box::new(Explorer {
         rng: SplitMix64::new(0x6675_6e5f_7761_6c6b ^ u64::from(seed)),
     });
-    let mut w = Walk::default();
+    let mut w = Walk {
+        walks: 1,
+        ..Walk::default()
+    };
     let mut at: Pos = (0, 0);
     let mut visited = BTreeSet::from([at]);
     let mut seen: BTreeSet<Pos> = BTreeSet::new();
-    // Room first cell -> entered yet.
-    let mut rooms: BTreeMap<Pos, bool> = BTreeMap::new();
+    // Room first cell -> (cells, entered yet).
+    let mut rooms: BTreeMap<Pos, (usize, bool)> = BTreeMap::new();
     let mut quiet = 0usize;
+    {
+        let look = Look { world: &world };
+        w.start_ways = look.ways(at).len();
+        w.start_ways_onward = look.ways_onward(at);
+        w.starts_with_two = usize::from(w.start_ways_onward >= 2);
+    }
     observe(
         &Look { world: &world },
         at,
@@ -386,7 +422,10 @@ fn walk_one(set: &TileSet, table: &Table, seed: u32, steps: usize) -> Walk {
         }
         observe(&look, at, true, &mut seen, &mut rooms, &mut w);
         if look.is_room(at) {
-            rooms.insert(look.room_at(at)[0], true);
+            // `observe` has just recorded the room the player stands in.
+            if let Some(room) = rooms.get_mut(&look.room_at(at)[0]) {
+                room.1 = true;
+            }
         }
         if look.ways(at).len() <= 2 {
             quiet += 1;
@@ -397,7 +436,8 @@ fn walk_one(set: &TileSet, table: &Table, seed: u32, steps: usize) -> Walk {
     }
 
     w.rooms_seen = rooms.len();
-    w.rooms_entered = rooms.values().filter(|&&e| e).count();
+    w.rooms_entered = rooms.values().filter(|r| r.1).count();
+    w.room_sizes = rooms.values().map(|r| r.0).collect();
     let look = Look { world: &world };
     w.dead_ends = seen
         .iter()
@@ -415,7 +455,7 @@ fn observe(
     at: Pos,
     count: bool,
     seen: &mut BTreeSet<Pos>,
-    rooms: &mut BTreeMap<Pos, bool>,
+    rooms: &mut BTreeMap<Pos, (usize, bool)>,
     w: &mut Walk,
 ) {
     let (mut choice, mut room) = (false, false);
@@ -427,7 +467,8 @@ fn observe(
         choice |= look.is_junction(p) || look.is_doorway(p);
         if look.is_room(p) {
             room = true;
-            rooms.entry(look.room_at(p)[0]).or_insert(false);
+            let cells = look.room_at(p);
+            rooms.entry(cells[0]).or_insert((cells.len(), false));
         }
     }
     if count {
@@ -467,22 +508,47 @@ fn quiet_text(runs: &[usize]) -> String {
     format!("{mean:.1} / {median}")
 }
 
-fn row(label: &str, w: &Walk) -> String {
+fn mean(values: &[usize]) -> String {
+    if values.is_empty() {
+        "n/a".into()
+    } else {
+        format!(
+            "{:.1}",
+            values.iter().sum::<usize>() as f64 / values.len() as f64
+        )
+    }
+}
+
+fn rooms_row(label: &str, w: &Walk) -> String {
     format!(
-        "{:<5} {:>7}  {:>5} {:>7}  {:>9}  {:>7}  {:>15}  {:>13}",
+        "{:<5} {:>7}  {:>5} {:>7}  {:>18}  {:>9}",
         label,
         pct(w.room_in_view, w.moved),
         every(w.moved, w.rooms_seen),
         every(w.moved, w.rooms_entered),
+        format!(
+            "{}/{}/{}",
+            w.rooms_seen,
+            w.rooms_entered,
+            w.rooms_seen - w.rooms_entered
+        ),
+        mean(&w.room_sizes),
+    )
+}
+
+fn paths_row(label: &str, w: &Walk) -> String {
+    format!(
+        "{:<5} {:>9}  {:>7}  {:>15}  {:>14} {:>3} {:>6}  {:>10}  {:>11}  {:>5}",
+        label,
         pct(w.choice_in_view, w.moved),
         pct(w.two_ways_onward, w.moved),
         quiet_text(&w.quiet_runs),
-        format!(
-            "{}/{} {}",
-            w.long_dead_ends(),
-            w.dead_ends.len(),
-            pct(w.long_dead_ends(), w.dead_ends.len())
-        ),
+        w.dead_ends.len(),
+        w.long_dead_ends(),
+        pct(w.long_dead_ends(), w.dead_ends.len()),
+        format!("{}/{}", w.start_ways_onward, w.start_ways),
+        format!("{}/{}", w.starts_with_two, w.walks),
+        w.boxed_in,
     )
 }
 
@@ -520,43 +586,48 @@ fn main() {
         .collect();
     let mut all = Walk::default();
     for w in &walks {
-        all.moved += w.moved;
-        all.boxed_in += w.boxed_in;
-        all.room_in_view += w.room_in_view;
-        all.choice_in_view += w.choice_in_view;
-        all.two_ways_onward += w.two_ways_onward;
-        all.rooms_seen += w.rooms_seen;
-        all.rooms_entered += w.rooms_entered;
-        all.quiet_runs.extend(&w.quiet_runs);
-        all.dead_ends.extend(&w.dead_ends);
+        all.add(w);
     }
+    let labels: Vec<String> = a.seeds.iter().map(u32::to_string).collect();
+    let table = |head: [&str; 2], row: fn(&str, &Walk) -> String| {
+        println!("{}", head[0]);
+        println!("{}", head[1]);
+        for (label, w) in labels.iter().zip(&walks) {
+            println!("{}", row(label, w));
+        }
+        if walks.len() > 1 {
+            println!("{}", row("all", &all));
+        }
+        println!();
+    };
 
     println!(
         "G.1 walks: {path}, opening_pressure {} ({pressure_note}); {} steps per seed",
         set.opening_pressure, a.steps
     );
     println!();
-    println!("      room in  steps per room  choice in  2+ ways  quiet run (NEW)      dead ends");
-    println!(
-        "seed     view   seen entered       view   onward    mean / median  longer than {LONG_DEAD_END}"
+    table(
+        [
+            "Rooms room in  steps per room  rooms seen/entered  mean room",
+            "seed     view   seen entered       /never entered  size",
+        ],
+        rooms_row,
     );
-    for (s, w) in a.seeds.iter().zip(&walks) {
-        println!("{}", row(&s.to_string(), w));
-    }
-    if walks.len() > 1 {
-        println!("{}", row("all", &all));
-    }
-    println!();
+    table(
+        [
+            "Paths choice in  2+ ways  quiet run (NEW)  dead ends: all  >3  share  start ways  starts with  boxed",
+            "seed       view   onward    mean / median                             onward/all    2+ onward     in",
+        ],
+        paths_row,
+    );
     println!("Shares are of steps moved (after each move and its growth).");
+    println!("Mean room size is in cells, over the rooms seen.");
     println!("Choice in view: a junction, doorway or room cell in the 13 x 13 view.");
     println!("2+ ways onward: 2+ of the player's ways reach the view's rim or the unknown.");
     println!("Quiet run (new, not from G.1): consecutive steps onto cells with 2 or fewer");
     println!("  joined exits, ended by a step onto a cell with 3 or 4.");
-    println!("Dead ends: closed ones seen on the walk, longer than {LONG_DEAD_END} cells / all.");
-    if all.boxed_in > 0 {
-        println!(
-            "WARNING: {} steps with nowhere to go (DR-0044 item 5 says 0).",
-            all.boxed_in
-        );
-    }
+    println!(
+        "Dead ends: closed ones seen on the walk; >3 is those longer than {LONG_DEAD_END} cells."
+    );
+    println!("Boxed in: steps where the player had nowhere to go (DR-0044 item 5 says 0).");
 }

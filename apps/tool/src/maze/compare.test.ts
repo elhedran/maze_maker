@@ -10,7 +10,9 @@ import { SAVE_NUMBER_EVENT, type SaveRequest } from "../edit/save-number.ts";
 import type { GenerateRequest } from "../bindings/GenerateRequest.ts";
 import type { GeneratedMaze } from "../bindings/GeneratedMaze.ts";
 import type { TileView } from "../bindings/TileView.ts";
-import type { CompareResult, EditRecord, TableView } from "../pending-bindings.ts";
+import type { CompareResult } from "../bindings/CompareResult.ts";
+import type { EditRecord } from "../bindings/EditRecord.ts";
+import type { TableView } from "../bindings/TableView.ts";
 
 const tile = (id: string, name: string, kind: TileView["kind"], orientation: number): TileView => ({
   id,

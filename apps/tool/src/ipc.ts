@@ -13,7 +13,10 @@ import type { CellTrace } from "./bindings/CellTrace.ts";
 import type { ExploreRequest } from "./bindings/ExploreRequest.ts";
 import type { ExploreView } from "./bindings/ExploreView.ts";
 import type { TraceCellRequest } from "./bindings/TraceCellRequest.ts";
-import type { CompareRequest, CompareResult, EditRequest, EditResult } from "./pending-bindings.ts";
+import type { CompareRequest } from "./bindings/CompareRequest.ts";
+import type { CompareResult } from "./bindings/CompareResult.ts";
+import type { EditRequest } from "./bindings/EditRequest.ts";
+import type { EditResult } from "./bindings/EditResult.ts";
 
 export const COMMANDS = {
   coreVersion: "core_version",

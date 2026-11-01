@@ -5,7 +5,8 @@
 import { formatLoadTime } from "../table/format.ts";
 import type { ExceptionView } from "../bindings/ExceptionView.ts";
 import type { TileView } from "../bindings/TileView.ts";
-import type { EditRecord, NumberTarget } from "../pending-bindings.ts";
+import type { EditRecord } from "../bindings/EditRecord.ts";
+import type { NumberTarget } from "../bindings/NumberTarget.ts";
 
 /** What a label or reach line needs to name a target. */
 export interface TileSetNames {

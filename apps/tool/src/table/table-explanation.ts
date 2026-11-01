@@ -7,7 +7,7 @@ import type { Direction } from "../bindings/Direction.ts";
 import type { EntryView } from "../bindings/EntryView.ts";
 import type { ExceptionView } from "../bindings/ExceptionView.ts";
 import type { TileView } from "../bindings/TileView.ts";
-import type { NumberTarget } from "../pending-bindings.ts";
+import type { NumberTarget } from "../bindings/NumberTarget.ts";
 import { editLabel, reachText, savedText } from "../edit/edit-text.ts";
 import { showCompare, type Saved } from "../edit/save-number.ts";
 import "../edit/number-editor.ts";
@@ -20,14 +20,6 @@ export interface Explained {
   exceptions: ExceptionView[];
   /** The whole tile list, so an edit can say how far a tile weight reaches (DR-0037 point 4). */
   tiles: TileView[];
-}
-
-/**
- * The `[bases]` key for the entry's pair (DR-0038, Ash's addition), or null.
- * Read loosely until the generated EntryView carries `basePair`.
- */
-function basePairOf(entry: EntryView): string | null {
-  return (entry as EntryView & { basePair?: string | null }).basePair ?? null;
 }
 
 /** The pair an explanation is about, so a new selection can be told from a refetch. */
@@ -201,7 +193,7 @@ export class TableExplanation extends LitElement {
     }
 
     const share = formatShare(entry.probability);
-    const pair = basePairOf(entry);
+    const pair = entry.basePair;
     const exceptionLines =
       entry.exceptions.length === 0
         ? html`<li><span class="op">×</span> exceptions: none</li>`

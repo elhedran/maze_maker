@@ -63,7 +63,7 @@ From `apps/tool/`, run `npm run tauri dev`. The window shows the adjacency table
 
 ## Demo: slice 2.1, first sample maze
 
-From `apps/tool/`, run `npm run tauri dev` and pick the **Maze** tab. The tile set bar and **Reload tile set** sit above both tabs, so they work from either.
+From `apps/tool/`, run `npm run tauri dev` and pick the **Maze** tab. The tile set bar and **Reload tile set** sit above the tabs, so they work from any of them.
 
 1. **A maze from a seed.** The seed field opens with a random seed. Press **Generate** (or Enter in the field). The maze is drawn with the table's glyphs, two characters per cell; blue single lines are corridors, brown double lines and the tinted floor are rooms, green shading is hedge. The line above it says which seed it is, its size, and whether generation had to restart. Hover a cell to read its name and position under the maze.
 2. **Same seed, same maze.** Press **Generate** again: the maze doesn't change. Type a different seed, or press **Random seed**, and it does.
@@ -74,7 +74,7 @@ If generation gives up after its restarts, the maze area says so in red and sugg
 
 ## Demo: slice 2.2, why is this here?
 
-From `apps/tool/`, run `npm run tauri dev`. There are three tabs now: **Table**, **Explore** and **Maze**.
+From `apps/tool/`, run `npm run tauri dev`. This demo uses the **Table**, **Explore** and **Maze** tabs. (The fourth, **World**, came with 2.6.)
 
 1. **A bit of maze you don't like, and why it's there.** In the **Maze** tab, press **Generate** and click a cell, for example a wall along a long one-deep room. It gets a magenta outline, and the line under the maze names it next to **Why is this here?**. Press the button, or double-click the cell. The **Explore** tab opens on that tile, with a band above it that replays how the cell was drawn ([DR-0033](docs/decisions/0033-why-is-this-here-design.md)):
    - the heading gives the seed, the cell and when it was drawn ("drawn 41st of 384");
@@ -112,7 +112,7 @@ After **Reload tile set**, the world keeps the tile set it was grown with and th
 
 ## Demo: slice 2.3, tune and compare
 
-From `apps/tool/`, run `npm run tauri dev`. Numbers that live in the tile set file are now underlined with dots: click one to change it ([DR-0037](docs/decisions/0037-compare-and-edit-design.md), [DR-0038](docs/decisions/0038-editing-core-toml.md)). A save writes the new value into `data/tile-sets/core.toml`, keeping its comments, and appends what changed, from what to what, to `data/tile-sets/core.edits.toml` beside it.
+From `apps/tool/`, run `npm run tauri dev`. Numbers that live in the tile set file are now underlined with dots: click one to change it ([DR-0037](docs/decisions/0037-compare-and-edit-design.md), [DR-0038](docs/decisions/0038-editing-core-toml.md)). A save writes the new value into `data/tile-sets/core.toml`, keeping its comments, and appends what changed, from what to what, to `data/tile-sets/core.edits.toml` beside it. Everything here is in the **Maze** and **Explore** tabs; the **World** tab (2.6) keeps the tile set its world was grown with until you press **New world**.
 
 1. **Change the number behind a bit of maze, and compare.** In the **Maze** tab, press **Generate**, click a cell you don't like and press **Why is this here?**. In the band, click a factor: the panel on the right shows where it comes from. Click one of its underlined numbers, for example a tile weight. The editor opens under it with the exact value and a line saying everywhere that number reaches. Type a new value and press Enter (or **Save to core.toml**). The band refreshes where you are, with "after reload" in its heading, and the panel shows "Saved 20:31 · … 3.0 → 2.0". Press **See before and after**. The **Maze** tab shows the same seed before (left) and after (right). Cells that didn't change are faded, so what changed stands out; untick **Fade unchanged cells** to see both in full. Under them are the count of changed cells and both measures, before → after. Hover a cell in either maze to name the tile on both sides. **Close compare** goes back to one maze.
 2. **Opening pressure.** `core.toml` sets it to 0.5 (Wren's value). In the **Maze** tab, press **Generate**, click a cell and press **Why is this here?**: the band has a **× pressure** column, with 0.5 where the pressure applied (the tile added no new open side) and a grey 1 where it didn't. Press **< Back to maze**. Under the seed, click the number after **Opening pressure** (it reads 0.5). Type `1` and press Enter: that turns it off, and the line reads "1.0 (off)". The same seed shows before and after, and the **Reachable from centre** and **Separate areas** rows show how they moved. Back in **Explore**, the band has refreshed and the **× pressure** column is gone. Then click the pressure again, type `0.5` and press Enter: the compare shows the maze going back, with the measures moving back, and the column returns.

@@ -14,7 +14,10 @@ tags: [infinite-world, growth, frontier, hedge, determinism, game, slice-2-6]
 generated:
   by: architect/1
   at: 2026-11-01T12:25:00Z
-verified: []
+verified:
+  - by: engineer-ash/1
+    at: 2026-11-01T12:30:47Z
+    note: "Approves, standing in for the architect. Checked against world.rs at 9e16692. Seeds are complete: a region is split off or loses its last facing endpoint only where the patch stores cells, so every newly sealed region touches a kept cell. Bounds hold: a bounded region lies inside the stored box, so sealing never grows `cells.bounds`. Seal-tile pairs are covered by rule 7's hedge clause, sealed against sealed included. Rule 6 is unaffected. For the build: share one visited set across seeds so a region that is not sealed is flooded once. Reusing the accepted attempt's `has_outward` rim flood as the bounded test avoids most of the second O(bounds) pass. Otherwise, floods from seeds on the outer frontier cover the whole outer unsettled area every patch."
 ---
 
 # Context

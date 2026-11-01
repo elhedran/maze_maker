@@ -117,4 +117,37 @@ describe("why-band", () => {
     const el = await mount(undefined, "The tile set was reloaded. Pick the cell again in the Maze tab.");
     expect(squash(root(el).textContent)).toBe("The tile set was reloaded. Pick the cell again in the Maze tab.");
   });
+
+  describe("opening pressure (DR-0037 point 15)", () => {
+    // ┐ got the pressure (its open sides all face settled cells); ─ didn't.
+    const withPressure = (pressure: number) =>
+      whyFrom(
+        (() => {
+          const t = fixtureTrace(CELL);
+          const c = t.collapse!;
+          return { ...t, collapse: { ...c, candidates: c.candidates.map((x) => ({ ...x, pressure: x.tile === 2 ? pressure : 1 })) } };
+        })(),
+        CELL.seed,
+        { ...LIST, openingPressure: pressure },
+      );
+
+    test("below 1, a × pressure column after the neighbours: the value where it applied, a muted 1 where not", async () => {
+      const el = await mount(withPressure(0.5));
+      const headers = [...root(el).querySelectorAll("thead th")].map((th) => squash(th.textContent));
+      expect(headers).toEqual(["Candidate", "weight", "× north ░", "× west ─", "× pressure", "= score", "chance", ""]);
+      const pressureCells = [...root(el).querySelectorAll("tbody td.pressure")];
+      expect(pressureCells.map((td) => squash(td.textContent))).toEqual(["× 0.5", "1"]);
+      expect(pressureCells[1].classList).toContain("off");
+      expect(squash(root(el).querySelector(".formula")!.textContent)).toContain(
+        "× opening pressure, where the tile adds no new open side (a side past the maze's edge counts as new).",
+      );
+    });
+
+    test("at 1 the column is hidden, so 2.2's band is unchanged", async () => {
+      const el = await mount(withPressure(1));
+      expect(root(el).querySelector("th.pressure")).toBeNull();
+      expect(root(el).querySelector("td.pressure")).toBeNull();
+      expect(squash(root(el).querySelector(".formula")!.textContent)).not.toContain("opening pressure");
+    });
+  });
 });

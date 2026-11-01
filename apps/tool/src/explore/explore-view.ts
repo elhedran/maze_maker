@@ -21,7 +21,7 @@ import {
 import { BACK_TO_MAZE_EVENT, type ExploreTarget } from "./open-explore.ts";
 import type { FactorKey } from "./why-band.ts";
 import "./why-band.ts";
-import { NOT_PLACED, RELOADED } from "./why-text.ts";
+import { NOT_PLACED, RELOADED, afterReloadText, noMazeAfterReload } from "./why-text.ts";
 import type { Direction } from "../bindings/Direction.ts";
 import type { TileView } from "../bindings/TileView.ts";
 
@@ -45,6 +45,8 @@ interface Band {
   maze: MazeCell;
   why?: Why;
   note?: string;
+  /** After a reload: "after reload", or "after reload; was ═" (DR-0037 point 17). */
+  suffix?: string;
 }
 
 /** Past centres shown before the trail is cut at its oldest end with "…" (DR-0026 point 9). */
@@ -242,17 +244,73 @@ export class ExploreView extends LitElement {
   }
 
   /**
-   * Refetches after the app reloads the tile set. Centre, trail and selection
-   * stay (point 1). The band's trace was of the maze before the reload, so it
-   * gives way to DR-0033 point 20's note.
+   * Refetches after the app loads the tile set (Reload or a save). Centre,
+   * trail and selection stay (point 1). With `revision`, the "why" band
+   * refreshes in place for the same column and row of the regenerated maze
+   * (DR-0037 point 17); without it, it gives way to a note.
    */
-  refresh(): void {
-    if (this.band) {
+  refresh(revision?: number): void {
+    const band = this.band;
+    if (band) {
       ++this.whySerial;
-      this.band = { maze: this.band.maze, note: RELOADED };
-      this.factor = undefined;
+      if (revision === undefined) {
+        this.band = { maze: band.maze, note: RELOADED };
+        this.factor = undefined;
+      } else {
+        void this.refreshBand(band, revision);
+      }
     }
     void this.load();
+  }
+
+  /**
+   * DR-0037 point 17. Same tile: the band updates, its heading adds "after
+   * reload". Another tile: the view recentres on it with a new trail, and
+   * the heading adds "was ═". A selected factor stays if its candidate and
+   * column are still there. A maze that gave up keeps the old heading.
+   */
+  private async refreshBand(band: Band, revision: number): Promise<void> {
+    const serial = this.whySerial;
+    const maze = { ...band.maze, revision };
+    let result: Awaited<ReturnType<typeof loadWhy>>;
+    try {
+      result = await loadWhy(maze);
+    } catch (e) {
+      if (serial !== this.whySerial) return;
+      this.band = { maze, note: "Couldn't replay this cell; the error is shown above." };
+      reportToolError(this, errorText(e));
+      return;
+    }
+    if (serial !== this.whySerial) return;
+    if ("stale" in result) {
+      // Another load overtook this one; its refresh follows.
+      return;
+    }
+    if ("notPlaced" in result) {
+      this.band = { maze, why: band.why, note: noMazeAfterReload(maze.seed), suffix: band.suffix };
+      this.factor = undefined;
+      return;
+    }
+    const why = result.why;
+    const was = band.why?.tile;
+    const changed = !!was && !sameTile(was, why.tile);
+    this.band = { maze, why, suffix: afterReloadText(changed && was ? glyphOf(was) : undefined) };
+    const f = this.factor;
+    if (f && !why.candidates.some((c) => sameTile(c.tile, f.candidate) && c.factors.some((x) => x.direction === f.direction))) {
+      this.factor = undefined;
+    }
+    const first = this.trail[0];
+    if (!first?.maze) return;
+    if (!changed) {
+      this.trail = [{ ...first, maze }, ...this.trail.slice(1)];
+    } else if (this.trail.length === 1) {
+      this.trail = [{ centre: ref(why.tile), maze }];
+      this.openZeros = new Set();
+      void this.load();
+    } else {
+      // Ian has walked on; the first stop now holds the new tile for when he comes back.
+      this.trail = [{ centre: ref(why.tile), maze }, ...this.trail.slice(1)];
+    }
   }
 
   /** The band shows at the trail's first stop, when it began at a maze cell. */
@@ -465,6 +523,7 @@ export class ExploreView extends LitElement {
           ? html`<why-band
               .why=${band.why}
               note=${band.note ?? ""}
+              suffix=${band.suffix ?? ""}
               .selected=${this.factor}
               @factor-select=${this.onFactorSelect}
             ></why-band>`

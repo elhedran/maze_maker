@@ -4,7 +4,7 @@ import { COMMANDS } from "../ipc.ts";
 import { TOOL_ERROR_EVENT } from "../tool-error.ts";
 import "./explore-view.ts";
 import { TRAIL_SHOWN, type ExploreView } from "./explore-view.ts";
-import { CORNER_NE, CORNER_SW, DOOR_E, DOOR_W, HEDGE, ROOM, STRAIGHT, TILES, fixtureBackend } from "./fixture.ts";
+import { CORNER_NE, CORNER_SW, DOOR_E, DOOR_W, HEDGE, ROOM, STRAIGHT, TILES, fixtureBackend, fixtureTrace } from "./fixture.ts";
 import { BACK_TO_MAZE_EVENT } from "./open-explore.ts";
 import type { Direction } from "../bindings/Direction.ts";
 import type { TileView } from "../bindings/TileView.ts";
@@ -415,6 +415,53 @@ describe("explore-view, opened from a maze cell (DR-0033)", () => {
     );
     expect(centreGlyph(el)).toBe("┐");
     expect(panelText(el)).toContain("Select a cell");
+  });
+
+  describe("refreshing in place after a load (DR-0037 point 17)", () => {
+    const heading = (el: Element) => squash(bandRoot(el).querySelector("#why-heading")?.textContent);
+
+    test("same tile: the band updates, adds 'after reload', and a selected factor stays", async () => {
+      const { ipc, el } = await opened();
+      factor(el, "corridor_corner#2", "west").click();
+      await vi.waitFor(() => expect(factor(el, "corridor_corner#2", "west").classList).toContain("selected"));
+      ipc.revision = 2;
+      el.refresh(2);
+      await vi.waitFor(() =>
+        expect(heading(el)).toBe("Why ┐ is here · seed 48213 · col 14, row 2 · drawn 41st of 384 · after reload"),
+      );
+      expect(ipc.calls.filter((c) => c.cmd === COMMANDS.traceCell).map((c) => (c.request as { revision: number }).revision)).toEqual([1, 2]);
+      expect(factor(el, "corridor_corner#2", "west").classList).toContain("selected");
+      expect(panelText(el)).toContain("of ┐'s west neighbours");
+      expect(centreGlyph(el)).toBe("┐");
+    });
+
+    test("another tile: the view recentres on it with a new trail, and the heading says what was there", async () => {
+      const { ipc, el } = await opened();
+      factor(el, "corridor_corner#2", "west").click();
+      ipc.revision = 2;
+      // The regenerated maze drew ─ (index 0) at the cell, and only ─ was a candidate.
+      ipc.trace = (r) => {
+        const t = fixtureTrace(r);
+        const c = t.collapse!;
+        return { ...t, collapse: { ...c, chosen: 0, candidates: c.candidates.filter((x) => x.tile === 0) } };
+      };
+      el.refresh(2);
+      await vi.waitFor(() => expect(heading(el)).toBe("Why ─ is here · seed 48213 · col 14, row 2 · drawn 41st of 384 · after reload; was ┐"));
+      await vi.waitFor(() => expect(centreGlyph(el)).toBe("─"));
+      expect(trailGlyphs(el)).toEqual(["─"]);
+      // ┐ isn't a candidate any more, so its factor is no longer selected.
+      expect(bandRoot(el).querySelector("td.factor.selected")).toBeNull();
+    });
+
+    test("a regenerated maze that gave up keeps the heading and says so", async () => {
+      const { ipc, el } = await opened();
+      ipc.revision = 2;
+      ipc.trace = (r) => ({ ...fixtureTrace(r), failed: true, collapse: null });
+      el.refresh(2);
+      await vi.waitFor(() => expect(squash(bandRoot(el).querySelector(".note")?.textContent)).toBe("No maze for seed 48213 after the reload."));
+      expect(heading(el)).toBe("Why ┐ is here · seed 48213 · col 14, row 2 · drawn 41st of 384");
+      expect(bandRoot(el).querySelector("table")).toBeNull();
+    });
   });
 
   test("opening without a maze cell shows no band", async () => {

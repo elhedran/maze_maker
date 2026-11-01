@@ -35,6 +35,8 @@ export interface TileList {
   /** Every (tile, orientation) in table order; also the Centre picker's list. */
   tiles: TileView[];
   exceptions: ExceptionView[];
+  /** The loaded `opening_pressure` (DR-0038); 1, off, when absent. */
+  openingPressure?: number;
 }
 
 /** One neighbour in an arm: the tile, and the 1.1 table entry for the centre then it. */
@@ -96,6 +98,8 @@ export interface WhyCandidate {
   weight: number;
   /** One per counted neighbour, N, E, S, W. */
   factors: WhyFactor[];
+  /** Opening pressure's factor for this candidate: the set's value where it applied, else 1 (DR-0038 rule 11). */
+  pressure: number;
   score: number;
   /** Chance in the draw: score ÷ the sum of the scores, from Rust. */
   share: number;
@@ -119,6 +123,8 @@ export interface Why {
   /** The sum of the scores. */
   total: number;
   exceptions: ExceptionView[];
+  /** The loaded opening pressure; below 1, the band shows its column (DR-0037 point 15). */
+  openingPressure: number;
 }
 
 /**
@@ -136,7 +142,7 @@ export function errorKind(error: unknown): ToolErrorKind | undefined {
 
 export async function loadTileList(): Promise<TileList> {
   const view = await tableView(tilesOnlyRequest());
-  return { revision: view.revision, tiles: view.tiles, exceptions: view.exceptions };
+  return { revision: view.revision, tiles: view.tiles, exceptions: view.exceptions, openingPressure: view.openingPressure };
 }
 
 /** `known` if it is at `revision`, else a fresh tile list, which must be. */
@@ -232,6 +238,7 @@ export function whyFrom(trace: CellTrace, seed: number, list: TileList): Why {
         factor: f.factor,
         entry: f.entry,
       })),
+      pressure: c.pressure,
       score: c.score,
       share: c.share,
       drawn: c.tile === collapse.chosen,
@@ -239,6 +246,7 @@ export function whyFrom(trace: CellTrace, seed: number, list: TileList): Why {
     ruledOut: collapse.ruledOut,
     total: collapse.total,
     exceptions: list.exceptions,
+    openingPressure: list.openingPressure ?? 1,
   };
 }
 

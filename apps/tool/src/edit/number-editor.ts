@@ -4,7 +4,7 @@ import { errorText } from "../ipc.ts";
 import { themeStyles } from "../table/draw-tile.ts";
 import { NOT_A_NUMBER, exactText, notSavedText, parseNumber } from "./edit-text.ts";
 import { requestSave, type Saved } from "./save-number.ts";
-import type { NumberTarget } from "../pending-bindings.ts";
+import type { NumberTarget } from "../bindings/NumberTarget.ts";
 
 /** Sent when the editor closes without saving (Cancel or Esc). */
 export const EDITOR_CLOSE_EVENT = "editor-close";

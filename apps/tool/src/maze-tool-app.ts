@@ -15,7 +15,7 @@ import type { MazeView } from "./maze/maze-view.ts";
 // Slice 2.3, saving a number (DR-0037 point 6, DR-0038).
 import { editNumbers } from "./ipc.ts";
 import { SAVE_NUMBER_EVENT, SHOW_COMPARE_EVENT, type SaveRequest, type Saved } from "./edit/save-number.ts";
-import type { NumberEdit } from "./pending-bindings.ts";
+import type { NumberEdit } from "./bindings/NumberEdit.ts";
 
 type Tab = "table" | "explore" | "maze" | "world";
 

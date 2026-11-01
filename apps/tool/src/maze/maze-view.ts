@@ -8,7 +8,7 @@ import { NOT_PLACED } from "../explore/why-text.ts";
 import type { ExceptionView } from "../bindings/ExceptionView.ts";
 import type { TileView } from "../bindings/TileView.ts";
 import type { GeneratedMaze } from "../bindings/GeneratedMaze.ts";
-import type { CompareResult, TableView } from "../pending-bindings.ts";
+import type { CompareResult } from "../bindings/CompareResult.ts";
 import { MAZE_HEIGHT, MAZE_WIDTH, failureText, hoverText, parseSeed, randomSeed, statusText } from "./maze-text.ts";
 import { boxStyle, cellAt, mapStyles, renderRows, tileAt } from "./maze-cells.ts";
 import {
@@ -181,13 +181,13 @@ export class MazeView extends LitElement {
   }
 
   private async loadTileSet(): Promise<Loaded> {
-    const view = (await tableView(tilesOnlyRequest())) as TableView;
+    const view = await tableView(tilesOnlyRequest());
     const loaded: Loaded = {
       revision: view.revision,
       loadedAt: view.loadedAt,
       tiles: view.tiles,
       exceptions: view.exceptions,
-      openingPressure: view.openingPressure ?? 1,
+      openingPressure: view.openingPressure,
     };
     this.loaded = loaded;
     return loaded;

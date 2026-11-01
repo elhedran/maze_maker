@@ -5,7 +5,7 @@
 import { formatLoadTime } from "../table/format.ts";
 import { changeText, editLabel, type TileSetNames } from "../edit/edit-text.ts";
 import type { GeneratedMaze } from "../bindings/GeneratedMaze.ts";
-import type { EditRecord } from "../pending-bindings.ts";
+import type { EditRecord } from "../bindings/EditRecord.ts";
 
 /** Point 11, under the count. */
 export const SPREAD = "One different draw changes the draws after it, so changes spread from the first.";

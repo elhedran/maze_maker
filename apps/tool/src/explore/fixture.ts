@@ -12,7 +12,12 @@ import { mockIPC } from "@tauri-apps/api/mocks";
 import { COMMANDS } from "../ipc.ts";
 import { DIRECTIONS } from "../table/format.ts";
 import type { SideKind } from "../bindings/SideKind.ts";
-import type { CompareRequest, CompareResult, EditRequest, EditResult, EntryView, TableView } from "../pending-bindings.ts";
+import type { CompareRequest } from "../bindings/CompareRequest.ts";
+import type { CompareResult } from "../bindings/CompareResult.ts";
+import type { EditRequest } from "../bindings/EditRequest.ts";
+import type { EditResult } from "../bindings/EditResult.ts";
+import type { EntryView } from "../bindings/EntryView.ts";
+import type { TableView } from "../bindings/TableView.ts";
 import type { TableViewRequest } from "../bindings/TableViewRequest.ts";
 import type { TileKind } from "../bindings/TileKind.ts";
 import type { TileView } from "../bindings/TileView.ts";
@@ -54,13 +59,6 @@ export const [STRAIGHT, CORNER_NE, CORNER_SW, CORNER_NW, ROOM, DOOR_E, DOOR_W, H
 function mayMeet(side: SideKind): SideKind[] {
   if (side === "passage" || side === "door") return ["passage", "door"];
   return [side];
-}
-
-/** The `[bases]` key for two sides that may meet (side.rs's BasePair, for the fixture only). */
-function basePair(a: SideKind, b: SideKind): string {
-  const word = (s: SideKind) => (s.startsWith("floor_wall") ? "floor_wall" : s);
-  const [x, y] = [word(a), word(b)].sort((p, q) => (p === "passage" ? -1 : q === "passage" ? 1 : p.localeCompare(q)));
-  return `${x}_${y}`;
 }
 
 function base(a: SideKind, b: SideKind): number {
@@ -144,7 +142,6 @@ export function fixtureTableView(
     tileSetPath: "data/tile-sets/core.toml",
     loadedAt: "2026-11-01T09:00:00Z",
     tileSetName: "core",
-    openingPressure: 1,
     noise: null,
     tiles,
     totalRows: allRows.length,

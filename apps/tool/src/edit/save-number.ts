@@ -4,7 +4,8 @@
 // event's detail. A rejection carries Rust's ToolError (`refused`, `stale`,
 // `load_failed`), which the editor shows at the field (point 16).
 
-import type { EditRecord, NumberEdit } from "../pending-bindings.ts";
+import type { EditRecord } from "../bindings/EditRecord.ts";
+import type { NumberEdit } from "../bindings/NumberEdit.ts";
 
 export const SAVE_NUMBER_EVENT = "save-number";
 /** Sent by the saved line's [See before and after]; the app shows the Maze tab (point 7). */

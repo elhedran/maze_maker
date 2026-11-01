@@ -173,6 +173,9 @@ pub struct EntryView {
     /// what would have fitted. Filled for every entry.
     pub may_meet: Vec<SideKind>,
     pub base: f64,
+    /// The `[bases]` key `base` comes from, e.g. `passage_door`: the `pair`
+    /// of a `base` edit target (DR-0038). `null` when not allowed.
+    pub base_pair: Option<String>,
     pub row_weight: f64,
     pub column_weight: f64,
     /// Indices into `TableView.exceptions`.
@@ -196,6 +199,9 @@ pub struct TableView {
     pub loaded_at: String,
     pub tile_set_name: String,
     pub noise: Option<NoiseView>,
+    /// DR-0036 rule 9's factor, in (0, 1]; 1 when the file has no
+    /// `opening_pressure` key, which turns it off.
+    pub opening_pressure: f64,
     /// Every (tile, orientation) in table order, unfiltered.
     pub tiles: Vec<TileView>,
     /// Rows and columns after filtering, before the window.
@@ -371,8 +377,9 @@ pub struct NeighbourAtDraw {
     pub tile: Option<u32>,
 }
 
-/// `score = tileWeight × factors[0].factor × factors[1].factor …`, and
-/// `share = score / total`. Both come from Rust; don't recompute them.
+/// `score = tileWeight × factors[0].factor × factors[1].factor … ×
+/// pressure`, left to right, and `share = score / total`. Both come from
+/// Rust; don't recompute them.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
 pub struct CandidateScore {
@@ -380,6 +387,10 @@ pub struct CandidateScore {
     pub tile_weight: f64,
     /// One per counted neighbour, N, E, S, W order.
     pub factors: Vec<PairFactor>,
+    /// Opening pressure (DR-0036 rule 9, DR-0038 rule 11), applied last:
+    /// the tile set's `opening_pressure` when this candidate opens nothing
+    /// new, else 1.
+    pub pressure: f64,
     pub score: f64,
     pub share: f64,
 }
@@ -417,8 +428,13 @@ pub enum ToolErrorKind {
     /// outside the maze.
     BadRequest,
     /// The request names a tile set revision other than the loaded one:
-    /// the maze came from a tile set reloaded since, so regenerate it.
+    /// the maze came from a tile set reloaded since, so regenerate it. For
+    /// an edit, also: the file changed on disk since it was loaded, so
+    /// press Reload first (DR-0038 rule 3).
     Stale,
+    /// The loader refused the edited tile set; `messages` are its reasons,
+    /// and the file wasn't touched (DR-0038 rule 3).
+    Refused,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, TS)]
@@ -427,6 +443,102 @@ pub struct ToolError {
     pub kind: ToolErrorKind,
     /// Readable text, one item per message.
     pub messages: Vec<String>,
+}
+
+// Editing and compare (DR-0038).
+
+/// A number in the tile set file that the tool can edit.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(tag = "kind", rename_all = "camelCase")]
+pub enum NumberTarget {
+    /// A `[[tile]]`'s `weight`; `tileId` as in `TileView.id`.
+    #[serde(rename_all = "camelCase")]
+    TileWeight { tile_id: String },
+    /// A `[bases]` key as written in the file, e.g. `passage_door`, as in
+    /// `EntryView.basePair`.
+    Base { pair: String },
+    /// An `[[exception]]`'s `multiplier`: an index into
+    /// `TableView.exceptions` at the request's revision.
+    Exception { index: u32 },
+    /// The root `opening_pressure` key; inserted after `name` if absent.
+    OpeningPressure,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+pub struct NumberEdit {
+    pub target: NumberTarget,
+    pub value: f64,
+}
+
+/// One save: every edit is applied, validated, written and reloaded as
+/// one, giving one new revision.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+pub struct EditRequest {
+    /// The loaded revision; anything else is `stale`.
+    pub revision: u32,
+    pub edits: Vec<NumberEdit>,
+}
+
+/// One saved number, as appended to the edit record (DR-0038 rule 4).
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+pub struct EditRecord {
+    /// ISO 8601, UTC.
+    pub at: String,
+    pub target: NumberTarget,
+    /// The readable path, e.g. `tile.corridor_corner.weight`.
+    pub number: String,
+    /// The value before; `null` when the key wasn't in the file (only
+    /// `opening_pressure`, where no key means 1).
+    pub from: Option<f64>,
+    pub to: f64,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+pub struct EditResult {
+    /// The reload that followed the write.
+    pub reload: ReloadResult,
+    pub edits: Vec<EditRecord>,
+    /// Problems that didn't stop the save, e.g. the edit record couldn't be
+    /// appended to.
+    pub warnings: Vec<String>,
+}
+
+/// The same seed before and after the last change (DR-0038 rules 7 to 9).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+pub struct CompareRequest {
+    pub seed: u32,
+    pub width: u32,
+    pub height: u32,
+}
+
+/// The maze from the previous load, with that load's own tile list.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+pub struct BeforeMaze {
+    /// `cells` index into `tiles`, not the current `TableView.tiles`.
+    pub maze: GeneratedMaze,
+    pub tiles: Vec<TileView>,
+    /// When the previous load happened, as `ReloadResult.loadedAt`.
+    pub loaded_at: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+pub struct CompareResult {
+    /// `null` when there is no previous load.
+    pub before: Option<BeforeMaze>,
+    pub after: GeneratedMaze,
+    /// Row-major cell indices (`y × width + x`), ascending, whose tile id
+    /// and orientation differ, or that are open on one side only.
+    pub changed: Vec<u32>,
+    /// The tool's edits between before and after; empty after a hand edit
+    /// or with no before.
+    pub edits: Vec<EditRecord>,
 }
 
 #[cfg(test)]
@@ -482,6 +594,14 @@ mod bindings {
         render::<NeighbourAtDraw>(&cfg, &mut out);
         render::<CandidateScore>(&cfg, &mut out);
         render::<PairFactor>(&cfg, &mut out);
+        render::<NumberTarget>(&cfg, &mut out);
+        render::<NumberEdit>(&cfg, &mut out);
+        render::<EditRequest>(&cfg, &mut out);
+        render::<EditRecord>(&cfg, &mut out);
+        render::<EditResult>(&cfg, &mut out);
+        render::<CompareRequest>(&cfg, &mut out);
+        render::<BeforeMaze>(&cfg, &mut out);
+        render::<CompareResult>(&cfg, &mut out);
         render::<ToolErrorKind>(&cfg, &mut out);
         render::<ToolError>(&cfg, &mut out);
         out

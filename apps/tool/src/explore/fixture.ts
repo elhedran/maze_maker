@@ -65,6 +65,12 @@ function base(a: SideKind, b: SideKind): number {
 const STRAIGHTS = { name: "Long straights are rarer than turns", multiplier: 0.5, rule: "tile corridor_straight (passage) beside tile corridor_straight (passage)" };
 const isStraights = (r: TileView, c: TileView) => r.id === "corridor_straight" && c.id === "corridor_straight";
 
+/** The `[bases]` key for two sides that may meet, as `BasePair::key()`. */
+function basePair(a: SideKind, b: SideKind): string {
+  const kind = (s: SideKind) => (s.startsWith("floor_wall") ? "floor_wall" : s);
+  return kind(a) === kind(b) ? `${kind(a)}_${kind(b)}` : "passage_door";
+}
+
 function rawEntry(tiles: TileView[], direction: number, r: number, c: number): Omit<EntryView, "rowTotal" | "probability"> {
   const row = tiles[r];
   const column = tiles[c];
@@ -82,6 +88,7 @@ function rawEntry(tiles: TileView[], direction: number, r: number, c: number): O
     allowed,
     mayMeet: mayMeet(rowSide),
     base: b,
+    basePair: allowed ? basePair(rowSide, columnSide) : null,
     rowWeight: row.weight,
     columnWeight: column.weight,
     exceptions,
@@ -126,6 +133,7 @@ export function fixtureTableView(request: TableViewRequest, revision = 1, tiles:
     tileSetPath: "data/tile-sets/core.toml",
     loadedAt: "2026-11-01T09:00:00Z",
     tileSetName: "core",
+    openingPressure: 1,
     noise: null,
     tiles,
     totalRows: allRows.length,
@@ -191,6 +199,7 @@ export function fixtureTrace(request: TraceCellRequest): CellTrace {
     tile,
     tileWeight: TILES[tile].weight,
     factors: [factor(NORTH, tile, 7), factor(WEST, tile, 0)],
+    pressure: 1,
     score,
     share: score / 1.7,
   });

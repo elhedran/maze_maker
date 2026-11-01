@@ -83,7 +83,9 @@ Anything waiting on a decision is a file in `docs/questions/open/`, moved to `do
 
 ## Git (DR-0021, DR-0019)
 
-Work lands on `main`. Local branches and worktrees are fine; DR-0019 says when agents use them. No remote yet.
+Work lands on `main`. Local branches and worktrees are fine; DR-0019 says when agents use them.
+
+The remote is `origin`, https://github.com/elhedran/maze_maker, added by Ian on 2026-11-01. Agents don't push. How the team uses the remote is still to be decided, in a record that will replace DR-0021.
 
 ## Toolchain
 

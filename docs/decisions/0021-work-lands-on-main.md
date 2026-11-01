@@ -72,6 +72,12 @@ This record states what Ian decided and nothing more. How the team uses branches
 - A local branch or worktree is allowed. Its work ends up on `main`.
 - Follow [DR-0019](/decisions/0019-parallel-work-in-one-checkout.md) for when to use one, how work lands, and cleaning up.
 
+# Update 2026-11-01: a remote now exists
+
+Ian (`human:ian`), verbatim, 2026-11-01: "https://github.com/elhedran/maze_maker has been set up as the remote, document where needed and let the team know.  I'll see about making use of a cloud session later today."
+
+This triggers this record's "revisit when Ian adds a remote". Ian pushed `main` himself (`origin/main` at debaa44). Facilitator's note, not Ian's rule: until a record replaces this one, agents still don't push, and everything else here stands. That record decides who pushes, when, and whether branches or pull requests are used. It comes to Ian, because it replaces his record and changes `CLAUDE.md` and the agent files.
+
 # Links
 
 - Supersedes [DR-0009](/decisions/archive/0009-commit-straight-to-main.md)

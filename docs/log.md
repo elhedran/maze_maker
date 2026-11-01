@@ -2,6 +2,8 @@
 
 ## 2026-11-01
 
+- **Update** Ian added the remote `origin` (https://github.com/elhedran/maze_maker) and pushed `main`. `CLAUDE.md`'s Git section and DR-0021 record it. Agents still don't push until a record replaces DR-0021; the team was told.
+
 - **Update** Slice 1.3 is on `main` (fast-forward to e520d07) after Ian's OK, verbatim: "Yes, land 1.3". Tests pass on `main`. Roadmap 1.3 status updated.
 
 - **Update** Slice 1.3, filtering the table, is built to [DR-0027](/decisions/0027-filter-table-design.md) on branch `claude/busy-ritchie-ebe382`, not yet on `main`. Rowan added the `sides` filter in Rust, with a `bad_request` error unless the request names one direction. Ash built the filter bar, with nothing slipped, and fixed a lost-update bug found in the live check. 52 Rust and 37 Vitest tests pass. The facilitator drove the real Tauri window by script, and Damson passed it against DR-0027 with two follow-ups (the shade legend, and the corner sentence for one tile type). Ian, verbatim: "new filters look good". It lands on `main` after Ian's OK. Roadmap 1.3 status updated.

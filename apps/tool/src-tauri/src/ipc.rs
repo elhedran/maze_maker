@@ -12,6 +12,9 @@
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
+pub mod world;
+pub use world::*;
+
 /// A compass direction; the neighbour lies this way from the row tile.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
@@ -484,6 +487,21 @@ mod bindings {
         render::<PairFactor>(&cfg, &mut out);
         render::<ToolErrorKind>(&cfg, &mut out);
         render::<ToolError>(&cfg, &mut out);
+        // The World tab (DR-0041), in `ipc/world.rs`.
+        render::<WorldPos>(&cfg, &mut out);
+        render::<WorldRect>(&cfg, &mut out);
+        render::<WorldStartRequest>(&cfg, &mut out);
+        render::<WorldRef>(&cfg, &mut out);
+        render::<WalkRequest>(&cfg, &mut out);
+        render::<Walk>(&cfg, &mut out);
+        render::<ReplayStepRequest>(&cfg, &mut out);
+        render::<WorldStarted>(&cfg, &mut out);
+        render::<WorldUpdate>(&cfg, &mut out);
+        render::<PatchDelta>(&cfg, &mut out);
+        render::<StoredCell>(&cfg, &mut out);
+        render::<Endpoint>(&cfg, &mut out);
+        render::<ReplayUpdate>(&cfg, &mut out);
+        render::<ReplayCheck>(&cfg, &mut out);
         out
     }
 

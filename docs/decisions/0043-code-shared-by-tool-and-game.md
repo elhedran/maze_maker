@@ -4,7 +4,7 @@ title: How the tool and the game share code
 description: The game is apps/game, a Tauri v2 app with its own maze-game crate in the workspace and its own Lit frontend. It uses maze-core's World as it is, and puts what it adds to core in a new play module. Its IPC types and ts-rs bindings are its own. It copies the tool's glyph module, with a note, until G.3. It reads data/tile-sets/core.toml at each new game. It needs no technology beyond DR-0005. maze-core stays engine-agnostic, Send, seeded and simple, for a later Unity plugin. Also G.1's command contract.
 status: stable
 decision_id: DR-0043
-decision_status: proposed
+decision_status: accepted
 decision_kind: architecture
 major: false   # two-way door: nothing here is hard to move; the layout was already set by DR-0012
 owners: [architect/1]
@@ -14,7 +14,10 @@ tags: [architecture, layout, code-sharing, game, ipc, ts-rs, tile-set, slice-g-1
 generated:
   by: architect/1
   at: 2026-11-01T10:24:01Z
-verified: []
+verified:
+  - by: engineer-rowan/1
+    at: 2026-11-01T12:31:28Z
+    note: "Approves. Built to it on rowan/g1-world. Two notes from the build, not a new round: (1) 2.6 step 3 landed World::joined in world.rs's DR-0041 block, the same rule as measures::connected, so the game uses that and play.rs holds only the World: Send assertion; (2) two additive changes under point 7's last bullet: ViewCell gains open: [bool; 4] (N, E, S, W, not hedge, from the loaded tile set) so the frontend needn't copy tile sides, and an initial_seed() -> Result<u32, GameError> command reads MAZE_SEED (default 1; a bad value is an error, not a quiet fallback)."
 ---
 
 # Context
@@ -120,6 +123,8 @@ Point 10 turns that into constraints on `maze-core` now. How it gets attached to
   1. Copying is a debt with a date on it: G.3. If G.3 slips, the second trigger (a third copied module) still applies.
   2. The game's view radius and the world's growth radius are two numbers that must stay in order, and they live in different crates. That's why point 7 asks for a test.
   3. Wren's DR-0044 concern stands: a patch window can reach sideways into the view. If her checklist shows it often, the fix is in DR-0036's window (the 2.6 track), not in the game's radius, and that change goes through point 3's "raise it first".
+
+- **Rowan (`engineer-rowan/1`), on review:** the view radius (6) is checked against r (8) twice in `maze-game`: at compile time against core's `world::RADIUS`, and by a test against the `Settings` the game actually passes. Only the test follows a change to the game's own r, so keep it if the compile-time check is ever dropped.
 
 # AI guidance
 

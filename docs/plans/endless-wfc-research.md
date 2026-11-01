@@ -24,6 +24,8 @@ generated:
 
 By Yew (architect). This is the research [DR-0007](/decisions/0007-wave-function-collapse.md) asks for ("Infinite WFC has known problems where newly generated areas meet old ones") and the [roadmap](/roadmap.md) gates slice 2.6 and the game on. The approach it recommends is proposed in [DR-0031](/decisions/0031-endless-generation-approach.md).
 
+> **Superseded recommendation (2026-11-01).** Ian decided the world is stored and grows along the player's path ([DR-0035](/decisions/0035-the-world-is-stored.md)), so seam-first chunks gave way to growth from open endpoints ([DR-0036](/decisions/0036-growth-from-open-endpoints.md)). The prior art, the six questions and the fallback proof ("Why the fallback can't fail") still hold, and DR-0036 rule 7 builds on them. The chunk design, the measures and the definition of done below are replaced by DR-0036's.
+
 ## The answer
 
 **Yes, with conditions. WFC can generate this project's endless maze, and we don't need to replace it.** No one-way door goes to Ian.

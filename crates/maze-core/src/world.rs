@@ -128,6 +128,18 @@ pub struct Patch {
     pub spine_cells: Vec<Pos>,
 }
 
+/// Heap bytes a world holds (`World::memory`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Memory {
+    /// Pages of the sparse table, each `PAGE` × `PAGE` cells.
+    pub pages: usize,
+    /// The table: the pages, and an estimate of the sorted map around them.
+    pub table: usize,
+    /// The growth log, including each patch's list of stored cells.
+    pub log: usize,
+    pub palette: usize,
+}
+
 /// The sparse table (DR-0035): square pages of palette indices in a sorted
 /// map, so every walk over it is in key order.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
@@ -500,22 +512,32 @@ impl World {
         let mut at = from;
         let mut path = Vec::with_capacity(steps);
         for _ in 0..steps {
-            let here = self.get(at).expect("the walker stands on a stored cell");
-            let ways: Vec<Pos> = Direction::ALL
-                .into_iter()
-                .filter_map(|d| {
-                    let next = step(at, d);
-                    let there = self.get(next)?;
-                    connected(&self.set, here, d, there).then_some(next)
-                })
-                .collect();
-            if !ways.is_empty() {
-                at = ways[rng.below(ways.len())];
-            }
+            at = self.random_step(at, &mut rng);
             path.push(at);
             self.grow_around(at);
         }
         path
+    }
+
+    /// One step of `random_walk`: a joined stored neighbour of `at`, drawn
+    /// from `rng`, or `at` itself if it has none. Panics if `at` isn't
+    /// stored. Public so step 2's measures can time each patch of the same
+    /// walk.
+    pub fn random_step(&self, at: Pos, rng: &mut SplitMix64) -> Pos {
+        let here = self.get(at).expect("the walker stands on a stored cell");
+        let ways: Vec<Pos> = Direction::ALL
+            .into_iter()
+            .filter_map(|d| {
+                let next = step(at, d);
+                let there = self.get(next)?;
+                connected(&self.set, here, d, there).then_some(next)
+            })
+            .collect();
+        if ways.is_empty() {
+            at
+        } else {
+            ways[rng.below(ways.len())]
+        }
     }
 
     /// Grows one patch at `anchor` and stores it. Panics if `anchor` isn't
@@ -721,9 +743,24 @@ impl World {
     /// unbounded unsettled region.
     fn has_outward(&self, window: &Window, kept: &[bool], tiles: &[usize]) -> bool {
         let new = |p: Pos| window.index(p).filter(|&i| kept[i]).map(|i| tiles[i]);
-        let tile = |p: Pos| self.get(p).or_else(|| new(p));
-        let mut boxes = vec![window.corners()];
-        boxes.extend(self.cells.bounds);
+        self.outward_over(Some(window.corners()), |p| self.get(p).or_else(|| new(p)))
+    }
+
+    /// The same check on the world as stored, with nothing pending: the
+    /// rule 6 flood that runs after every attempt, apart from the window.
+    /// Step 2 times it against the explored area (Yew's concern 2).
+    pub fn has_way_onward(&self) -> bool {
+        self.outward_over(None, |p| self.get(p))
+    }
+
+    /// The reference flood: unsettled cells inward from just outside the
+    /// box around the stored cells (and `extra`), then whether any stored
+    /// cell, as `tile` gives them, shows a walkable side to one it reached.
+    fn outward_over(&self, extra: Option<(Pos, Pos)>, tile: impl Fn(Pos) -> Option<usize>) -> bool {
+        let boxes: Vec<(Pos, Pos)> = extra.into_iter().chain(self.cells.bounds).collect();
+        if boxes.is_empty() {
+            return false;
+        }
         let area = Area::around(&boxes);
         let reached = area.flood_from_rim(|p| tile(p).is_none());
         (0..reached.len()).filter(|&i| reached[i]).any(|i| {
@@ -732,6 +769,38 @@ impl World {
                 tile(step(u, d)).is_some_and(|v| walkable(self.set.variants[v].side(d.opposite())))
             })
         })
+    }
+
+    /// Heap memory the world holds, estimated from what it allocated
+    /// (DR-0035). Map node overhead is an estimate; see `Memory`.
+    pub fn memory(&self) -> Memory {
+        let page = (PAGE * PAGE) as usize * std::mem::size_of::<u16>();
+        // A BTreeMap entry: key and Vec header, in nodes of up to 11
+        // entries that are at least half full; count each entry at 1.5 times
+        // its size, plus the node's edges and lengths.
+        let entry = std::mem::size_of::<Pos>() + std::mem::size_of::<Vec<u16>>();
+        let pages = self.cells.pages.len();
+        let table = pages * (page + entry * 3 / 2 + 16);
+        let pos = std::mem::size_of::<Pos>();
+        let log = self.log.capacity() * std::mem::size_of::<Patch>()
+            + self
+                .log
+                .iter()
+                .map(|p| (p.stored.capacity() + p.spine_cells.capacity()) * pos)
+                .sum::<usize>();
+        let palette = self.palette.capacity() * std::mem::size_of::<(String, u32)>()
+            + self
+                .palette
+                .iter()
+                .map(|(id, _)| id.capacity())
+                .sum::<usize>()
+            + self.palette_variant.capacity() * std::mem::size_of::<usize>();
+        Memory {
+            pages,
+            table,
+            log,
+            palette,
+        }
     }
 
     /// The spine (DR-0036 rule 6): local cells from the anchor through its

@@ -16,6 +16,7 @@ pub mod tile_set;
 pub mod trace;
 pub mod wfc;
 pub mod world;
+pub mod world_measures;
 
 pub use measures::{AreaCounts, Measure, count_areas, measures};
 pub use side::{BasePair, Direction, SideKind, SideMatch};

@@ -36,11 +36,11 @@ One file per decision ([DR-0001](/decisions/0001-record-every-decision.md)). Onl
 - [DR-0034 The data contract for "Why is this here?"](/decisions/0034-data-contract-for-why-is-this-here.md) - An explore_tile command built from the same entry code as table_view, with arms sorted and 0s split off in Rust; a trace_cell command that replays the seed through the one WFC code path with an optional observer and rejects a stale revision; also slice 2.2's technical plan.
 - [DR-0035 The world is stored, and grows along the player's path](/decisions/0035-the-world-is-stored.md) - Ian's decision: what is generated is kept, with where the player has been and later loot; growth follows the player's path; the store is an efficient in-memory sparse table. A one-way door.
 - [DR-0036 Endless generation by growing the stored world from open endpoints](/decisions/0036-growth-from-open-endpoints.md) - The stored world grows in patches, one WFC run over a window past each open endpoint near the player, with stored cells pinned, only joined cells kept, a frontier of hedge, passage or door, a guaranteed way onward and an opening-pressure factor. Supersedes DR-0031.
+- [DR-0044 G.1: walking and looking through a growing world](/decisions/0044-walking-the-growing-world.md)](/decisions/0044-walking-the-growing-world.md) - What the player does and sees in G.1: one cell per key press, hedge and unknown cells block, start at the origin, a 13 by 13 view with no fog, a trodden trail, and what makes it fun.
 
 ## Proposed
 
 - [DR-0042 The game starts now, alongside Phase 2](/decisions/0042-the-game-starts-now.md) - Ian's decision: the game starts now, in parallel with Phase 2, because the tool is good enough to build on; amends DR-0008's "the game comes after".
-- [DR-0044 Walking the growing world (G.1)](/decisions/0044-walking-the-growing-world.md) - What the player does and sees in G.1: one cell per key press, hedge and unknown cells block, start at the origin, a 13 by 13 view with no fog, a trodden trail, and what makes it fun.
 
 
 

@@ -4,7 +4,7 @@ title: "G.1: walking and looking through a growing world"
 description: "What the player does and sees in G.1: one cell per key press, blocked only by hedge or the unknown, starting at the origin, seeing every stored cell within 6 cells over the hedges, with a trodden trail on visited cells; what stays the same on walking back, what makes it fun, and the checklist Wren judges the demo against."
 status: stable
 decision_id: DR-0044
-decision_status: proposed
+decision_status: accepted
 decision_kind: game-design
 major: false
 owners: [game-designer/1]
@@ -13,7 +13,7 @@ supersedes: []
 tags: [game, slice-g-1, movement, view, discovery, game-design]
 generated:
   by: game-designer/1
-  at: 2026-11-01T11:00:00Z
+  at: 2026-11-01T10:23:30Z   # corrected by facilitator/1: the time written was later than the approval
 verified:
   - by: product-manager/1
     at: 2026-11-01T10:24:34Z

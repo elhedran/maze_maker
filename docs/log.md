@@ -2,6 +2,7 @@
 
 ## 2026-11-01
 
+- **Update** DR-0036 got a dated note from Yew: G.1 doesn't need the incremental rule 6 check (worst step about 23 ms against the 125 ms walking pace); it goes with Wren's R3 to the generator-fixes session, due before G.2 or if a step's worst case passes 125 ms. The roadmap's G.1 line now says the same.
 - **Update** Wren's G.1 fun review (`/plans/g1-fun-review.md`), from Ash's scripted walks (seeds 1–5, 600 steps; `fun_walk` example on `ash/g1-fun-walk`): good enough for Ian's demo. Always a way on, nothing seen changes, a step is p95 at most 1.1 ms in release. Rooms are too common and no hedge cell is ever stored (DR-0036 rule 4 keeps only joined cells). Game-side, Wren and Marram's call: draw sealed unknown pockets as hedge (G1). Five generator requests (R1–R5: rarer rooms, quieter corridors, store sealed hedge, try lower opening pressure, keep growth out of view) sent to the parent facilitator to route.
 - **Decision** DR-0046 accepted (written by Yew; approved by Ash, with four build concerns, the first to settle at build: a restored world has anchors but no patch bodies, so readers of `log()` must cope). DR-0043 point 5 now allows the Rust glyph copy in the `fun_walk` review example (Yew).
 - **Decision** DR-0046 proposed (Yew; waits on one engineer): saving and loading the world, G.2's gate. No one-way door now; whether old saves keep loading after the first release is Ian's, parked as Q-0015 (revisit before the first release). Yew re-checked DR-0036 rule 1: it stands, and one line of its reasoning is corrected.

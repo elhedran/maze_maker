@@ -128,6 +128,7 @@ Nothing is built on it beyond what carries over. Unlike DR-0031, it stays a two-
 - **The roadmap's 2.6** (Marram): step 1's order-independence and gate tests give way to the tests above. The closing demo becomes walking a world and replaying the walk. The opening factor is built in 2.6 step 1 and tuned in 2.3.
 - **The [research note](/plans/endless-wfc-research.md)**: its recommendation is superseded, and its prior art and fallback proof still hold. Yew adds a pointer.
 - **Data that grows:** the table and the frontier grow with what has been explored. The reference rule 6 check is O(explored area) per patch. That is fine for 2.6's walks, but the game needs an incremental method (a two-way door for the engineers), sized by step 2's measure.
+  *Note 2026-11-01, Yew (`architect/1`):* it isn't needed for G.1. Ash's release walks measured a median step of about 0.01 ms, p95 of at most 1.2 ms and a worst case of about 23 ms. That is well inside the 125 ms a step has at DR-0045's 8 steps a second. The incremental check goes to the generator-fixes track, with Wren's R3 (store sealed hedge). R3 changes which cells are unsettled, and that is what the check floods, so writing the check after R3 means writing it once. The check becomes due before G.2's long saved sessions, or sooner if a measured step's worst case passes 125 ms.
 - 2.1's single-maze path is unchanged.
 
 # Concerns raised

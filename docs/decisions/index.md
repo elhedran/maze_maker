@@ -35,8 +35,11 @@ One file per decision ([DR-0001](/decisions/0001-record-every-decision.md)). Onl
 - [DR-0032 Use the GitHub remote and keep it up to date](/decisions/0032-use-the-remote.md) - origin on GitHub is the remote; main is pushed every time anything lands, and origin is fetched before work starts (main fast-forwarded in the main checkout; worktrees branch from or rebase onto origin/main). Supersedes DR-0021.
 - [DR-0033 How a maze cell opens the explore view and shows why its tile is there](/decisions/0033-why-is-this-here-design.md) - Click selects a maze cell and "Why is this here?" (or double-click) opens the Explore tab on its tile through DR-0026 point 10, with a band that replays the cell's draw: which neighbours were settled, each candidate's weight times its pair factors, its chance, and the one drawn.
 - [DR-0034 The data contract for "Why is this here?"](/decisions/0034-data-contract-for-why-is-this-here.md) - An explore_tile command built from the same entry code as table_view, with arms sorted and 0s split off in Rust; a trace_cell command that replays the seed through the one WFC code path with an optional observer and rejects a stale revision; also slice 2.2's technical plan.
+- [DR-0035 The world is stored, and grows along the player's path](/decisions/0035-the-world-is-stored.md) - Ian's decision: what is generated is kept, with where the player has been and later loot; growth follows the player's path; the store is an efficient in-memory sparse table. A one-way door.
 
 ## Proposed
+
+- [DR-0036 Endless generation by growing the stored world from open endpoints](/decisions/0036-growth-from-open-endpoints.md) - The stored world grows in patches, one WFC run over a window past each open endpoint near the player, with stored cells pinned, only joined cells kept, a frontier of hedge, passage or door, a guaranteed way onward and an opening-pressure factor. Supersedes DR-0031 once accepted.
 
 
 

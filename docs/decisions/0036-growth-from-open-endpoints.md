@@ -21,7 +21,10 @@ sources:
 generated:
   by: architect/1
   at: 2026-11-01T08:24:59Z
-verified: []
+verified:
+  - by: engineer-rowan/1
+    at: 2026-11-01T08:39:56Z
+    note: "Approves, with one concern for Yew: as worded, rules 4 and 6 can leave no spine when a window holds two unsettled pockets and the anchor's way out runs through the other one. The build narrows them: a patch keeps only new cells joined to its own anchor, and the spine aims for an exit whose outside neighbour escapes through unsettled cells outside the anchor's pocket. Built as a813a73 on rowan/2.6-chunks."
 ---
 
 # Context

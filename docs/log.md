@@ -2,6 +2,8 @@
 
 ## 2026-11-01
 
+- **Decision** DR-0035 accepted (Ian's decision; approved by Ian and Rowan). DR-0036 proposed (written by Yew; Rowan approves, with a concern on rules 4 and 6 that the build narrows; Ash's approval is still to come). DR-0031 is marked superseded, and moves to the archive once DR-0036 is accepted.
+- **Update** 2.6, DR-0036 step 1, built by Rowan as `a813a73` on `rowan/2.6-chunks` and pushed: a paged sparse world of palette indices, growth at the nearest anchor within r, patches, the keep flood, the outward check, the spine and fallback, opening pressure (default 1), and a growth log with replay. P = 16, r = 8, R = 3. 108 maze-core and 26 tool tests pass, and clippy is clean; 100 walks of 1,000 steps are checked after every patch. About 1 ms a patch in release. Its `wfc.rs` changes reach into `collapse`, so it will need rebasing onto 2.2 (2.6 adapts).
 - **Decision** DR-0035 approved by Ian, verbatim: "I approve DR-0035". No proposal struck. The world is stored, growth follows the player's path, and the store is an in-memory sparse table. A one-way door. It waits on one engineer (Rowan) before it is accepted.
 - **Update** Slice 2.2 joined and ready for Ian's demo at `75c52bb` on `claude/inspiring-goldberg-r4p2c4`: Ash's frontend rebased onto Rowan's Rust side with no conflicts, now using the generated bindings, and brought onto the session branch. 98 Rust and 124 Vitest tests pass, and the build is clean. Not yet tried in the Tauri window, which this cloud session can't open. Damson's review is still to come. Marram's roadmap picture is in `design/roadmap.svg`.
 - **Decision** DR-0034 accepted (written by Yew; approved by Rowan, and by Ash standing in for the architect): 2.2's data contract and plan.

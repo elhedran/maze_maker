@@ -2,9 +2,9 @@
 type: Decision Record
 title: The world is stored, and grows along the player's path
 description: Ian's decision that the endless world is kept rather than regenerated, because where the player has been, loot and what is looted all need it; it is held in an efficient sparse in-memory table, and growth follows the player's path. How it grows is DR-0036.
-status: draft
+status: stable
 decision_id: DR-0035
-decision_status: proposed
+decision_status: accepted
 decision_kind: architecture
 major: true
 owners: [human:ian]
@@ -18,6 +18,9 @@ verified:
   - by: human:ian
     at: 2026-11-01T08:33:03Z
     note: "Approved in conversation, verbatim: \"I approve DR-0035\". No proposal struck."
+  - by: engineer-rowan/1
+    at: 2026-11-01T08:39:56Z
+    note: "Approves; built DR-0036 step 1 on it (paged sparse table holding palette indices, growth log and replay)."
 ---
 
 # Context

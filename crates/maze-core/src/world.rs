@@ -864,3 +864,102 @@ mod tests {
         cells.store((2, 3), 2);
     }
 }
+
+// Accessors for the tool's World tab (DR-0041). Additions only, kept in
+// one block so they rebase cleanly past other work on this file.
+
+/// An open endpoint (DR-0036 terms): stored `cell`'s walkable side facing
+/// `facing`, whose anchor is `step(cell, facing)`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Endpoint {
+    pub cell: Pos,
+    pub facing: Direction,
+    /// The anchor connects through unsettled cells to the unbounded
+    /// unsettled region.
+    pub outward: bool,
+}
+
+impl World {
+    /// Every open endpoint, sorted by (y, x) of `cell`, then N, E, S, W.
+    /// `outward` by DR-0036 rule 6's reference flood, once over the stored
+    /// bounds: O(bounds area).
+    pub fn frontier(&self) -> Vec<Endpoint> {
+        let Some(bounds) = self.cells.bounds else {
+            return Vec::new();
+        };
+        let area = Area::around(&[bounds]);
+        let reached = area.flood_from_rim(|p| self.get(p).is_none());
+        let mut cells: Vec<(Pos, usize)> = self.cells().collect();
+        cells.sort_by_key(|&((x, y), _)| (y, x));
+        let mut out = Vec::new();
+        for (cell, v) in cells {
+            for facing in Direction::ALL {
+                let anchor = step(cell, facing);
+                if self.get(anchor).is_none() && walkable(self.set.variants[v].side(facing)) {
+                    // The anchor is next to a stored cell, so inside `area`.
+                    let outward = area.index(anchor).is_some_and(|i| reached[i]);
+                    out.push(Endpoint {
+                        cell,
+                        facing,
+                        outward,
+                    });
+                }
+            }
+        }
+        out
+    }
+
+    /// The stored cells' bounding box, (min, max) inclusive; `None` while
+    /// nothing is stored.
+    pub fn bounds(&self) -> Option<(Pos, Pos)> {
+        self.cells.bounds
+    }
+
+    /// Both `from` and its neighbour across `d` are stored and joined.
+    pub fn joined(&self, from: Pos, d: Direction) -> bool {
+        match (self.get(from), self.get(step(from, d))) {
+            (Some(here), Some(there)) => connected(&self.set, here, d, there),
+            _ => false,
+        }
+    }
+
+    /// One step of `random_walk`'s choice from stored `at`, drawing from
+    /// `rng` exactly as it does: a joined neighbour, or `at` if there is
+    /// none. Doesn't grow.
+    pub fn random_step(&self, at: Pos, rng: &mut SplitMix64) -> Pos {
+        assert!(self.get(at).is_some(), "the walker stands on a stored cell");
+        let ways: Vec<Pos> = Direction::ALL
+            .into_iter()
+            .filter(|&d| self.joined(at, d))
+            .map(|d| step(at, d))
+            .collect();
+        if ways.is_empty() {
+            at
+        } else {
+            ways[rng.below(ways.len())]
+        }
+    }
+
+    /// Whether `grow_at(anchor)` would accept `anchor`: for `from: None`,
+    /// the world is empty; otherwise `anchor` is this world's anchor at its
+    /// cell. Lets a replay that diverged say so instead of panicking.
+    pub fn is_anchor(&self, anchor: Anchor) -> bool {
+        match anchor.from {
+            None => self.is_empty(),
+            Some(_) => self.anchor_at(anchor.cell) == Some(anchor),
+        }
+    }
+
+    /// `grow_at`, returning the patch's discarded cells: its window's cells
+    /// still unsettled after it, in row-major order (DR-0036 rule 4). The
+    /// run fills the whole window, so these are the cells it filled and
+    /// didn't keep.
+    pub fn grow_with_discards(&mut self, anchor: Anchor) -> Vec<Pos> {
+        self.grow_at(anchor);
+        let window = self.window(anchor);
+        (0..window.size * window.size)
+            .map(|i| window.pos(i))
+            .filter(|&p| self.get(p).is_none())
+            .collect()
+    }
+}

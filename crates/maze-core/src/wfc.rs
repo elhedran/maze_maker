@@ -102,6 +102,36 @@ impl fmt::Display for GenerateError {
 
 impl std::error::Error for GenerateError {}
 
+/// One collapse as the solver made it; borrowed from its own working
+/// (DR-0034 rule 5).
+pub struct CollapseStep<'a> {
+    pub cell: usize,
+    /// Neighbours already collapsed, N, E, S, W order: (direction from
+    /// `cell`, variant).
+    pub settled: &'a [(Direction, usize)],
+    /// Candidates left after propagation, table order, with the score each
+    /// was drawn by.
+    pub scores: &'a [(usize, f64)],
+    /// The sum of `scores`, in table order, as the draw used it.
+    pub total: f64,
+    pub chosen: usize,
+}
+
+/// Watches generation without being able to change it: it only ever gets
+/// shared borrows, never the wave or the PRNG (DR-0034 rule 5).
+pub trait Observer {
+    /// Attempt `attempt` (0 for the first) is about to start from scratch.
+    fn attempt_started(&mut self, attempt: u32);
+    /// A cell was just collapsed. Called once per collapse, after the draw.
+    fn collapsed(&mut self, step: &CollapseStep<'_>);
+}
+
+/// Watches nothing: what `generate` uses.
+impl Observer for () {
+    fn attempt_started(&mut self, _attempt: u32) {}
+    fn collapsed(&mut self, _step: &CollapseStep<'_>) {}
+}
+
 /// The neighbour of cell `i` in direction `d`, if it is inside the grid.
 /// Past the edge nothing is constrained (DR-0028 rule 6).
 pub fn neighbour(width: usize, height: usize, i: usize, d: Direction) -> Option<usize> {
@@ -269,8 +299,14 @@ impl<'r> Wave<'r> {
         }
     }
 
-    /// Draws a candidate for `cell` by score and settles it there.
-    fn collapse(&mut self, cell: usize, rng: &mut SplitMix64) -> Result<(), Contradiction> {
+    /// Draws a candidate for `cell` by score and settles it there, then
+    /// tells `observer` what it drew from.
+    fn collapse(
+        &mut self,
+        cell: usize,
+        rng: &mut SplitMix64,
+        observer: &mut dyn Observer,
+    ) -> Result<(), Contradiction> {
         let rules = self.rules;
         let settled: Vec<(Direction, usize)> = Direction::ALL
             .into_iter()
@@ -315,18 +351,29 @@ impl<'r> Wave<'r> {
         }
         self.count[cell] = 1;
         self.collapsed[cell] = Some(chosen);
+        observer.collapsed(&CollapseStep {
+            cell,
+            settled: &settled,
+            scores: &scores,
+            total,
+            chosen,
+        });
         Ok(())
     }
 
     /// Runs the attempt to the end. Each step collapses one cell and
     /// propagation only removes candidates, so this always terminates.
-    fn run(&mut self, rng: &mut SplitMix64) -> Result<(), Contradiction> {
+    fn run(
+        &mut self,
+        rng: &mut SplitMix64,
+        observer: &mut dyn Observer,
+    ) -> Result<(), Contradiction> {
         if self.count.contains(&0) {
             return Err(Contradiction);
         }
         self.propagate((0..self.count.len()).collect())?;
         while let Some(cell) = self.choose(rng) {
-            self.collapse(cell, rng)?;
+            self.collapse(cell, rng, observer)?;
             self.propagate(VecDeque::from([cell]))?;
         }
         Ok(())
@@ -342,6 +389,20 @@ pub fn generate(
     width: usize,
     height: usize,
 ) -> Result<Generation, GenerateError> {
+    generate_observed(set, table, seed, width, height, &mut ())
+}
+
+/// `generate`, with `observer` told as each attempt starts and as each cell
+/// collapses. The one code path: `generate` is this with `&mut ()`, so an
+/// observer can't make the maze differ (DR-0034 rule 5).
+pub fn generate_observed(
+    set: &TileSet,
+    table: &Table,
+    seed: u32,
+    width: usize,
+    height: usize,
+    observer: &mut dyn Observer,
+) -> Result<Generation, GenerateError> {
     let range = MIN_SIZE..=MAX_SIZE;
     if !range.contains(&width) || !range.contains(&height) {
         return Err(GenerateError::BadSize { width, height });
@@ -349,9 +410,10 @@ pub fn generate(
     let rules = Rules::new(set, table);
     let mut attempt = 0;
     loop {
+        observer.attempt_started(attempt);
         let mut rng = SplitMix64::new(attempt_seed(seed, attempt));
         let mut wave = Wave::new(&rules, width, height);
-        let outcome = wave.run(&mut rng);
+        let outcome = wave.run(&mut rng, observer);
         if outcome.is_ok() || attempt == MAX_RESTARTS {
             return Ok(Generation {
                 width,

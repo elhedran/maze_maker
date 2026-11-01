@@ -2,7 +2,7 @@
 # Profiles go here only: cargo ignores [profile.*] in members.
 [workspace]
 resolver = "3"
-members = ["crates/maze-core", "apps/tool/src-tauri"]
+members = ["crates/maze-core", "apps/tool/src-tauri", "apps/game/src-tauri"]
 
 [workspace.package]
 edition = "2024"

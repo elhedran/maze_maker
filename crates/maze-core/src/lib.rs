@@ -10,6 +10,7 @@
 pub mod completeness;
 pub mod measures;
 pub mod noise;
+pub mod play;
 pub mod side;
 pub mod table;
 pub mod tile_set;

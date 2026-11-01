@@ -1739,6 +1739,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "maze-game"
+version = "0.1.0"
+dependencies = [
+ "maze-core",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "ts-rs",
+]
+
+[[package]]
 name = "maze-tool"
 version = "0.1.0"
 dependencies = [

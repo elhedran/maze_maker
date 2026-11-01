@@ -1,0 +1,23 @@
+[package]
+name = "maze-game"
+version = "0.1.0"
+edition.workspace = true
+description = "Maze Maker, the game"
+publish = false
+
+# Desktop only, as in apps/tool/src-tauri/Cargo.toml (see the note there):
+# no staticlib or cdylib, so the lib keeps its plain name.
+[lib]
+name = "maze_game"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+maze-core.workspace = true
+ts-rs = "12.0.1"
+serde = { version = "1.0.229", features = ["derive"] }
+
+[dev-dependencies]
+serde_json = "1.0.154"

@@ -86,3 +86,20 @@ From `apps/tool/`, run `npm run tauri dev`. There are three tabs now: **Table**,
 3. **From a corridor into a room and back out, through doorways.** Pick `─ Corridor straight, E–W`. In **EAST**, press **Go** on `╢ Room doorway, door W`: the passage meets the door. Then go east to `· Open room`, then to `╟ Room doorway, door E`, and back out to `─`. After each step the tile you came from is selected and marked "from", so the panel shows the edge you just crossed. **< Back** (or Alt+Left) goes back one step. Click any glyph in the trail to jump back to it.
 
 "+ N can't go here" at the foot of each side opens the 0s. **Explore this tile** in the table's panel opens the same view on the selected pair. After **Reload tile set**, the band says the tile set was reloaded: pick the cell again in the Maze tab.
+
+## Demo: slice 2.3, tune and compare
+
+From `apps/tool/`, run `npm run tauri dev`. Numbers that live in the tile set file are now underlined with dots: click one to change it ([DR-0037](docs/decisions/0037-compare-and-edit-design.md), [DR-0038](docs/decisions/0038-editing-core-toml.md)).
+
+1. **Change the number behind a bit of maze, and compare.** In the **Maze** tab, press **Generate**, click a cell you don't like and press **Why is this here?**. In the band, click a factor: the panel on the right shows where it comes from. Click one of its underlined numbers, for example a tile weight. The editor opens under it with the exact value and a line saying everywhere that number reaches. Type a new value and press Enter (or **Save to core.toml**). The band refreshes where you are, with "after reload" in its heading, and the panel shows "Saved 20:31 · … 3.0 → 2.0". Press **See before and after**. The **Maze** tab shows the same seed before (left) and after (right). Cells that didn't change are faded, so what changed stands out; untick **Fade unchanged cells** to see both in full. Under them are the count of changed cells and both measures, before → after. Hover a cell in either maze to name the tile on both sides. **Close compare** goes back to one maze.
+2. **Opening pressure.** In the **Maze** tab, under the seed, click the number after **Opening pressure** (it reads "1.0 (off)" at first). Type `0.5` and press Enter. The same seed shows before and after, and the **Reachable from centre** and **Separate areas** rows show how they moved. Click a cell and press **Why is this here?**: the band has a **× pressure** column, with 0.5 where the pressure applied (the tile added no new open side) and a grey 1 where it didn't.
+3. **Find your edits in the file, and set one back.** Open the tile set in an editor, for example in PowerShell from the repository root:
+
+   ```powershell
+   notepad data\tile-sets\core.toml
+   notepad data\tile-sets\core.edits.toml
+   ```
+
+   `core.toml` has your new values in place, with its comments kept. `core.edits.toml` beside it lists every number saved in the tool, oldest first, with `from` and `to`. To set one back, click the same number in the tool and type its `from` value (or edit `core.toml` and press **Reload tile set**). The compare's after maze is the original maze again.
+
+A value the loader won't take, such as a negative weight, isn't saved: the editor stays open and says why in red, and `core.toml` is left unchanged. If `core.toml` was edited by hand since the last load, the save is refused too: press **Reload tile set** first.

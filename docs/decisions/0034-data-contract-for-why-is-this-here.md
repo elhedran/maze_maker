@@ -183,7 +183,7 @@ Rowan generates the bindings for the types above first, unchanged, so Ash's stub
 
 # Amendments
 
-- **2026-11-01, [DR-0038](/decisions/0038-editing-core-toml-and-compare.md) (proposed; applies once it is accepted):** the trace gains opening pressure ([DR-0036](/decisions/0036-growth-from-open-endpoints.md) rule 9) as its own factor. `CandidateScore` gains `pressure`, and `CollapseStep` gains `pressure: &'a [f64]`, parallel to `scores`, which the trace passes through. Pressure is applied last, so the identity becomes `(tileWeight × Π factor) × pressure == score`, still exact, and the factor test runs at a pressure below 1 too. Nothing else in this contract changes.
+- **2026-11-01, [DR-0038](/decisions/0038-editing-core-toml.md) (proposed; applies once it is accepted):** the trace gains opening pressure ([DR-0036](/decisions/0036-growth-from-open-endpoints.md) rule 9) as its own factor. `CandidateScore` gains `pressure`, and `CollapseStep` gains `pressure: &'a [f64]`, parallel to `scores`, which the trace passes through. Pressure is applied last, so the identity becomes `(tileWeight × Π factor) × pressure == score`, still exact, and the factor test runs at a pressure below 1 too. Nothing else in this contract changes.
 
 # Links
 

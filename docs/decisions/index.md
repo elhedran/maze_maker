@@ -39,8 +39,8 @@ One file per decision ([DR-0001](/decisions/0001-record-every-decision.md)). Onl
 
 ## Proposed
 
-- [DR-0038 How the tool edits core.toml, records the edits and compares, with opening pressure in the single maze](/decisions/0038-editing-core-toml-and-compare.md) - Saves write the tile set file with toml_edit after the loader accepts the new text, and append each number to a sibling core.edits.toml; edit_numbers and compare_mazes commands; opening pressure in generate_maze; DR-0034's trace gains a pressure factor applied last. Also slice 2.3's technical plan.
 - [DR-0037 How the tool edits a number and compares the same seed before and after](/decisions/0037-compare-and-edit-design.md) - Numbers in the explanation panel that live in the tile set are edited in place with their reach spelled out; a saved change puts the Maze tab into a side-by-side before-and-after of the same seed with unchanged cells faded and both measures; opening pressure sits under the seed row; a refused edit shows the loader's reason at the field; the "why" band refreshes in place after a reload.
+- [DR-0038 How the tool edits core.toml, records the edits and compares, with opening pressure in the single maze](/decisions/0038-editing-core-toml.md) - Saves write the tile set file with toml_edit after the loader accepts the new text, and append each number to a sibling core.edits.toml; edit_numbers and compare_mazes commands; opening pressure in generate_maze; DR-0034's trace gains a pressure factor applied last. Also slice 2.3's technical plan.
 
 
 

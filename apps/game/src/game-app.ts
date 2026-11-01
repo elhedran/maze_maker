@@ -1,254 +1,259 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, state } from "lit/decorators.js";
-import { errorText, startGame, step, type Direction, type GameView } from "./ipc.ts";
-import { DEFAULT_SEED, directionForKey, parseSeed } from "./controls.ts";
+import { keyed } from "lit/directives/keyed.js";
+import { errorText, focusWindow, initialSeed, startGame, step, type Direction, type GameView, type Pos } from "./ipc.ts";
+import { directionForKey, randomSeed } from "./controls.ts";
+import { statusText } from "./status-text.ts";
+import { themeStyles } from "./theme.ts";
+import { Walker, type StepOutcome } from "./walker.ts";
 import { cellLabel, layoutGrid, type ScreenCell } from "./world-grid.ts";
 
-/** How long the "blocked" cue stays up after a move that went nowhere. */
-export const BLOCKED_CUE_MS = 600;
+/** The world on screen and where it started, for the status line. */
+interface World {
+  seed: number;
+  start: Pos;
+  view: GameView;
+  /** Moves that happened; a blocked move doesn't count (DR-0045 point 1). */
+  steps: number;
+}
 
 /**
- * The game screen (G.1): a header with the seed and position, a seed field
- * with New world, and the world around the player drawn with DR-0017's
- * glyphs. Rust grows and stores the world (DR-0035, DR-0036); this only
- * sends moves and draws what comes back. What the player sees follows DR-0044; the look is a placeholder until DR-0045.
+ * The game screen (DR-0045): a status line, the world around the player
+ * drawn with DR-0017's glyphs, and a message line. Rust grows and stores
+ * the world (DR-0035, DR-0036) and decides every move (DR-0044); this sends
+ * steps and draws what comes back.
  */
 @customElement("game-app")
 export class GameApp extends LitElement {
-  @state() private seedText = String(DEFAULT_SEED);
-  /** The seed of the world on screen, which the field may no longer match. */
-  @state() private worldSeed?: number;
-  @state() private view?: GameView;
+  @state() private world?: World;
+  @state() private starting = true;
   @state() private error?: string;
-  @state() private blocked = false;
+  /** "Can't go north." after a bump; cleared by the next move that happens. */
+  @state() private message = "";
+  /** The last bump, so the `@` nudges that way; `bumps` replays it each time. */
+  @state() private nudge?: Direction;
+  @state() private bumps = 0;
 
-  /**
-   * One command at a time. Keys pressed while a step is in flight are
-   * dropped rather than queued, so holding a key can't build a backlog that
-   * keeps walking after it's released. Holding a key still walks, at the OS key-repeat rate, until DR-0045 sets a pace.
-   */
-  private busy = false;
-  private blockedTimer?: ReturnType<typeof setTimeout>;
+  /** Bumped by every new world, so a step answered after it is ignored. */
+  private worldSerial = 0;
+  private walker = new Walker((d) => this.walk(d));
 
-  static styles = css`
-    /* DR-0017's colour tokens, copied from apps/tool/src/table/draw-tile.ts. */
-    :host {
-      --page: #ffffff;
-      --text: #1b1d21;
-      --muted: #5d636d;
-      --corridor-line: #1d5fa6;
-      --room-line: #8a4100;
-      --room-tint: #f2d0a6;
-      --hedge-bg: #eef2ec;
-      --hedge-glyph: #6f8a6a;
-      --frame: #c8ccd2;
-      --problem: #b00020;
-      --visited: rgba(27, 29, 33, 0.07);
-      --mono: "Cascadia Mono", Consolas, monospace;
-      color: var(--text);
-      background: var(--page);
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      padding: 1rem 1.5rem;
-      min-height: 100vh;
-      box-sizing: border-box;
-      font-family: system-ui, sans-serif;
-      font-size: 14px;
-    }
-    @media (prefers-color-scheme: dark) {
+  static styles = [
+    themeStyles,
+    css`
       :host {
-        --page: #15171c;
-        --text: #e4e6ea;
-        --muted: #9aa0aa;
-        --corridor-line: #7cb8f2;
-        --room-line: #f2a65a;
-        --room-tint: #4a3420;
-        --hedge-bg: #1c241d;
-        --hedge-glyph: #5a785a;
-        --frame: #3a3f48;
-        --problem: #ff8a95;
-        --visited: rgba(228, 230, 234, 0.08);
+        /* DR-0045's own tokens: the unknown haze (point 7) and the trail (point 6). */
+        --unknown: #d5d9df;
+        --trail: rgba(0, 0, 0, 0.07);
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        min-height: 100vh;
+        box-sizing: border-box;
+        font-family: system-ui, sans-serif;
+        font-size: 16px;
       }
-    }
-    header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem 1.5rem; }
-    h1 { font-size: 1.25rem; margin: 0; }
-    .muted { color: var(--muted); }
-    .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; }
-    .problem { color: var(--problem); margin: 0; white-space: pre-wrap; min-height: 1.2em; }
-    input, button {
-      font: inherit;
-      padding: 0.2rem 0.5rem;
-      border: 1px solid var(--frame);
-      background: var(--page);
-      color: var(--text);
-    }
-    input { font-family: var(--mono); width: 9rem; }
-    button { border-radius: 3px; cursor: pointer; }
-    button:disabled { cursor: default; opacity: 0.6; }
-    /* The map: DR-0017 rules 2 and 5, as the tool's Maze view draws it. */
-    .map {
-      font-family: var(--mono);
-      font-size: 18px;
-      font-variant-ligatures: none;
-      font-synthesis: none;
-      white-space: pre;
-      border: 1px solid var(--frame);
-      width: max-content;
-    }
-    /* A blocked move flashes the frame; the text cue beside it says why. */
-    .map.blocked { border-color: var(--problem); }
-    .row { display: block; }
-    .cell { background-repeat: no-repeat; }
-    .cell.corridor { color: var(--corridor-line); }
-    .cell.room { color: var(--room-line); }
-    .cell.hedge { color: var(--hedge-glyph); background-color: var(--hedge-bg); }
-    /* Visited: a faint wash, under the tint so rooms keep their floor. */
-    .cell.visited { background-color: var(--visited); }
-    .cell[class*="tint-"] { background-image: linear-gradient(var(--room-tint), var(--room-tint)); }
-    .tint-full { background-size: 100% 100%; }
-    .tint-lower { background-size: 100% 50%; background-position: bottom; }
-    .tint-upper { background-size: 100% 50%; background-position: top; }
-    .tint-left { background-size: 50% 100%; background-position: left; }
-    .tint-right { background-size: 50% 100%; background-position: right; }
-    .tint-lower-left { background-size: 50% 50%; background-position: left bottom; }
-    .tint-upper-left { background-size: 50% 50%; background-position: left top; }
-    .tint-upper-right { background-size: 50% 50%; background-position: right top; }
-    .tint-lower-right { background-size: 50% 50%; background-position: right bottom; }
-    /* The player: '@' in the text colour and bold, so it reads without colour. */
-    .cell.player { color: var(--text); font-weight: bold; outline: 2px solid var(--text); outline-offset: -2px; }
-    .cue { color: var(--problem); min-height: 1.4em; }
-  `;
+      @media (prefers-color-scheme: dark) {
+        :host {
+          --unknown: #0b0c0f;
+          --trail: rgba(255, 255, 255, 0.08);
+        }
+      }
+      .status { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem 1rem; }
+      .muted { color: var(--muted); }
+      .problem { color: var(--problem); margin: 0; white-space: pre-wrap; }
+      button {
+        font: inherit;
+        padding: 0.2rem 0.75rem;
+        border: 1px solid var(--frame);
+        background: var(--page);
+        color: var(--text);
+        border-radius: 3px;
+        cursor: pointer;
+      }
+      .stage { flex: 1; display: flex; align-items: center; justify-content: center; }
+      /* The map: DR-0017 rules 2 and 5 at 32px (DR-0045 point 2); the frame is the edge of sight. */
+      .map {
+        font-family: var(--mono);
+        font-size: 32px;
+        font-variant-ligatures: none;
+        font-synthesis: none;
+        white-space: pre;
+        border: 1px solid var(--frame);
+        width: max-content;
+      }
+      .row { display: block; }
+      .cell { background-repeat: no-repeat; }
+      .cell.corridor { color: var(--corridor-line); }
+      .cell.room { color: var(--room-line); }
+      .cell.hedge { color: var(--hedge-glyph); background-color: var(--hedge-bg); }
+      .cell.unknown { background-color: var(--unknown); }
+      .cell[class*="tint-"] { background-image: linear-gradient(var(--room-tint), var(--room-tint)); }
+      .tint-full { background-size: 100% 100%; }
+      .tint-lower { background-size: 100% 50%; background-position: bottom; }
+      .tint-upper { background-size: 100% 50%; background-position: top; }
+      .tint-left { background-size: 50% 100%; background-position: left; }
+      .tint-right { background-size: 50% 100%; background-position: right; }
+      .tint-lower-left { background-size: 50% 50%; background-position: left bottom; }
+      .tint-upper-left { background-size: 50% 50%; background-position: left top; }
+      .tint-upper-right { background-size: 50% 50%; background-position: right top; }
+      .tint-lower-right { background-size: 50% 50%; background-position: right bottom; }
+      /* The trail: an inset shadow paints over the background and tint, under the glyph. */
+      .cell.visited { box-shadow: inset 0 0 0 100vmax var(--trail); }
+      /* The player: a bold @ in the text colour (DR-0045 point 4). */
+      .at { display: inline-block; color: var(--text); font-weight: bold; }
+      .at.nudge-north { animation: nudge-north 120ms ease-out; }
+      .at.nudge-east { animation: nudge-east 120ms ease-out; }
+      .at.nudge-south { animation: nudge-south 120ms ease-out; }
+      .at.nudge-west { animation: nudge-west 120ms ease-out; }
+      @keyframes nudge-north { 50% { transform: translateY(-3px); } }
+      @keyframes nudge-east { 50% { transform: translateX(3px); } }
+      @keyframes nudge-south { 50% { transform: translateY(3px); } }
+      @keyframes nudge-west { 50% { transform: translateX(-3px); } }
+      @media (prefers-reduced-motion: reduce) {
+        .at[class*="nudge-"] { animation: none; }
+      }
+      .messages { display: flex; justify-content: space-between; gap: 1rem; min-height: 1.4em; }
+    `,
+  ];
 
   connectedCallback(): void {
     super.connectedCallback();
-    // On the window, not the element: keys work on load without a click.
+    // On the window, not the element: keys work from launch with no click.
     window.addEventListener("keydown", this.onKeydown);
-    void this.start(DEFAULT_SEED);
+    window.addEventListener("keyup", this.onKeyup);
+    // A key let go in another window never sends its keyup here.
+    window.addEventListener("blur", this.onBlur);
+    void focusWindow();
+    void this.launch();
   }
 
   disconnectedCallback(): void {
     window.removeEventListener("keydown", this.onKeydown);
-    clearTimeout(this.blockedTimer);
+    window.removeEventListener("keyup", this.onKeyup);
+    window.removeEventListener("blur", this.onBlur);
+    this.walker.releaseAll();
     super.disconnectedCallback();
   }
 
-  private async start(seed: number) {
-    if (this.busy) return;
-    this.busy = true;
+  private async launch() {
     try {
-      this.view = await startGame(seed);
-      this.worldSeed = seed;
-      this.error = undefined;
-      this.clearBlocked();
+      await this.start(await initialSeed());
     } catch (e) {
       this.error = errorText(e);
-    } finally {
-      this.busy = false;
+      this.starting = false;
     }
   }
 
-  private async move(direction: Direction) {
-    if (this.busy || !this.view) return;
-    this.busy = true;
+  private async start(seed: number) {
+    const serial = ++this.worldSerial;
+    this.walker.releaseAll();
+    this.starting = true;
+    try {
+      const view = await startGame(seed);
+      if (serial !== this.worldSerial) return;
+      this.world = { seed, start: view.player, view, steps: 0 };
+      this.error = undefined;
+      this.message = "";
+      this.nudge = undefined;
+    } catch (e) {
+      if (serial !== this.worldSerial) return;
+      this.error = errorText(e);
+    } finally {
+      if (serial === this.worldSerial) this.starting = false;
+    }
+  }
+
+  /** One step, for the walker. Rust decides; this only records the answer. */
+  private async walk(direction: Direction): Promise<StepOutcome> {
+    if (!this.world || this.starting) return "failed";
+    const serial = this.worldSerial;
     try {
       const view = await step(direction);
-      this.view = view;
+      if (serial !== this.worldSerial || !this.world) return "failed";
       this.error = undefined;
-      if (view.moved) this.clearBlocked();
-      else this.showBlocked();
+      if (view.moved) {
+        this.world = { ...this.world, view, steps: this.world.steps + 1 };
+        this.message = "";
+        this.nudge = undefined;
+        return "moved";
+      }
+      this.world = { ...this.world, view };
+      this.message = `Can't go ${direction}.`;
+      this.nudge = direction;
+      this.bumps++;
+      return "blocked";
     } catch (e) {
-      this.error = errorText(e);
-    } finally {
-      this.busy = false;
+      if (serial === this.worldSerial) this.error = errorText(e);
+      return "failed";
     }
-  }
-
-  private showBlocked() {
-    clearTimeout(this.blockedTimer);
-    this.blocked = true;
-    this.blockedTimer = setTimeout(() => (this.blocked = false), BLOCKED_CUE_MS);
-  }
-
-  private clearBlocked() {
-    clearTimeout(this.blockedTimer);
-    this.blocked = false;
   }
 
   private onKeydown = (event: KeyboardEvent) => {
     if (event.ctrlKey || event.altKey || event.metaKey) return;
-    // Typing a seed isn't walking.
-    if (event.composedPath().some((t) => t instanceof HTMLInputElement)) return;
+    // Keys in a text field are typing, if one is ever added.
+    if (event.composedPath().some((t) => t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement)) return;
     const direction = directionForKey(event.key);
     if (!direction) return;
     event.preventDefault(); // Arrow keys would scroll the page.
-    void this.move(direction);
+    // The game sets the pace of a held key, not the OS repeat.
+    if (!event.repeat && this.world && !this.starting) this.walker.press(direction);
   };
 
-  private onNewWorld() {
-    const parsed = parseSeed(this.seedText);
-    if ("seed" in parsed) void this.start(parsed.seed);
-  }
+  private onKeyup = (event: KeyboardEvent) => {
+    const direction = directionForKey(event.key);
+    if (direction) this.walker.release(direction);
+  };
 
-  private onSeedKeydown(event: KeyboardEvent) {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      this.onNewWorld();
-    }
+  private onBlur = () => this.walker.releaseAll();
+
+  private onNewWorld(event: Event) {
+    // Give up focus so Space and Enter can't press it again (DR-0045 point 1).
+    (event.currentTarget as HTMLElement).blur();
+    void this.start(randomSeed());
   }
 
   render() {
-    const parsed = parseSeed(this.seedText);
-    const problem = "problem" in parsed ? parsed.problem : undefined;
-    const view = this.view;
+    const world = this.world;
     return html`
-      <header>
-        <h1>Maze Maker</h1>
-        <span id="status" class="muted">
-          ${view ? `Seed ${this.worldSeed} · x ${view.player.x}, y ${view.player.y}` : "Growing the world…"}
+      <div class="status">
+        <span id="status">
+          ${world && !this.starting
+            ? statusText(world.seed, world.start, world.view.player, world.steps)
+            : "Growing the world…"}
         </span>
-      </header>
-      <div class="bar">
-        <label>Seed
-          <input
-            id="seed"
-            inputmode="numeric"
-            autocomplete="off"
-            .value=${this.seedText}
-            aria-invalid=${problem ? "true" : "false"}
-            aria-describedby="seed-problem"
-            @input=${(e: Event) => (this.seedText = (e.target as HTMLInputElement).value)}
-            @keydown=${this.onSeedKeydown}
-          />
-        </label>
-        <button id="new-world" @click=${this.onNewWorld} ?disabled=${!!problem}>New world</button>
-        <span class="muted">Arrow keys or WASD to walk.</span>
+        <button id="new-world" @click=${this.onNewWorld}>New world</button>
       </div>
-      <p id="seed-problem" class="problem">${problem ?? ""}</p>
       ${this.error ? html`<p class="problem" id="error" role="alert">${this.error}</p>` : nothing}
-      ${view ? this.renderMap(view) : nothing}
-      <span id="cue" class="cue" role="status">${this.blocked ? "Blocked: no way through there." : ""}</span>
+      <div class="stage">${world && !this.starting ? this.renderMap(world.view) : nothing}</div>
+      <div class="messages">
+        <span id="message" class="muted" aria-live="polite">${this.message}</span>
+        <span class="muted">Arrows or WASD to walk</span>
+      </div>
     `;
   }
 
   private renderMap(view: GameView) {
-    return html`<div
-      class="map ${this.blocked ? "blocked" : ""}"
-      role="img"
-      aria-label="The world around you, seed ${this.worldSeed}"
-    >${layoutGrid(view).map((row) => html`<span class="row">${row.map(renderCell)}</span>`)}</div>`;
+    return html`<div class="map" role="img" aria-label="World around you">
+      ${layoutGrid(view).map((row) => html`<span class="row">${row.map((c) => this.renderCell(c))}</span>`)}
+    </div>`;
   }
-}
 
-function renderCell(c: ScreenCell) {
-  const classes = [
-    "cell",
-    c.cell?.kind ?? "ungrown",
-    c.tint === "none" ? "" : `tint-${c.tint}`,
-    c.cell?.visited ? "visited" : "",
-    c.player ? "player" : "",
-  ].join(" ");
-  return html`<span class=${classes} data-x=${c.x} data-y=${c.y} aria-label=${cellLabel(c)}>${c.text}</span>`;
+  private renderCell(c: ScreenCell) {
+    const classes = [
+      "cell",
+      c.cell?.kind ?? "unknown",
+      c.tint === "none" ? "" : `tint-${c.tint}`,
+      c.cell?.visited ? "visited" : "",
+      c.player ? "player" : "",
+    ].join(" ");
+    // `keyed` remakes the @ on each bump, so its nudge animation plays again.
+    const glyph = c.player
+      ? keyed(this.bumps, html`<span class="at ${this.nudge ? `nudge-${this.nudge}` : ""}">@</span>`)
+      : c.glyph;
+    return html`<span class=${classes} data-x=${c.x} data-y=${c.y} aria-label=${cellLabel(c)}>${glyph}${c.filler}</span>`;
+  }
 }
 
 declare global {

@@ -1,8 +1,8 @@
 import { describe, expect, test } from "vitest";
 import { cellLabel, layoutGrid, tileName } from "./world-grid.ts";
-import type { GameView, ViewCell } from "./ipc.ts";
+import type { GameView, TileKind, ViewCell } from "./ipc.ts";
 
-const cell = (x: number, y: number, tile: string, orientation: number, kind: string, visited = false): ViewCell => ({
+const cell = (x: number, y: number, tile: string, orientation: number, kind: TileKind, visited = false): ViewCell => ({
   x,
   y,
   tile,
@@ -38,14 +38,19 @@ describe("layoutGrid", () => {
 
   test("rows run north to south and columns west to east", () => {
     const rows = layoutGrid(VIEW);
-    expect(rows.map((r) => r.map((c) => c.text).join(""))).toEqual(["░░░░░░", "──@─══", "      "]);
+    expect(rows.map((r) => r.map((c) => c.glyph + c.filler).join(""))).toEqual(["░░░░░░", "──@─══", "      "]);
     expect(rows[0][0]).toMatchObject({ x: 9, y: -5 });
     expect(rows[2][2]).toMatchObject({ x: 11, y: -3 });
   });
 
   test("ungrown cells are blank and carry no tile", () => {
     const south = layoutGrid(VIEW)[2];
-    expect(south.every((c) => c.cell === undefined && c.text === "  ")).toBe(true);
+    expect(south.every((c) => c.cell === undefined && c.glyph + c.filler === "  ")).toBe(true);
+  });
+
+  test("the player keeps the cell's tint and east filler", () => {
+    const rows = layoutGrid({ ...VIEW, player: { x: 11, y: -4 } });
+    expect(rows[1][1]).toMatchObject({ glyph: "@", filler: "═", tint: "lower", player: true });
   });
 
   test("a room keeps its floor tint", () => {
@@ -54,7 +59,7 @@ describe("layoutGrid", () => {
 
   test("the player shows even on an ungrown cell", () => {
     const rows = layoutGrid({ ...VIEW, cells: [] });
-    expect(rows[1][1].text).toBe("@ ");
+    expect(rows[1][1].glyph + rows[1][1].filler).toBe("@ ");
   });
 });
 

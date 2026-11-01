@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { directionForKey, parseSeed } from "./controls.ts";
+import { MAX_SEED, directionForKey, randomSeed } from "./controls.ts";
 
 describe("directionForKey", () => {
   test("arrows and WASD map to the four directions", () => {
@@ -19,16 +19,11 @@ describe("directionForKey", () => {
   });
 });
 
-describe("parseSeed", () => {
-  test("takes whole numbers up to u32", () => {
-    expect(parseSeed(" 42 ")).toEqual({ seed: 42 });
-    expect(parseSeed("4294967295")).toEqual({ seed: 4294967295 });
-  });
-
-  test("explains anything else", () => {
-    expect(parseSeed("")).toHaveProperty("problem");
-    expect(parseSeed("-1")).toHaveProperty("problem");
-    expect(parseSeed("1.5")).toHaveProperty("problem");
-    expect(parseSeed("4294967296")).toHaveProperty("problem");
+describe("randomSeed", () => {
+  test("is a whole number in u32 range", () => {
+    for (let i = 0; i < 100; i++) {
+      const seed = randomSeed();
+      expect(Number.isInteger(seed) && seed >= 0 && seed <= MAX_SEED).toBe(true);
+    }
   });
 });

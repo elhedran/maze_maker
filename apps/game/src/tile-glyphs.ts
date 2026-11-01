@@ -1,7 +1,7 @@
-// DR-0017's presentation mapping, copied from apps/tool/src/table/tile-glyphs.ts
-// with eastFiller from apps/tool/src/maze/maze-text.ts. Keep the copies in step
-// until DR-0043 says how apps share code.
-//
+// Copied from apps/tool/src/table/tile-glyphs.ts at 91db073 (DR-0043 point 5).
+// A fix here is made in the tool's copy too, unless Damson says the game draws differently.
+
+// DR-0017's presentation mapping: how the tool draws each (tile, orientation).
 // Generation never sees this; code identifies tiles by id and orientation.
 //
 // Keys are DR-0024 tile ids, which are the DR-0015 names in snake_case.
@@ -84,18 +84,8 @@ export function tileLook(id: string, orientation: number): TileLook {
   return LOOKS[id]?.[orientation] ?? UNKNOWN;
 }
 
-// Glyphs whose east arm is a single or a double line. Copied from
-// apps/tool/src/maze/maze-text.ts (DR-0029 point 7).
-const SINGLE_EAST = new Set([..."─└┌├┴┬┼╶╟"]);
-const DOUBLE_EAST = new Set([..."═╔╚╧╤"]);
-
-/**
- * The second character of a cell, carrying the glyph's east side so cells
- * come out about square and lines join across them (DR-0029 point 7).
- */
-export function eastFiller(glyph: string): string {
-  if (SINGLE_EAST.has(glyph)) return "─";
-  if (DOUBLE_EAST.has(glyph)) return "═";
-  if (glyph === "░") return "░";
-  return " ";
+/** "Corridor corner, open N and E", or just "Hedge" for a single orientation. */
+export function tileLabel(tile: { id: string; name: string; orientation: number }): string {
+  const { facing } = tileLook(tile.id, tile.orientation);
+  return facing ? `${tile.name}, ${facing}` : tile.name;
 }

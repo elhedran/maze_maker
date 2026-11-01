@@ -2,24 +2,27 @@
 // Pure, so the layout is tested without a DOM; the component only draws it.
 
 import type { GameView, ViewCell } from "./ipc.ts";
-import { eastFiller, tileLook, type Tint } from "./tile-glyphs.ts";
+import { tileLook, type Tint } from "./tile-glyphs.ts";
+import { eastFiller } from "./east-filler.ts";
 
 export interface ScreenCell {
   /** World position, for labels and tests. */
   x: number;
   y: number;
-  /** Undefined where nothing is stored yet: "not yet known" (DR-0044 rule 5), drawn blank until DR-0045 picks its look. */
+  /** Undefined where nothing is stored yet: "not yet known" (DR-0044 rule 5, DR-0045 point 7). */
   cell?: ViewCell;
-  /** Two characters, so cells come out about square (DR-0029 point 7). */
-  text: string;
+  /** The first character: the tile glyph, or `@` on the player (DR-0045 point 4). */
+  glyph: string;
+  /** The second character, carrying the glyph's east side (DR-0029 point 7). */
+  filler: string;
   tint: Tint;
   player: boolean;
 }
 
 /**
- * A (2r+1)-square window with the player in the middle. Rows run north to
- * south, so world y grows downwards, as the tool draws its mazes. Cells the
- * view doesn't send are ungrown, whatever shape Rust's radius has.
+ * A (2r+1)-square window with the player in the middle (DR-0045 point 3).
+ * Rows run north to south, so world y grows downwards, as the tool draws
+ * its mazes. Cells the view doesn't send are not yet known.
  */
 export function layoutGrid(view: GameView): ScreenCell[][] {
   const { player, radius } = view;
@@ -38,12 +41,12 @@ export function layoutGrid(view: GameView): ScreenCell[][] {
   return rows;
 }
 
-function cellLook(cell: ViewCell | undefined, isPlayer: boolean): { text: string; tint: Tint } {
-  if (!cell) return { text: isPlayer ? "@ " : "  ", tint: "none" };
+function cellLook(cell: ViewCell | undefined, isPlayer: boolean): Pick<ScreenCell, "glyph" | "filler" | "tint"> {
+  if (!cell) return { glyph: isPlayer ? "@" : " ", filler: " ", tint: "none" };
   const look = tileLook(cell.tile, cell.orientation);
-  // The player replaces the glyph rather than colouring it, so it reads
-  // without colour; the cell keeps its tint and its east filler.
-  return { text: (isPlayer ? "@" : look.glyph) + eastFiller(look.glyph), tint: look.tint };
+  // The player replaces the glyph; the cell keeps its tint and east filler,
+  // so the way east still joins (DR-0045 point 4).
+  return { glyph: isPlayer ? "@" : look.glyph, filler: eastFiller(look.glyph), tint: look.tint };
 }
 
 /** "corridor_corner" → "Corridor corner", for labels; the game has no tile names yet. */

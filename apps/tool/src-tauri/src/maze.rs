@@ -156,7 +156,7 @@ mod tests {
     }
 
     fn loaded_from(text: &str) -> Loaded {
-        let tile_set = TileSet::from_toml(text).expect("loads");
+        let tile_set = TileSet::from_toml_allow_incomplete(text).expect("loads");
         let table = Table::calculate(&tile_set);
         Loaded {
             tile_set,

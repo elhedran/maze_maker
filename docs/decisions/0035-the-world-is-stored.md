@@ -8,13 +8,16 @@ decision_status: proposed
 decision_kind: architecture
 major: true
 owners: [human:ian]
-approvers: [human:ian, engineer-ash/1]   # Ian's decision; architect/1 drafted it, so one engineer approves (DR-0018), Ash or Rowan
+approvers: [human:ian, engineer-rowan/1]   # Ian's decision; architect/1 drafted it, so one engineer approves (DR-0018)
 supersedes: []
 tags: [infinite-world, persistence, storage, determinism, game, slice-2-6]
 generated:
   by: architect/1
   at: 2026-11-01T08:24:59Z
-verified: []
+verified:
+  - by: human:ian
+    at: 2026-11-01T08:33:03Z
+    note: "Approved in conversation, verbatim: \"I approve DR-0035\". No proposal struck."
 ---
 
 # Context

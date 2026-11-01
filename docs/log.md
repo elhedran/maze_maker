@@ -2,6 +2,7 @@
 
 ## 2026-11-01
 
+- **Decision** DR-0035 approved by Ian, verbatim: "I approve DR-0035". No proposal struck. The world is stored, growth follows the player's path, and the store is an in-memory sparse table. A one-way door. It waits on one engineer (Rowan) before it is accepted.
 - **Update** Slice 2.2 joined and ready for Ian's demo at `75c52bb` on `claude/inspiring-goldberg-r4p2c4`: Ash's frontend rebased onto Rowan's Rust side with no conflicts, now using the generated bindings, and brought onto the session branch. 98 Rust and 124 Vitest tests pass, and the build is clean. Not yet tried in the Tauri window, which this cloud session can't open. Damson's review is still to come. Marram's roadmap picture is in `design/roadmap.svg`.
 - **Decision** DR-0034 accepted (written by Yew; approved by Rowan, and by Ash standing in for the architect): 2.2's data contract and plan.
 - **Update** Slice 2.2 Rust side built by Rowan on `rowan/2.2-cell-why`: an observer hook on WFC's collapse step (`generate` now runs through `generate_observed`), `trace.rs`, and the `explore_tile` and `trace_cell` commands with ts-rs bindings. 98 Rust tests pass, clippy and fmt are clean, and four deliberate breaks each failed a test.

@@ -84,6 +84,7 @@ fn collapse_trace(table: &Table, c: &maze_core::CollapseTrace) -> ipc::CollapseT
                 entry: view::entry_view(table, f.direction, k.variant, f.neighbour),
             })
             .collect(),
+        pressure: k.pressure,
         score: k.score,
         share: k.share,
     };

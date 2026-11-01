@@ -117,6 +117,11 @@ pub fn entry_view(
             .map(side_kind)
             .collect(),
         base: finite(e.base),
+        base_pair: e
+            .row_side
+            .base_pair(e.column_side)
+            .filter(|_| e.allowed)
+            .map(|p| p.key().to_string()),
         row_weight: finite(e.row_weight),
         column_weight: finite(e.column_weight),
         exceptions: e.exception.map(|i| i as u32).into_iter().collect(),
@@ -256,6 +261,7 @@ pub fn table_view(
             seed: n.seed,
             amount: n.amount,
         }),
+        opening_pressure: set.opening_pressure,
         tiles,
         total_rows,
         total_columns,
@@ -339,6 +345,37 @@ mod tests {
             .iter()
             .find(|e| e.direction == d && e.row == r && e.column == c)
             .unwrap()
+    }
+
+    /// DR-0038's additions: each entry names the `[bases]` key its base
+    /// comes from, and the view carries the opening pressure.
+    #[test]
+    fn entries_name_their_base_pair_and_the_view_its_pressure() {
+        let set = TileSet::from_toml(CORE).unwrap();
+        let view = ok_view(&loaded(CORE), &TableViewRequest::everything());
+        assert_eq!(view.opening_pressure, 1.0);
+        let mut seen = std::collections::BTreeSet::new();
+        for e in &view.entries {
+            match &e.base_pair {
+                None => assert!(!e.allowed),
+                Some(key) => {
+                    assert!(e.allowed);
+                    let pair = maze_core::BasePair::ALL
+                        .into_iter()
+                        .find(|p| p.key() == key)
+                        .expect("a [bases] key");
+                    assert_eq!(e.base, set.bases.get(pair), "{key}");
+                    seen.insert(key.clone());
+                }
+            }
+        }
+        assert_eq!(seen.len(), 6, "every pair appears: {seen:?}");
+        let pressed = CORE.replace(
+            "name = \"core\"\n",
+            "name = \"core\"\nopening_pressure = 0.5\n",
+        );
+        let view = ok_view(&loaded(&pressed), &TableViewRequest::everything());
+        assert_eq!(view.opening_pressure, 0.5);
     }
 
     #[test]
@@ -481,8 +518,8 @@ mod tests {
             .unwrap();
         assert_eq!(a, b);
         // serde_json writes NaN and infinity as null. Core sets noise, so
-        // nothing in this view should be null.
-        assert!(!a.contains("null"));
+        // the only nulls are the base pairs of entries that aren't allowed.
+        assert!(!a.replace("\"basePair\":null", "").contains("null"));
     }
 
     const SIDE_FILTERS: [SideFilter; 5] = [
@@ -801,7 +838,8 @@ mod tests {
             ]
         );
         let json = serde_json::to_string(&view).unwrap();
-        assert!(!json.contains("null"));
+        // Only zeros that may not meet have a null: their base pair.
+        assert!(!json.replace("\"basePair\":null", "").contains("null"));
         assert!(json.contains("\"centreSide\""));
     }
 

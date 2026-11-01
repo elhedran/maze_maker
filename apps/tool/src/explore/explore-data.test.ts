@@ -139,6 +139,7 @@ function trace(): CellTrace {
           factors: [
             { direction: "west", neighbour: 0, base: 1, exceptions: [], multiplier: 1, noise: 1.04, factor: 1.04, entry: entryFor(3, 3, 0) },
           ],
+          pressure: 1,
           score: 1.248,
           share: 0.51,
         },
@@ -148,6 +149,7 @@ function trace(): CellTrace {
           factors: [
             { direction: "west", neighbour: 0, base: 1, exceptions: [], multiplier: 1, noise: 1, factor: 1, entry: entryFor(3, 2, 0) },
           ],
+          pressure: 1,
           score: 1.2,
           share: 0.49,
         },

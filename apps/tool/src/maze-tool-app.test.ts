@@ -237,6 +237,7 @@ function backend(): Backend {
           tileSetPath: "data/tile-sets/core.toml",
           loadedAt: "2026-10-31T19:14:03Z",
           tileSetName: "core",
+          openingPressure: 1,
           noise: null,
           tiles: [HEDGE],
           totalRows: 1,

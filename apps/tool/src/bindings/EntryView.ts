@@ -26,7 +26,12 @@ allowed: boolean,
  * The side kinds the row's side may meet (DR-0015), so a 0 can say
  * what would have fitted. Filled for every entry.
  */
-mayMeet: Array<SideKind>, base: number, rowWeight: number, columnWeight: number, 
+mayMeet: Array<SideKind>, base: number, 
+/**
+ * The `[bases]` key `base` comes from, e.g. `passage_door`: the `pair`
+ * of a `base` edit target (DR-0038). `null` when not allowed.
+ */
+basePair: string | null, rowWeight: number, columnWeight: number, 
 /**
  * Indices into `TableView.exceptions`.
  */

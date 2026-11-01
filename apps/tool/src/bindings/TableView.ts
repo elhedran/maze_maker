@@ -15,6 +15,11 @@ revision: number, tileSetPath: string,
  */
 loadedAt: string, tileSetName: string, noise: NoiseView | null, 
 /**
+ * DR-0036 rule 9's factor, in (0, 1]; 1 when the file has no
+ * `opening_pressure` key, which turns it off.
+ */
+openingPressure: number, 
+/**
  * Every (tile, orientation) in table order, unfiltered.
  */
 tiles: Array<TileView>, 

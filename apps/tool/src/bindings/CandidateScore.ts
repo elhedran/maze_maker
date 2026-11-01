@@ -2,11 +2,18 @@
 import type { PairFactor } from "./PairFactor";
 
 /**
- * `score = tileWeight × factors[0].factor × factors[1].factor …`, and
- * `share = score / total`. Both come from Rust; don't recompute them.
+ * `score = tileWeight × factors[0].factor × factors[1].factor … ×
+ * pressure`, left to right, and `share = score / total`. Both come from
+ * Rust; don't recompute them.
  */
 export type CandidateScore = { tile: number, tileWeight: number, 
 /**
  * One per counted neighbour, N, E, S, W order.
  */
-factors: Array<PairFactor>, score: number, share: number, };
+factors: Array<PairFactor>, 
+/**
+ * Opening pressure (DR-0036 rule 9, DR-0038 rule 11), applied last:
+ * the tile set's `opening_pressure` when this candidate opens nothing
+ * new, else 1.
+ */
+pressure: number, score: number, share: number, };

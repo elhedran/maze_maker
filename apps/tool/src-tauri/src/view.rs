@@ -132,6 +132,26 @@ pub fn entry_view(
     }
 }
 
+/// Every (tile, orientation) in table order: `TableView.tiles`, and a
+/// before maze's own list (DR-0038 rule 9).
+pub fn tile_views(set: &TileSet) -> Vec<ipc::TileView> {
+    set.variants
+        .iter()
+        .map(|v| {
+            let tile = set.tile_of(v);
+            ipc::TileView {
+                id: tile.id.clone(),
+                name: tile.name.clone(),
+                kind: tile_kind(tile.kind),
+                tags: tile.tags.clone(),
+                orientation: v.orientation,
+                sides: v.sides.map(side_kind),
+                weight: finite(tile.weight),
+            }
+        })
+        .collect()
+}
+
 /// The explore view for one (tile, orientation) (DR-0026, DR-0034 rules 1
 /// to 3). Fails with `bad_request` if the loaded tile set has no such pair.
 pub fn explore(
@@ -206,22 +226,7 @@ pub fn table_view(
         });
     }
 
-    let tiles: Vec<ipc::TileView> = set
-        .variants
-        .iter()
-        .map(|v| {
-            let tile = set.tile_of(v);
-            ipc::TileView {
-                id: tile.id.clone(),
-                name: tile.name.clone(),
-                kind: tile_kind(tile.kind),
-                tags: tile.tags.clone(),
-                orientation: v.orientation,
-                sides: v.sides.map(side_kind),
-                weight: finite(tile.weight),
-            }
-        })
-        .collect();
+    let tiles = tile_views(set);
 
     // `edge` is which of a tile's sides is on the shared edge: the row's side
     // facing the direction, the column's side facing back.

@@ -35,8 +35,10 @@ const glyphOf = (tile: TileRef) => tileLook(tile.id, tile.orientation).glyph;
 @customElement("why-band")
 export class WhyBand extends LitElement {
   @property({ attribute: false }) why?: Why;
-  /** Shown instead of a trace: replaying, stale, nothing placed. */
+  /** Shown instead of a trace: replaying, stale, nothing placed. With a trace, shown under its heading instead of the table. */
   @property() note?: string;
+  /** Added to the heading after a reload: "after reload; was ═" (DR-0037 point 17). */
+  @property() suffix = "";
   @property({ attribute: false }) selected?: FactorKey;
 
   static styles = [
@@ -86,6 +88,7 @@ export class WhyBand extends LitElement {
       td.factor:hover { background: var(--highlight); }
       td.factor.selected { outline: 2px solid var(--selection); outline-offset: -2px; }
       .formula { color: var(--muted); font-size: 12px; max-width: 40rem; }
+      td.pressure.off { color: var(--muted); }
     `,
   ];
 
@@ -95,8 +98,14 @@ export class WhyBand extends LitElement {
     const glyph = glyphOf(why.tile);
     const counted = DIRECTIONS.filter((d) => why.neighbours.find((n) => n.direction === d)?.state === "counted");
     const anyLater = why.neighbours.some((n) => n.state === "later");
+    // DR-0037 point 15: the pressure column only while the loaded pressure is below 1.
+    const withPressure = why.openingPressure < 1;
+    const heading = html`<h3 id="why-heading">
+      ${headingText(glyph, why.seed, why.cell.x, why.cell.y, why.step, why.steps)}${this.suffix ? ` · ${this.suffix}` : ""}
+    </h3>`;
+    if (this.note) return html`${heading}<p class="note">${this.note}</p>`;
     return html`
-      <h3 id="why-heading">${headingText(glyph, why.seed, why.cell.x, why.cell.y, why.step, why.steps)}</h3>
+      ${heading}
       ${this.renderCross(why)}
       ${counted.length === 0 ? html`<p class="nothing-settled">${NOTHING_SETTLED}</p>` : nothing}
       ${why.candidates.length === 1 ? html`<p class="no-choice">${NO_CHOICE}</p>` : nothing}
@@ -109,17 +118,18 @@ export class WhyBand extends LitElement {
               const n = why.neighbours.find((x) => x.direction === d)!;
               return html`<th data-direction=${d}>× ${d} ${n.tile ? glyphOf(n.tile) : ""}</th>`;
             })}
+            ${withPressure ? html`<th class="pressure">× pressure</th>` : nothing}
             <th>= score</th>
             <th>chance</th>
             <th></th>
           </tr>
         </thead>
         <tbody>
-          ${why.candidates.map((c) => this.renderCandidate(c, counted))}
+          ${why.candidates.map((c) => this.renderCandidate(c, counted, withPressure))}
         </tbody>
       </table>
       <p class="ruled-out muted">${ruledOutText(why.ruledOut)}</p>
-      <p class="formula">${formulaText(why.total, glyph, anyLater)}</p>
+      <p class="formula">${formulaText(why.total, glyph, anyLater, withPressure)}</p>
     `;
   }
 
@@ -138,7 +148,7 @@ export class WhyBand extends LitElement {
     </div>`;
   }
 
-  private renderCandidate(c: WhyCandidate, counted: Direction[]) {
+  private renderCandidate(c: WhyCandidate, counted: Direction[], withPressure: boolean) {
     const label = tileLabel(c.tile);
     return html`<tr class=${c.drawn ? "drawn" : ""} data-tile="${c.tile.id}#${c.tile.orientation}">
       <td class="candidate">${renderGlyph(c.tile, label)}${label}</td>
@@ -147,6 +157,11 @@ export class WhyBand extends LitElement {
         const f = c.factors.find((x) => x.direction === d);
         return f ? this.renderFactor(c, f) : html`<td></td>`;
       })}
+      ${withPressure
+        ? c.pressure === 1
+          ? html`<td class="pressure off">1</td>`
+          : html`<td class="pressure">× ${formatValue(c.pressure)}</td>`
+        : nothing}
       <td>= ${formatValue(c.score)}</td>
       <td class="chance">${chanceText(c.share)}</td>
       <td class="drawn-word">${c.drawn ? "drawn" : ""}</td>

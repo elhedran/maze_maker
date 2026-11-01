@@ -45,6 +45,16 @@ export const NOTHING_SETTLED = "Nothing around it was settled yet, so only tile 
 export const NO_CHOICE = "Only one tile could fit here, so the draw had no choice.";
 /** Point 20, and DR-0034's `stale`. */
 export const RELOADED = "The tile set was reloaded. Pick the cell again in the Maze tab.";
+/** DR-0037 point 17: the heading's addition after a reload, with the old tile if it changed. */
+export function afterReloadText(wasGlyph?: string): string {
+  return wasGlyph ? `after reload; was ${wasGlyph}` : "after reload";
+}
+
+/** DR-0037 point 17: the regenerated maze gave up. */
+export function noMazeAfterReload(seed: number): string {
+  return `No maze for seed ${seed} after the reload.`;
+}
+
 /** Point 18. */
 export const NOT_PLACED = "Nothing was placed here: the attempt stopped first.";
 
@@ -54,9 +64,10 @@ export function ruledOutText(count: number): string {
 }
 
 /** The formula line under the candidates (point 12), with the sum of the scores. */
-export function formulaText(total: number, glyph: string, anyLater: boolean): string {
+export function formulaText(total: number, glyph: string, anyLater: boolean, withPressure = false): string {
   const lines = [
-    "score = tile weight × one pair factor per counted neighbour (side-pair base × exceptions × noise; tile weights left out).",
+    "score = tile weight × one pair factor per counted neighbour (side-pair base × exceptions × noise; tile weights left out)" +
+      (withPressure ? " × opening pressure, where the tile adds no new open side (a side past the maze's edge counts as new)." : "."),
     `chance = score ÷ ${formatValue(total)}, the sum of the scores.`,
   ];
   if (anyLater) lines.push(`Neighbours that came later were drawn to fit ${glyph}, so they don't count here.`);

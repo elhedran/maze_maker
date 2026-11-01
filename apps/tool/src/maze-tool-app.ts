@@ -157,7 +157,7 @@ export class MazeToolApp extends LitElement {
   /** After any successful load, Reload or a save: every view refetches where it is (DR-0029 point 3, DR-0037 point 6). */
   private afterLoad() {
     this.table?.refresh();
-    this.explore?.refresh();
+    this.explore?.refresh(this.revision);
     this.mazeView?.showChange();
     this.renderRoot.querySelector("world-view")?.tileSetReloaded();
   }

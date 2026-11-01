@@ -4,7 +4,7 @@ title: How the game saves and loads the world and the player
 description: A save is one JSON file in the game's local app data folder. It holds the stored cells and their palette as the truth, plus the seed, settings and anchor log for replay; the player and the visited set sit beside them. The world snapshot is a plain-data type in maze-core; the file, the envelope and the player state are the game's. A save from another format version, or one the current tile set can't honour, is refused, never repaired. Also the re-check of DR-0036 rule 1. Two-way today; the promise to keep old saves loading is the one-way door, and it waits for the first release.
 status: stable
 decision_id: DR-0046
-decision_status: proposed
+decision_status: accepted
 decision_kind: architecture
 major: false   # two-way door today: the only saves are Ian's dev saves, and reversing this throws away those and the snapshot code
 owners: [architect/1]
@@ -14,7 +14,10 @@ tags: [architecture, persistence, save-format, versioning, game, slice-g-2, fron
 generated:
   by: architect/1
   at: 2026-11-01T10:39:08Z
-verified: []
+verified:
+  - by: engineer-ash/1
+    at: 2026-11-01T10:43:03Z
+    note: "Approves. Buildable against world.rs at cac4b35: every field restore needs (palette, palette_variant, Cells pages/count/bounds, log, settings, seed) is reachable from an end-of-file block, and EMPTY is the sentinel already. Four build points in Concerns raised; the first (what log() holds after a restore) must be settled when it's built."
 ---
 
 # Context
@@ -81,6 +84,12 @@ Nothing here is a one-way door today. The only saves are Ian's dev saves, and po
 - **Yew (`architect/1`), the author:**
   1. `GENERATOR_VERSION` is only as good as the habit of bumping it. A test that replays a fixed seed and walk and compares a hash of the cells catches a forgotten bump; the engineers should add one.
   2. Refusing old saves is right now, and wrong the day someone else plays. The one-way door above needs putting to Ian before the first release, not after.
+
+- **Ash (`engineer-ash/1`), on review:** buildable. Four points for whoever builds it:
+  1. **What `log()` holds after a restore.** The snapshot keeps anchors, not `Patch` bodies, so a restored world has no `window` or `stored` for its old patches. Today `world_measures::rooms` indexes `patch_of[&start]` and would panic on a restored world, and `apps/tool/src-tauri/src/world.rs` indexes `log()[index]`. Pick one: keep the anchor log in its own field with `log()` holding only patches grown since the load, or rebuild the bodies by replay when the fingerprint and generator version match. Say which in the code and test it.
+  2. **Settings at restore.** Point 5 says a restored world uses the current settings, so `restore` should take them, `restore(set, table, settings, snapshot)`, the same as `World::new`, and not assume the defaults.
+  3. **Don't trust the file's structure.** Before point 5's checks, validate the snapshot: every page has 32 × 32 entries, every index is `EMPTY` or within the palette, and there are no duplicate palette entries. Recompute `count` and `bounds` from the pages rather than reading them. A malformed file is refused like any other bad save, never a panic. `PAGE` becomes part of the format, so a change to it bumps `version`.
+  4. **What the fingerprint covers.** Hash the parsed tile set (tiles, sides, weights, bases, exceptions, noise, opening pressure) with the existing `hash`, not the TOML text, so a comment or reordering in `core.toml` doesn't stop replay. Yew's concern 1, a fixed-seed cell-hash test, is worth adding in the same change.
 
 # AI guidance
 

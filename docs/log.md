@@ -2,6 +2,7 @@
 
 ## 2026-11-01
 
+- **Decision** DR-0046 accepted (written by Yew; approved by Ash, with four build concerns, the first to settle at build: a restored world has anchors but no patch bodies, so readers of `log()` must cope). DR-0043 point 5 now allows the Rust glyph copy in the `fun_walk` review example (Yew).
 - **Decision** DR-0046 proposed (Yew; waits on one engineer): saving and loading the world, G.2's gate. No one-way door now; whether old saves keep loading after the first release is Ian's, parked as Q-0015 (revisit before the first release). Yew re-checked DR-0036 rule 1: it stands, and one line of its reasoning is corrected.
 - **Update** Ian's new priority, verbatim (`human:ian`): "please prioritize the actual game now - we will only do new work on the tool to support issues we find in the game from now on." Marram recorded it in the roadmap's "Now and next". Marram's calls (two-way doors): work in flight (2.6 steps 2, 2b and 3) finishes and lands; 2.4 and 2.5 are on hold, not dropped; on a maze-core clash the game now wins (this reverses Marram's DR-0042 concern 1, noted there). G.2's save-format gate starts now alongside G.1. G.1 asked for the 2.6 Walker (backtrack-avoiding) on `main`, for Wren's scripted fun walks.
 - **Decision** DR-0045 accepted (written by Damson; approved by Marram, and by Ash standing in for the author, with five build calls under Concerns raised): the game screen for G.1.

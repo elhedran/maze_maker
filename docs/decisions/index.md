@@ -42,6 +42,7 @@ One file per decision ([DR-0001](/decisions/0001-record-every-decision.md)). Onl
 
 ## Proposed
 
+- [DR-0046 Saving and loading the world](/decisions/0046-saving-and-loading-the-world.md) - G.2's gate: stored cells are the truth, saved as JSON with the anchor log, settings, a tile set fingerprint and a generator version; a WorldSnapshot in maze-core, file I/O in the game; five load checks refuse a save rather than repair it; no migrations before the first release (Q-0015).
 - [DR-0043 How code is shared between the tool and the game](/decisions/0043-code-shared-by-tool-and-game.md) - apps/game shaped like the tool with its own IPC and bindings; the game uses World's public API, and its core additions go in play.rs; G.1 copies the tool's glyph code; maze-core stays engine-agnostic and Send for a later Unity wrapper.
 
 

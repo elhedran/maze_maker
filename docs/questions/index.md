@@ -4,7 +4,7 @@ Questions waiting on a decision, and how they were answered ([DR-0004](/decision
 
 ## Waiting on Ian
 
-_None._
+- [Q-0015 Do old saves keep loading across versions?](/questions/open/0015-do-old-saves-keep-loading.md) - Not yet: revisit before the game's first release. Yew's three options are in DR-0046; until then other-version saves are refused.
 
 ## Waiting on the team
 

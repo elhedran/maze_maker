@@ -11,9 +11,8 @@
 import { mockIPC } from "@tauri-apps/api/mocks";
 import { COMMANDS } from "../ipc.ts";
 import { DIRECTIONS } from "../table/format.ts";
-import type { EntryView } from "../bindings/EntryView.ts";
 import type { SideKind } from "../bindings/SideKind.ts";
-import type { TableView } from "../bindings/TableView.ts";
+import type { CompareRequest, CompareResult, EditRequest, EditResult, EntryView, TableView } from "../pending-bindings.ts";
 import type { TableViewRequest } from "../bindings/TableViewRequest.ts";
 import type { TileKind } from "../bindings/TileKind.ts";
 import type { TileView } from "../bindings/TileView.ts";
@@ -55,6 +54,13 @@ export const [STRAIGHT, CORNER_NE, CORNER_SW, CORNER_NW, ROOM, DOOR_E, DOOR_W, H
 function mayMeet(side: SideKind): SideKind[] {
   if (side === "passage" || side === "door") return ["passage", "door"];
   return [side];
+}
+
+/** The `[bases]` key for two sides that may meet (side.rs's BasePair, for the fixture only). */
+function basePair(a: SideKind, b: SideKind): string {
+  const word = (s: SideKind) => (s.startsWith("floor_wall") ? "floor_wall" : s);
+  const [x, y] = [word(a), word(b)].sort((p, q) => (p === "passage" ? -1 : q === "passage" ? 1 : p.localeCompare(q)));
+  return `${x}_${y}`;
 }
 
 function base(a: SideKind, b: SideKind): number {
@@ -110,7 +116,12 @@ export function entryFor(direction: number, r: number, c: number, tiles: TileVie
  * tile type only; a tag or side filter throws, so a test can't silently get
  * an unfiltered answer.
  */
-export function fixtureTableView(request: TableViewRequest, revision = 1, tiles: TileView[] = TILES): TableView {
+export function fixtureTableView(
+  request: TableViewRequest,
+  revision = 1,
+  tiles: TileView[] = TILES,
+  openingPressure = 1,
+): TableView {
   for (const f of [request.rowFilter, request.columnFilter]) {
     if (f.tags.length > 0 || f.sides.length > 0) throw new Error("the fixture doesn't filter by tag or side");
   }
@@ -143,6 +154,7 @@ export function fixtureTableView(request: TableViewRequest, revision = 1, tiles:
     directions,
     exceptions: [STRAIGHTS],
     entries,
+    openingPressure,
   };
 }
 
@@ -167,7 +179,7 @@ export function fixtureExplore(request: ExploreRequest, revision = 1, tiles: Til
       zeros: entries.filter((e) => !(e.weight > 0)),
     };
   });
-  return { revision, centre, arms: arms as ExploreView["arms"] };
+  return { revision, centre, arms: arms as unknown as ExploreView["arms"] };
 }
 
 const NORTH = 0;
@@ -237,6 +249,16 @@ export interface FixtureBackend {
   trace: (request: TraceCellRequest) => CellTrace;
   /** What `generate_maze` answers: by default ─┐, one row of two cells. */
   maze: (request: GenerateRequest) => GeneratedMaze;
+  /** The loaded `opening_pressure` (DR-0038), 1 when the key is absent. */
+  openingPressure: number;
+  /**
+   * What `edit_numbers` does. By default it applies tile weight and
+   * pressure edits, bumps the revision and records each edit; a test can
+   * make it throw a `refused` or `stale` error instead.
+   */
+  edit: (request: EditRequest) => EditResult;
+  /** What `compare_mazes` answers. By default `before` is null. */
+  compare: (request: CompareRequest) => CompareResult;
 }
 
 /** A mockIPC backend for the whole tool over the fixture (DR-0020). */
@@ -257,6 +279,31 @@ export function fixtureBackend(): FixtureBackend {
       failed: false,
       measures: [],
     }),
+    openingPressure: 1,
+    edit: (request) => {
+      if (request.revision !== state.revision) {
+        const error: FixtureError = { kind: "stale", messages: ["The tile set was reloaded since. Press Reload tile set."] };
+        throw error;
+      }
+      const edits = request.edits.map(({ target, value }) => {
+        let from: number | null = null;
+        if (target.kind === "tileWeight") {
+          from = state.tiles.find((t) => t.id === target.tileId)?.weight ?? null;
+          state.tiles = state.tiles.map((t) => (t.id === target.tileId ? { ...t, weight: value } : t));
+        } else if (target.kind === "openingPressure") {
+          from = state.openingPressure;
+          state.openingPressure = value;
+        }
+        return { at: "2026-11-01T20:31:00Z", target, number: "fixture", from, to: value };
+      });
+      state.revision++;
+      return {
+        reload: { revision: state.revision, tileSetPath: "data/tile-sets/core.toml", loadedAt: "2026-11-01T20:31:00Z" },
+        edits,
+        warnings: [],
+      };
+    },
+    compare: (request) => ({ before: null, after: state.maze(request), changed: [], edits: [] }),
   };
   mockIPC((cmd, payload) => {
     const request = (payload as { request?: unknown } | undefined)?.request;
@@ -266,7 +313,7 @@ export function fixtureBackend(): FixtureBackend {
         return "9.9.9";
       case COMMANDS.tableView:
         if (state.fails) throw state.fails;
-        return fixtureTableView(request as TableViewRequest, state.revision, state.tiles);
+        return fixtureTableView(request as TableViewRequest, state.revision, state.tiles, state.openingPressure);
       case COMMANDS.exploreTile:
         if (state.fails) throw state.fails;
         return fixtureExplore(request as ExploreRequest, state.revision, state.tiles);
@@ -280,6 +327,10 @@ export function fixtureBackend(): FixtureBackend {
       }
       case COMMANDS.generateMaze:
         return state.maze(request as GenerateRequest);
+      case COMMANDS.editNumbers:
+        return state.edit(request as EditRequest);
+      case COMMANDS.compareMazes:
+        return state.compare(request as CompareRequest);
       case COMMANDS.reloadTileSet:
         state.revision++;
         return { revision: state.revision, tileSetPath: "data/tile-sets/core.toml", loadedAt: "2026-11-01T09:30:00Z" };

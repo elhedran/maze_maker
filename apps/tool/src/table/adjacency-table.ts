@@ -467,6 +467,7 @@ export class AdjacencyTable extends LitElement {
       rowTile: this.rowTiles[at.row],
       columnTile: this.columnTiles[at.column],
       exceptions: v.exceptions,
+      tiles: v.tiles,
     };
   }
 }

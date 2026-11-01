@@ -570,7 +570,13 @@ export class ExploreView extends LitElement {
     const candidate = why.candidates.find((c) => sameTile(c.tile, key.candidate));
     const factor = candidate?.factors.find((f) => f.direction === key.direction);
     const explained: Explained | undefined = candidate &&
-      factor && { entry: factor.entry, rowTile: candidate.tile, columnTile: factor.neighbour, exceptions: why.exceptions };
+      factor && {
+        entry: factor.entry,
+        rowTile: candidate.tile,
+        columnTile: factor.neighbour,
+        exceptions: why.exceptions,
+        tiles: this.data?.tiles ?? [],
+      };
     return html`<table-explanation .explained=${explained} direction=${key.direction}></table-explanation>`;
   }
 
@@ -583,6 +589,7 @@ export class ExploreView extends LitElement {
       rowTile: centre.tile,
       columnTile: n.tile,
       exceptions: this.data?.exceptions ?? [],
+      tiles: this.data?.tiles ?? [],
     };
     return html`<table-explanation .explained=${explained} direction=${selected?.direction ?? "east"}>
       ${n && selected && n.entry.probability > 0

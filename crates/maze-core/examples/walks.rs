@@ -1,13 +1,15 @@
 //! G.1's scripted walk, ported into maze-core so Wren can tune
-//! `core.toml` (room and junction weights, `opening_pressure`) against the
+//! `core.toml` (room and junction weights, `world_opening_pressure`) against the
 //! same walks the G.1 fun review judged, without the game.
 //!
 //! cargo run --release -p maze-core --example walks -- [--tile-set PATH] [--seeds 1,2,3] [--steps N] [--opening-pressure P]
 //!
 //! Defaults: the repo's data/tile-sets/core.toml, seeds 1 to 5, 600 steps
-//! (the review's walks), the tile set's own `opening_pressure`. With
-//! `--opening-pressure P` (0 < P <= 1, 1 is off) the loaded tile set's value
-//! is replaced in memory; the file is never touched. Seeded: the same
+//! (the review's walks), the tile set's own `world_opening_pressure` (the
+//! world reads only that key, DR-0036 rule 9's note of 2026-11-01;
+//! `opening_pressure` is the single maze's). With `--opening-pressure P`
+//! (0 < P <= 1, 1 is off) the loaded tile set's world value is replaced in
+//! memory; the file is never touched. Seeded: the same
 //! arguments and file always print the same numbers.
 //!
 //! Ported from apps/game/src-tauri/examples/fun_walk.rs at 57344e6 (branch
@@ -572,7 +574,7 @@ fn main() {
     // the table doesn't depend on it, so replacing it here is enough.
     let pressure_note = match a.pressure {
         Some(p) => {
-            set.opening_pressure = p;
+            set.world_opening_pressure = p;
             "from --opening-pressure"
         }
         None => "from the tile set",
@@ -602,8 +604,8 @@ fn main() {
     };
 
     println!(
-        "G.1 walks: {path}, opening_pressure {} ({pressure_note}); {} steps per seed",
-        set.opening_pressure, a.steps
+        "G.1 walks: {path}, world_opening_pressure {} ({pressure_note}); {} steps per seed",
+        set.world_opening_pressure, a.steps
     );
     println!();
     table(

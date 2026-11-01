@@ -230,6 +230,54 @@ fn opening_pressure_must_be_above_0_and_at_most_1() {
     }
 }
 
+/// DR-0036 rule 9's note of 2026-11-01: `world_opening_pressure` has the
+/// same range check, and an absent key means 1 whatever
+/// `opening_pressure` says.
+#[test]
+fn world_opening_pressure_must_be_above_0_and_at_most_1() {
+    let bare: String = CORE
+        .lines()
+        .filter(|l| !l.trim_start().contains("opening_pressure"))
+        .map(|l| format!("{l}\n"))
+        .collect();
+    let with = |keys: &str| bare.replace("name = \"core\"\n", &format!("name = \"core\"\n{keys}"));
+    let world = |keys: &str| {
+        TileSet::from_toml(&with(keys))
+            .unwrap()
+            .world_opening_pressure
+    };
+    assert_eq!(world(""), 1.0);
+    assert_eq!(world("opening_pressure = 0.3\n"), 1.0, "no fallback");
+    assert_eq!(world("world_opening_pressure = 0.25\n"), 0.25);
+    assert_eq!(world("world_opening_pressure = 1.0\n"), 1.0);
+    let both = TileSet::from_toml(&with(
+        "opening_pressure = 0.5\nworld_opening_pressure = 0.7\n",
+    ))
+    .unwrap();
+    assert_eq!(
+        (both.opening_pressure, both.world_opening_pressure),
+        (0.5, 0.7)
+    );
+    for bad in [
+        "0.0",
+        "-0.0",
+        "-0.5",
+        "1.0000001",
+        "1.5",
+        "inf",
+        "-inf",
+        "nan",
+    ] {
+        let all = messages(&errors(&with(&format!("world_opening_pressure = {bad}\n"))));
+        assert_eq!(all.len(), 1, "{bad}: {all:#?}");
+        assert!(
+            all[0].starts_with("world_opening_pressure is "),
+            "{}",
+            all[0]
+        );
+    }
+}
+
 #[test]
 fn every_gap_is_reported_at_once() {
     let text = without_tile("corridor_crossroads")

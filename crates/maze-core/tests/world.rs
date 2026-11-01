@@ -21,7 +21,7 @@ fn core() -> (TileSet, Table) {
 fn core_with(extra: &str) -> (TileSet, Table) {
     let text: String = CORE
         .lines()
-        .filter(|l| !l.trim_start().starts_with("opening_pressure"))
+        .filter(|l| !l.trim_start().contains("opening_pressure"))
         .map(|l| format!("{l}\n"))
         .collect();
     let text = text.replace("name = \"core\"\n", &format!("name = \"core\"\n{extra}"));
@@ -349,14 +349,33 @@ fn a_forced_fallback_keeps_every_guarantee() {
 
 #[test]
 fn opening_pressure_keeps_every_guarantee_and_changes_growth() {
-    check_walks(Settings::default(), "opening_pressure = 0.3\n", 12, 300);
+    check_walks(
+        Settings::default(),
+        "world_opening_pressure = 0.3\n",
+        12,
+        300,
+    );
     let grown = |extra| {
         let (set, table) = core_with(extra);
         let mut world = World::new(&set, &table, 5, Settings::default()).unwrap();
         world.random_walk((0, 0), 5, 300);
         snapshot(&world)
     };
-    assert_ne!(grown(""), grown("opening_pressure = 0.3\n"));
+    assert_ne!(grown(""), grown("world_opening_pressure = 0.3\n"));
+}
+
+/// DR-0036 rule 9's note of 2026-11-01: the world reads only
+/// `world_opening_pressure`. The single maze's `opening_pressure`, with no
+/// world key, grows the same world as neither key.
+#[test]
+fn the_world_ignores_the_single_mazes_opening_pressure() {
+    let grown = |extra| {
+        let (set, table) = core_with(extra);
+        let mut world = World::new(&set, &table, 5, Settings::default()).unwrap();
+        world.random_walk((0, 0), 5, 300);
+        (snapshot(&world), world.log().to_vec())
+    };
+    assert_eq!(grown("opening_pressure = 0.3\n"), grown(""));
 }
 
 /// DR-0036 rule 10: the same seed and the same walk give the same world,

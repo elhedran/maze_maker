@@ -343,7 +343,7 @@ impl World {
         }
         Ok(World {
             set: set.clone(),
-            solver: Solver::new(set, table),
+            solver: Solver::for_world(set, table),
             fallback: set.variants.iter().map(|v| is_fallback(set, v)).collect(),
             settings,
             seed,

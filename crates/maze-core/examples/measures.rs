@@ -66,6 +66,8 @@ fn core(pressure: f64) -> (TileSet, Table) {
     // Set here rather than in the file; PRESSURES keep to the loader's
     // range (0 < value ≤ 1).
     set.opening_pressure = pressure;
+    // The world reads its own key (DR-0036 rule 9's note of 2026-11-01).
+    set.world_opening_pressure = pressure;
     let table = Table::calculate(&set);
     (set, table)
 }

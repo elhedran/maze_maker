@@ -163,12 +163,17 @@ struct Rules {
     /// `walkable[c * 4 + d]`: `c`'s side facing `d` isn't hedge.
     walkable: Vec<bool>,
     /// DR-0036 rule 9's factor for a candidate that opens nothing new: the
-    /// tile set's `opening_pressure`, 1 when the key is absent.
+    /// tile set's `opening_pressure` (or, for the world,
+    /// `world_opening_pressure`), 1 when the key is absent.
     pressure: f64,
 }
 
 impl Rules {
     fn new(set: &TileSet, table: &Table) -> Rules {
+        Rules::with_pressure(set, table, set.opening_pressure)
+    }
+
+    fn with_pressure(set: &TileSet, table: &Table, pressure: f64) -> Rules {
         let size = table.size();
         let weight = set.variants.iter().map(|v| set.tile_of(v).weight).collect();
         let mut pair = Vec::with_capacity(4 * size * size);
@@ -200,7 +205,7 @@ impl Rules {
             pair,
             supported,
             walkable,
-            pressure: set.opening_pressure,
+            pressure,
         }
     }
 
@@ -547,6 +552,15 @@ impl Solver {
     pub fn new(set: &TileSet, table: &Table) -> Solver {
         Solver {
             rules: Rules::new(set, table),
+        }
+    }
+
+    /// A solver for the grown world: as `new`, but with the tile set's
+    /// `world_opening_pressure` as rule 9's factor instead of
+    /// `opening_pressure` (DR-0036 rule 9, note of 2026-11-01).
+    pub fn for_world(set: &TileSet, table: &Table) -> Solver {
+        Solver {
+            rules: Rules::with_pressure(set, table, set.world_opening_pressure),
         }
     }
 

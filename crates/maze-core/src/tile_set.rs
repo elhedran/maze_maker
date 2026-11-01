@@ -157,6 +157,10 @@ pub struct TileSet {
     /// DR-0036 rule 9: the score factor for a tile that opens nothing new.
     /// In (0, 1]; 1 when the file leaves it out, which changes nothing.
     pub opening_pressure: f64,
+    /// The same factor for the grown world (DR-0036 rule 9, note of
+    /// 2026-11-01): only `World` reads it. In (0, 1]; 1 when the file
+    /// leaves it out. It never falls back to `opening_pressure`.
+    pub world_opening_pressure: f64,
     pub bases: Bases,
     pub tiles: Vec<Tile>,
     /// Every (tile, orientation) in table order: file order, then orientation.
@@ -183,6 +187,7 @@ pub enum LoadError {
     },
     BadNoiseAmount(f64),
     BadOpeningPressure(f64),
+    BadWorldOpeningPressure(f64),
     OrientationsMismatch {
         tile: String,
         declared: u32,
@@ -252,6 +257,10 @@ impl fmt::Display for LoadError {
                 f,
                 "opening_pressure is {v}; it must be above 0 and at most 1 (1 turns it off)."
             ),
+            LoadError::BadWorldOpeningPressure(v) => write!(
+                f,
+                "world_opening_pressure is {v}; it must be above 0 and at most 1 (1 turns it off)."
+            ),
             LoadError::OrientationsMismatch {
                 tile,
                 declared,
@@ -316,6 +325,7 @@ struct RawTileSet {
     name: String,
     noise: Option<Noise>,
     opening_pressure: Option<f64>,
+    world_opening_pressure: Option<f64>,
     bases: Bases,
     #[serde(default, rename = "tile")]
     tiles: Vec<RawTile>,
@@ -418,6 +428,11 @@ impl TileSet {
         let opening_pressure = raw.opening_pressure.unwrap_or(1.0);
         if !(opening_pressure > 0.0 && opening_pressure <= 1.0) {
             errors.push(LoadError::BadOpeningPressure(opening_pressure));
+        }
+        // No fallback to `opening_pressure`: absent means 1.
+        let world_opening_pressure = raw.world_opening_pressure.unwrap_or(1.0);
+        if !(world_opening_pressure > 0.0 && world_opening_pressure <= 1.0) {
+            errors.push(LoadError::BadWorldOpeningPressure(world_opening_pressure));
         }
         for pair in BasePair::ALL {
             let value = raw.bases.get(pair);
@@ -541,6 +556,7 @@ impl TileSet {
             name: raw.name,
             noise: raw.noise,
             opening_pressure,
+            world_opening_pressure,
             bases: raw.bases,
             tiles,
             variants,

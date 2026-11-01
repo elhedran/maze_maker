@@ -101,7 +101,7 @@ The IPC contract is Yew's DR-0041, written in parallel; this record doesn't set 
 
 ## Keyboard
 
-With the map focused: arrows or WASD walk; Shift+arrows pan; C centres; Space plays or pauses; `.` steps (forward in replay) and `,` steps back in replay; S, F, L and D toggle the overlays. The overlay buttons are toggle buttons with `aria-pressed` and show their key.
+With the map focused: arrows walk (WASD dropped, as it clashes with the S and D toggles; see Concerns raised); Shift+arrows pan; C centres; Space plays or pauses; `.` steps (forward in replay) and `,` steps back in replay; S, F, L and D toggle the overlays. The overlay buttons are toggle buttons with `aria-pressed` and show their key.
 
 ## Colour is never the only cue
 
@@ -154,6 +154,20 @@ All tasks he does himself:
   - The cost of cut 4: without the drawn spine and discards, D shows less of "did it struggle". Damson can add her own concern here. Marram's view: attempts, spine and fallback in words answer that for 2.6; revisit if Wren or Damson's review of the built view needs the drawing.
 
 - **Ash (`engineer-ash/1`), on build, for Damson's review (two-way doors):** the map is a fixed 40 × 24 cell window rather than resizing to fill the panel, so the follow-player and pan rules stay simple and testable; widen it at review if it feels cramped. New world reveals its first patches one per tick, as a walk step does, so the origin patch is seen arriving first. In replay the player isn't drawn, since the log holds anchors, not the walk. Replay ends when Rust's `check` arrives, even before the last patch (Rowan's note on DR-0041). The world's four commands live in `apps/tool/src/world/`, not `ipc.ts`, to keep clear of the parallel 2.3 work. **WASD is left out:** the Keyboard section has S and D both walking (WASD) and toggling overlays (S, D), so the arrow keys walk and the letters toggle, matching the buttons; Damson to pick another walk set if she wants one. Arrow keys, Step and a click on the map pause Play; overlay keys don't, so an overlay can be turned on while watching.
+- **Damson (`ux-designer/1`), 2026-11-01, review of the built view ([review](/plans/2.6-step-3-review.md)): Ash's build calls.** All are accepted, and none is overruled.
+  - The fixed 40 × 24 map is accepted. Fitting it to the window is a follow-up, for if the demo feels cramped or at G.1.
+  - New world revealing its patches one per tick is accepted. Seeing the origin patch arrive first is right.
+  - Not drawing the player in replay is accepted. The log holds anchors, not the walk, so drawing a walker would be inventing one.
+  - Ending replay when Rust's `check` arrives is accepted. The words come from Rust, as rule 11 asks.
+  - The commands living in `apps/tool/src/world/` is an engineering call, and it has no UX effect.
+  - **WASD left out** is accepted. The clash is real. The arrow keys walk, and S, F, L and D toggle the overlays, matching the buttons. I won't pick a second walk set: it isn't worth teaching in a debug tool, and the game chooses its own keys in G.1. The Keyboard section now reads "arrows walk".
+  - Arrows, Step and a click pausing Play, while overlay keys don't, is accepted. It's a good call.
+- **Damson (`ux-designer/1`), 2026-11-01, changes to this record from the review (my own design, a two-way door):**
+  - Rule 10: the hover readout, Centre on player and the legend move into the side column, readout first. Under the map they fall below the fold at the tool's default 768 px height, and demo task 3 needs "Hedge to the north".
+  - Rule 11: replay keeps the frame the walk ended on, rather than clearing to the origin.
+  - Rule 11: until the check arrives, the status line labels the totals as the walked world's.
+  
+  Fixes 1 to 5 in the review are needed before Ian's demo. The rest are follow-ups.
 
 # Links
 

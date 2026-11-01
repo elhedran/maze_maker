@@ -47,40 +47,70 @@ pub struct Frontier {
 /// Open and outward endpoints of `world`, counted per side.
 pub fn frontier(world: &World) -> Frontier {
     let set = world.tile_set();
-    let cells: BTreeMap<Pos, usize> = world.cells().collect();
-    let Some(((lx, ly), (hx, hy))) = bounds(cells.keys()) else {
+    let cells: Vec<(Pos, usize)> = world.cells().collect();
+    let Some(((lx, ly), (hx, hy))) = bounds(cells.iter().map(|(p, _)| p)) else {
         return Frontier::default();
     };
-    // Unsettled cells reached from the rim of the box one bigger than the
-    // stored cells' box.
-    let (lx, ly, hx, hy) = (lx - 1, ly - 1, hx + 1, hy + 1);
-    let inside = |p: Pos| (lx..=hx).contains(&p.0) && (ly..=hy).contains(&p.1);
-    let mut reached = BTreeSet::new();
-    let mut stack = Vec::new();
-    for x in lx..=hx {
-        stack.extend([(x, ly), (x, hy)]);
+    // A dense grid over the box one bigger than the stored cells' box, so
+    // its rim is all unsettled; flood unsettled cells inward from the rim.
+    let (lx, ly) = (lx - 1, ly - 1);
+    let (w, h) = ((hx + 2 - lx) as usize, (hy + 2 - ly) as usize);
+    let at = |p: Pos| (p.1 - ly) as usize * w + (p.0 - lx) as usize;
+    let mut stored = vec![false; w * h];
+    for &(p, _) in &cells {
+        stored[at(p)] = true;
     }
-    for y in ly..=hy {
-        stack.extend([(lx, y), (hx, y)]);
+    let mut reached = vec![false; w * h];
+    let mut stack: Vec<usize> = (0..w * h)
+        .filter(|&i| i % w == 0 || i / w == 0 || i % w == w - 1 || i / w == h - 1)
+        .collect();
+    for &i in &stack {
+        reached[i] = true;
     }
-    stack.retain(|p| !cells.contains_key(p));
-    reached.extend(stack.iter().copied());
-    while let Some(p) = stack.pop() {
-        for d in Direction::ALL {
-            let q = step(p, d);
-            if inside(q) && !cells.contains_key(&q) && reached.insert(q) {
-                stack.push(q);
+    while let Some(i) = stack.pop() {
+        let (x, y) = (i % w, i / w);
+        let next = [
+            (y > 0).then(|| i - w),
+            (x + 1 < w).then(|| i + 1),
+            (y + 1 < h).then(|| i + w),
+            (x > 0).then(|| i - 1),
+        ];
+        for j in next.into_iter().flatten() {
+            if !stored[j] && !reached[j] {
+                reached[j] = true;
+                stack.push(j);
             }
         }
     }
     let mut out = Frontier::default();
-    for (&p, &v) in &cells {
+    for &(p, v) in &cells {
         for d in Direction::ALL {
-            let q = step(p, d);
-            if walkable(set.variants[v].side(d)) && !cells.contains_key(&q) {
+            let q = at(step(p, d));
+            if walkable(set.variants[v].side(d)) && !stored[q] {
                 out.open += 1;
-                out.outward += usize::from(reached.contains(&q) || !inside(q));
+                out.outward += usize::from(reached[q]);
             }
+        }
+    }
+    out
+}
+
+/// Where stored cells lie in the window of the patch that stored them:
+/// `[d]` counts cells `d` cells in from the window's outer ring (the ring
+/// is 0; the last entry gathers everything further in), as (room cells,
+/// all cells). If rooms avoid patch edges, room cells are rarer near the
+/// ring than stored cells are in general.
+pub fn edge_profile(world: &World) -> [(usize, usize); 4] {
+    let set = world.tile_set();
+    let s = world.settings().patch_size as i64;
+    let mut out = [(0, 0); 4];
+    for patch in world.log() {
+        for &p in &patch.stored {
+            let (x, y) = (p.0 - patch.window.0, p.1 - patch.window.1);
+            let d = x.min(y).min(s - 1 - x).min(s - 1 - y).clamp(0, 3) as usize;
+            let v = world.get(p).expect("logged cells are stored");
+            out[d].0 += usize::from(set.tile_of(&set.variants[v]).kind == TileKind::Room);
+            out[d].1 += 1;
         }
     }
     out
@@ -171,18 +201,6 @@ pub fn rooms(world: &World) -> Vec<Room> {
         });
     }
     out
-}
-
-/// The chance that a `width` × `height` box placed at random inside a
-/// `size` × `size` window touches the window's outer ring: the baseline for
-/// "rooms avoid patch edges".
-pub fn edge_chance(width: usize, height: usize, size: usize) -> f64 {
-    if width > size || height > size {
-        return 1.0;
-    }
-    let places = ((size - width + 1) * (size - height + 1)) as f64;
-    let clear = (size.saturating_sub(width + 1) * size.saturating_sub(height + 1)) as f64;
-    1.0 - clear / places
 }
 
 /// Connectivity of a set of cells, from the player's side.
@@ -298,6 +316,43 @@ pub fn walk(
     }
 }
 
+/// An explorer's walk, standing in for a player who heads for the
+/// unknown: each step the player jumps to the stored cell of an open
+/// endpoint drawn from `seed` (any endpoint, outward or not), and the
+/// world grows around it with `grow`; `after` sees the world after each
+/// step. Grows far faster than `walk`, whose random walk mostly stays near
+/// where it has been.
+pub fn explore(
+    world: &mut World,
+    seed: u64,
+    steps: usize,
+    mut grow: impl FnMut(&mut World, Anchor),
+    mut after: impl FnMut(&World),
+) {
+    let mut rng = SplitMix64::new(seed);
+    for _ in 0..steps {
+        let set = world.tile_set();
+        let ends: Vec<Pos> = world
+            .cells()
+            .filter(|&(p, v)| {
+                Direction::ALL
+                    .into_iter()
+                    .any(|d| walkable(set.variants[v].side(d)) && world.get(step(p, d)).is_none())
+            })
+            .map(|(p, _)| p)
+            .collect();
+        if ends.is_empty() {
+            // Rule 6 says this can't happen; stop rather than spin.
+            return;
+        }
+        let at = ends[rng.below(ends.len())];
+        while let Some(anchor) = world.nearest_anchor(at) {
+            grow(world, anchor);
+        }
+        after(world);
+    }
+}
+
 /// The value at `q` (0 to 1) of `sorted`, nearest rank.
 pub fn quantile<T: Copy>(sorted: &[T], q: f64) -> Option<T> {
     if sorted.is_empty() {
@@ -326,16 +381,6 @@ mod tests {
             .iter()
             .position(|v| set.tile_of(v).id == id && v.orientation == orientation)
             .unwrap_or_else(|| panic!("no {id} at {orientation}"))
-    }
-
-    #[test]
-    fn edge_chance_matches_counting() {
-        // A 1 × 1 box in 4 × 4: 12 of 16 places are on the ring.
-        assert!((edge_chance(1, 1, 4) - 12.0 / 16.0).abs() < 1e-12);
-        // 2 × 2 in 4 × 4: only the centre place of 9 is clear.
-        assert!((edge_chance(2, 2, 4) - 8.0 / 9.0).abs() < 1e-12);
-        assert_eq!(edge_chance(3, 3, 4), 1.0);
-        assert_eq!(edge_chance(5, 1, 4), 1.0);
     }
 
     #[test]
@@ -489,5 +534,42 @@ mod tests {
         assert!(after.pages >= before.pages);
         assert!(after.table >= after.pages * 2048);
         assert!(after.log > before.log);
+    }
+
+    #[test]
+    fn exploring_grows_and_keeps_the_guarantees_measured_here() {
+        let (set, table) = core();
+        let mut world = a_world(&set, &table, 6);
+        let start = world.len();
+        let mut steps = 0;
+        explore(
+            &mut world,
+            11,
+            20,
+            |w, anchor| {
+                w.grow_at(anchor);
+            },
+            |w| {
+                steps += 1;
+                assert!(frontier(w).outward >= 1);
+            },
+        );
+        assert_eq!(steps, 20);
+        assert!(world.len() > start);
+        let cells: BTreeMap<Pos, usize> = world.cells().collect();
+        assert_eq!(connectivity(&set, &cells, (0, 0), true).areas, 1);
+    }
+
+    #[test]
+    fn edge_profile_counts_every_stored_cell_once() {
+        let (set, table) = core();
+        let mut world = a_world(&set, &table, 4);
+        world.random_walk((0, 0), 8, 150);
+        let profile = edge_profile(&world);
+        assert_eq!(profile.iter().map(|x| x.1).sum::<usize>(), world.len());
+        let room_cells: usize = rooms(&world).iter().map(|r| r.cells).sum();
+        assert_eq!(profile.iter().map(|x| x.0).sum::<usize>(), room_cells);
+        // Every patch but the first has its anchor on its window's ring.
+        assert!(profile[0].1 >= world.log().len() - 1);
     }
 }

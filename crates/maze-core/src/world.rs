@@ -1003,23 +1003,6 @@ impl World {
         }
     }
 
-    /// One step of `random_walk`'s choice from stored `at`, drawing from
-    /// `rng` exactly as it does: a joined neighbour, or `at` if there is
-    /// none. Doesn't grow.
-    pub fn random_step(&self, at: Pos, rng: &mut SplitMix64) -> Pos {
-        assert!(self.get(at).is_some(), "the walker stands on a stored cell");
-        let ways: Vec<Pos> = Direction::ALL
-            .into_iter()
-            .filter(|&d| self.joined(at, d))
-            .map(|d| step(at, d))
-            .collect();
-        if ways.is_empty() {
-            at
-        } else {
-            ways[rng.below(ways.len())]
-        }
-    }
-
     /// Whether `grow_at(anchor)` would accept `anchor`: for `from: None`,
     /// the world is empty; otherwise `anchor` is this world's anchor at its
     /// cell. Lets a replay that diverged say so instead of panicking.

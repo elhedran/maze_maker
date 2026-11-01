@@ -154,6 +154,9 @@ impl Exception {
 pub struct TileSet {
     pub name: String,
     pub noise: Option<Noise>,
+    /// DR-0036 rule 9: the score factor for a tile that opens nothing new.
+    /// In (0, 1]; 1 when the file leaves it out, which changes nothing.
+    pub opening_pressure: f64,
     pub bases: Bases,
     pub tiles: Vec<Tile>,
     /// Every (tile, orientation) in table order: file order, then orientation.
@@ -179,6 +182,7 @@ pub enum LoadError {
         value: f64,
     },
     BadNoiseAmount(f64),
+    BadOpeningPressure(f64),
     OrientationsMismatch {
         tile: String,
         declared: u32,
@@ -204,19 +208,21 @@ pub enum LoadError {
         second: String,
         example: String,
     },
-    /// DR-0031 rule 6: no fallback tile (weight above 0, every side hedge
+    /// DR-0036 rule 7: no fallback tile (weight above 0, every side hedge
     /// or passage) has exactly these sides.
     NoFallbackTile {
         sides: [SideKind; 4],
     },
-    /// DR-0031 rule 6: two fallback tiles whose facing sides are both
-    /// `side` have a table entry weight of 0. One per cause; `row` and
-    /// `column` are the first such pair in table order.
+    /// DR-0036 rule 7: a tile's hedge side meets a fallback tile's hedge,
+    /// or its passage or door side a fallback tile's passage, at table
+    /// entry weight 0. One per cause; `row` and `column` (the fallback
+    /// tile) are the first such pair in table order.
     FallbackPairIsZero {
         cause: String,
         row: String,
+        row_side: SideKind,
         column: String,
-        side: SideKind,
+        column_side: SideKind,
     },
 }
 
@@ -241,6 +247,10 @@ impl fmt::Display for LoadError {
             LoadError::BadNoiseAmount(v) => write!(
                 f,
                 "Noise amount is {v}; it must be at least 0 and less than 1."
+            ),
+            LoadError::BadOpeningPressure(v) => write!(
+                f,
+                "opening_pressure is {v}; it must be above 0 and at most 1 (1 turns it off)."
             ),
             LoadError::OrientationsMismatch {
                 tile,
@@ -276,18 +286,20 @@ impl fmt::Display for LoadError {
             ),
             LoadError::NoFallbackTile { sides } => write!(
                 f,
-                "No tile of weight above 0 has {}. Endless mazes need it: their fallback run uses only hedge and corridor tiles, and needs one for every mix of hedge and passage on a cell's four sides (DR-0031 rule 6).",
+                "No tile of weight above 0 has {}. Endless mazes need it: their fallback run uses only hedge and corridor tiles, and needs one for every mix of hedge and passage on a cell's four sides (DR-0036 rule 7).",
                 describe_sides(*sides)
             ),
             LoadError::FallbackPairIsZero {
                 cause,
                 row,
+                row_side,
                 column,
-                side,
+                column_side,
             } => write!(
                 f,
-                "{cause}, so {row} and {column} can't meet {side} to {side}. Endless mazes need it: their fallback run uses only hedge and corridor tiles, and needs every hedge-to-hedge and passage-to-passage pairing of them above 0 (DR-0031 rule 6).",
-                side = side.key()
+                "{cause}, so {row} and {column} can't meet {} to {}. Endless mazes need it: their fallback run uses only hedge and corridor tiles, and needs every tile's hedge to meet their hedge, and every passage or door to meet their passage, above 0 (DR-0036 rule 7).",
+                row_side.key(),
+                column_side.key()
             ),
         }
     }
@@ -303,6 +315,7 @@ struct RawTileSet {
     format: u32,
     name: String,
     noise: Option<Noise>,
+    opening_pressure: Option<f64>,
     bases: Bases,
     #[serde(default, rename = "tile")]
     tiles: Vec<RawTile>,
@@ -371,7 +384,7 @@ pub fn distinct_rotations(sides: [SideKind; 4]) -> Vec<(u32, [SideKind; 4])> {
 
 impl TileSet {
     /// Parses and validates a tile set (DR-0024), and checks it can make
-    /// endless mazes (DR-0031 rule 6, `completeness::check`). The tool's
+    /// endless mazes (DR-0036 rule 7, `completeness::check`). The tool's
     /// Reload comes through here, so its banner shows every error. On
     /// failure, returns every problem found; the completeness check reads
     /// the table, so it runs only once everything else passes.
@@ -385,7 +398,7 @@ impl TileSet {
         }
     }
 
-    /// As `from_toml`, without DR-0031's completeness check: for small sets
+    /// As `from_toml`, without DR-0036's completeness check: for small sets
     /// that can't make endless mazes and aren't meant to, such as test
     /// fixtures for the table or for 2.1's restarts. Every other check
     /// still runs. The tool and the game load with `from_toml`.
@@ -401,6 +414,10 @@ impl TileSet {
             && !(noise.amount.is_finite() && (0.0..1.0).contains(&noise.amount))
         {
             errors.push(LoadError::BadNoiseAmount(noise.amount));
+        }
+        let opening_pressure = raw.opening_pressure.unwrap_or(1.0);
+        if !(opening_pressure > 0.0 && opening_pressure <= 1.0) {
+            errors.push(LoadError::BadOpeningPressure(opening_pressure));
         }
         for pair in BasePair::ALL {
             let value = raw.bases.get(pair);
@@ -523,6 +540,7 @@ impl TileSet {
         let set = TileSet {
             name: raw.name,
             noise: raw.noise,
+            opening_pressure,
             bases: raw.bases,
             tiles,
             variants,

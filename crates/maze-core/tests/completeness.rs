@@ -1,4 +1,4 @@
-//! DR-0031 rule 6, the completeness check, as an error when a tile set
+//! DR-0036 rule 7 (carrying DR-0031 rule 6), the completeness check, as an error when a tile set
 //! loads (roadmap 2.6 step 1). The tool's Reload calls `TileSet::from_toml`,
 //! so these are the messages its banner shows.
 
@@ -83,7 +83,7 @@ fn a_missing_crossroads_is_refused() {
     );
     assert_eq!(
         errors[0].to_string(),
-        "No tile of weight above 0 has passage on all four sides (a crossroads). Endless mazes need it: their fallback run uses only hedge and corridor tiles, and needs one for every mix of hedge and passage on a cell's four sides (DR-0031 rule 6)."
+        "No tile of weight above 0 has passage on all four sides (a crossroads). Endless mazes need it: their fallback run uses only hedge and corridor tiles, and needs one for every mix of hedge and passage on a cell's four sides (DR-0036 rule 7)."
     );
 }
 
@@ -111,7 +111,7 @@ fn a_passage_passage_base_of_zero_is_refused() {
     assert_eq!(
         messages(&errors),
         vec![
-            "Base passage_passage is 0, so corridor_straight and corridor_straight can't meet passage to passage. Endless mazes need it: their fallback run uses only hedge and corridor tiles, and needs every hedge-to-hedge and passage-to-passage pairing of them above 0 (DR-0031 rule 6)."
+            "Base passage_passage is 0, so corridor_straight and corridor_straight can't meet passage to passage. Endless mazes need it: their fallback run uses only hedge and corridor tiles, and needs every tile's hedge to meet their hedge, and every passage or door to meet their passage, above 0 (DR-0036 rule 7)."
         ]
     );
 }
@@ -122,7 +122,7 @@ fn a_hedge_hedge_base_of_zero_is_refused() {
     assert_eq!(errors.len(), 1, "{:#?}", messages(&errors));
     assert!(matches!(
         &errors[0],
-        LoadError::FallbackPairIsZero { cause, side: SideKind::Hedge, .. }
+        LoadError::FallbackPairIsZero { cause, row_side: SideKind::Hedge, .. }
             if cause == "Base hedge_hedge is 0"
     ));
     let message = errors[0].to_string();
@@ -140,24 +140,78 @@ fn a_straight_to_straight_multiplier_of_zero_is_refused() {
         vec![LoadError::FallbackPairIsZero {
             cause: "Exception \"Long straights are rarer than turns\" has multiplier 0".into(),
             row: "corridor_straight".into(),
+            row_side: SideKind::Passage,
             column: "corridor_straight".into(),
-            side: SideKind::Passage,
+            column_side: SideKind::Passage,
         }]
     );
     assert!(errors[0].to_string().contains("Endless mazes need it"));
 }
 
-/// The check is rule 6 and no wider: zeros among room tiles, or between a
-/// room tile and a corridor, don't touch the fallback run.
+/// Rule 7's added clause: a stored doorway's door can meet the fallback's
+/// passage across the frontier, so a zero there is refused too.
+#[test]
+fn a_doorway_against_a_dead_end_of_zero_is_refused() {
+    let errors = errors(&edit("multiplier = 0.1", "multiplier = 0.0"));
+    assert_eq!(
+        errors,
+        vec![LoadError::FallbackPairIsZero {
+            cause: "Exception \"Doorway rarely faces a dead end\" has multiplier 0".into(),
+            row: "room_doorway".into(),
+            row_side: SideKind::Door,
+            column: "corridor_dead_end".into(),
+            column_side: SideKind::Passage,
+        }]
+    );
+}
+
+#[test]
+fn a_passage_door_base_of_zero_is_refused() {
+    let all = messages(&errors(&edit("passage_door = 1.0", "passage_door = 0.0")));
+    assert_eq!(all.len(), 1, "{all:#?}");
+    assert!(
+        all[0].starts_with("Base passage_door is 0, so room_doorway and "),
+        "{}",
+        all[0]
+    );
+    assert!(all[0].contains("can't meet door to passage"), "{}", all[0]);
+}
+
+/// The check is rule 7 and no wider: zeros among room tiles, or a tile no
+/// one can draw, don't touch the fallback run.
 #[test]
 fn zeros_outside_the_fallback_tiles_still_load() {
     for text in [
         edit("door_door = 0.3", "door_door = 0.0"),
-        edit("multiplier = 0.1", "multiplier = 0.0"),
+        edit("floor_floor = 1.0", "floor_floor = 0.0"),
         with_weight("open_room", "0.0"),
         with_weight("room_doorway", "0.0"),
     ] {
         TileSet::from_toml(&text).unwrap_or_else(|e| panic!("refused: {e:?}"));
+    }
+}
+
+#[test]
+fn opening_pressure_must_be_above_0_and_at_most_1() {
+    let with = |v: &str| {
+        CORE.replace(
+            "name = \"core\"\n",
+            &format!("name = \"core\"\nopening_pressure = {v}\n"),
+        )
+    };
+    assert_eq!(TileSet::from_toml(CORE).unwrap().opening_pressure, 1.0);
+    assert_eq!(
+        TileSet::from_toml(&with("0.25")).unwrap().opening_pressure,
+        0.25
+    );
+    assert_eq!(
+        TileSet::from_toml(&with("1.0")).unwrap().opening_pressure,
+        1.0
+    );
+    for bad in ["0.0", "-0.5", "1.5", "nan"] {
+        let all = messages(&errors(&with(bad)));
+        assert_eq!(all.len(), 1, "{bad}: {all:#?}");
+        assert!(all[0].starts_with("opening_pressure is "), "{}", all[0]);
     }
 }
 

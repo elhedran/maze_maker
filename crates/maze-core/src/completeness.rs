@@ -1,22 +1,27 @@
-//! The completeness check (DR-0031 rule 6), run when a tile set loads.
+//! The completeness check (DR-0036 rule 7, carrying DR-0031 rule 6), run
+//! when a tile set loads.
 //!
-//! Endless mazes need a last-resort run that can't contradict. It uses only
-//! the *fallback tiles*: those of weight above 0 whose four sides are each
-//! hedge or passage (in the core set: hedge, dead ends, corners, straights,
-//! Ts and the crossroads). That run can't contradict when
+//! A patch's last-resort run can't contradict. It uses only the *fallback
+//! tiles*: those of weight above 0 whose four sides are each hedge or
+//! passage (in the core set: hedge, dead ends, corners, straights, Ts and
+//! the crossroads), and it meets stored tiles of every kind. It can't
+//! contradict when
 //!
 //! 1. each of the 16 ways to put hedge or passage on a cell's four sides is
 //!    some fallback tile's sides, and
-//! 2. any two fallback tiles whose facing sides are both hedge or both
-//!    passage have a table entry weight above 0, in every direction.
+//! 2. in every direction, every tile of weight above 0 has an entry weight
+//!    above 0 with every fallback tile that faces its hedge side with hedge,
+//!    or its passage or door side with passage.
 //!
+//! Clause 2 covers fallback tiles against each other, and stored room
+//! hedge and doorway doors against the fallback across the frontier
+//! (stored cells show only hedge, passage or door there, DR-0036 rule 1).
 //! Then each cell edge settles on its own, and propagation never empties a
-//! cell (the research note's "Why the fallback can't fail"). Condition 2
-//! reads entry weights, the weight the solver's support reads (DR-0028
-//! rule 1), not tile weights: a `passage_passage` or `hedge_hedge` base of
-//! 0, or an exception multiplier of 0, breaks the proof while every tile
-//! weight is still above 0. A column pinned passage north and south can
-//! then hold only straights, and straight can't meet straight.
+//! cell (the research note's "Why the fallback can't fail"). Clause 2 reads
+//! entry weights, the weight the solver's support reads (DR-0028 rule 1),
+//! not tile weights: a `passage_passage` or `hedge_hedge` base of 0, or an
+//! exception multiplier of 0, breaks the proof while every tile weight is
+//! still above 0.
 
 use crate::side::{Direction, SideKind};
 use crate::table::{Entry, Table};
@@ -46,8 +51,8 @@ fn mixes() -> impl Iterator<Item = [SideKind; 4]> {
     })
 }
 
-/// Every way `set` (with `table` calculated from it) falls short of DR-0031
-/// rule 6: one error per missing mix of sides, and one per cause of a zero
+/// Every way `set` (with `table` calculated from it) falls short of DR-0036
+/// rule 7: one error per missing mix of sides, and one per cause of a zero
 /// pairing, with the first such pair in table order as its example. Empty
 /// when the set can make endless mazes.
 pub fn check(set: &TileSet, table: &Table) -> Vec<LoadError> {
@@ -58,14 +63,20 @@ pub fn check(set: &TileSet, table: &Table) -> Vec<LoadError> {
         .filter(|sides| !fallback.iter().any(|&v| set.variants[v].sides == *sides))
         .map(|sides| LoadError::NoFallbackTile { sides })
         .collect();
+    let live: Vec<usize> = (0..set.variants.len())
+        .filter(|&v| set.tile_of(&set.variants[v]).weight > 0.0)
+        .collect();
     let mut causes: Vec<String> = Vec::new();
     for d in Direction::ALL {
-        for &row in &fallback {
+        for &row in &live {
             for &column in &fallback {
                 let entry = table.entry(d, row, column);
-                // Fallback sides are hedge or passage, so they pair up
-                // exactly when they are the same kind.
-                if entry.row_side != entry.column_side || entry.weight > 0.0 {
+                let must_meet = matches!(
+                    (entry.row_side, entry.column_side),
+                    (SideKind::Hedge, SideKind::Hedge)
+                        | (SideKind::Passage | SideKind::Door, SideKind::Passage)
+                );
+                if !must_meet || entry.weight > 0.0 {
                     continue;
                 }
                 let cause = zero_cause(set, entry);
@@ -75,8 +86,9 @@ pub fn check(set: &TileSet, table: &Table) -> Vec<LoadError> {
                 errors.push(LoadError::FallbackPairIsZero {
                     cause: cause.clone(),
                     row: set.tile_of(&set.variants[row]).id.clone(),
+                    row_side: entry.row_side,
                     column: set.tile_of(&set.variants[column]).id.clone(),
-                    side: entry.row_side,
+                    column_side: entry.column_side,
                 });
                 causes.push(cause);
             }
@@ -85,9 +97,9 @@ pub fn check(set: &TileSet, table: &Table) -> Vec<LoadError> {
     errors
 }
 
-/// Why an allowed entry between two fallback tiles has weight 0. Their tile
-/// weights are above 0, and noise is above 0 (its amount is below 1), so it
-/// is the base, the exception, or the product rounding to 0.
+/// Why an allowed entry between two tiles of weight above 0 has weight 0.
+/// Noise is above 0 (its amount is below 1), so it is the base, the
+/// exception, or the product rounding to 0.
 fn zero_cause(set: &TileSet, entry: &Entry) -> String {
     let exception = entry
         .exception
@@ -96,7 +108,7 @@ fn zero_cause(set: &TileSet, entry: &Entry) -> String {
         let pair = entry
             .row_side
             .base_pair(entry.column_side)
-            .expect("fallback sides of the same kind may meet");
+            .expect("hedge meets hedge, and passage or door meets passage");
         format!("Base {} is 0", pair.key())
     } else if let Some(i) = exception {
         format!("Exception \"{}\" has multiplier 0", set.exceptions[i].name)

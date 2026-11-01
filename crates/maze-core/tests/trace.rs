@@ -16,7 +16,8 @@ fn core() -> (TileSet, Table) {
 }
 
 fn load(text: &str) -> (TileSet, Table) {
-    let set = TileSet::from_toml(text).unwrap_or_else(|e| panic!("fixture failed: {e:?}"));
+    let set = TileSet::from_toml_allow_incomplete(text)
+        .unwrap_or_else(|e| panic!("fixture failed: {e:?}"));
     let table = Table::calculate(&set);
     (set, table)
 }

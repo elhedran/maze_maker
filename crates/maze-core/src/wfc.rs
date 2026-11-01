@@ -15,7 +15,7 @@
 //! runs in a fixed order (row-major cells, table-order candidates, FIFO
 //! propagation). No hash map decides anything.
 
-use crate::side::Direction;
+use crate::side::{Direction, SideKind};
 use crate::table::Table;
 use crate::tile_set::TileSet;
 use std::collections::VecDeque;
@@ -156,6 +156,12 @@ struct Rules {
     /// `supported[(d * size + c) * size + n]`: `n` may lie `d` of `c`,
     /// that is the entry's weight is above 0 (DR-0028 rule 1).
     supported: Vec<bool>,
+    /// `walkable[c * 4 + d]`: `c`'s side facing `d` isn't hedge.
+    walkable: Vec<bool>,
+    /// DR-0036 rule 9's factor for a candidate that opens nothing new.
+    /// Always 1 in `generate`: the tool's trace has no pressure factor yet
+    /// (2.3 brings it into the tool).
+    pressure: f64,
 }
 
 impl Rules {
@@ -180,11 +186,20 @@ impl Rules {
                 }
             }
         }
+        let walkable = set
+            .variants
+            .iter()
+            .flat_map(|v| v.sides.map(|s| s != SideKind::Hedge))
+            .collect();
         Rules {
             size,
             weight,
             pair,
             supported,
+            walkable,
+            // 1 for 2.1's mazes and their trace (DR-0034); only world
+            // growth applies the tile set's value, through `Solver::new`.
+            pressure: 1.0,
         }
     }
 
@@ -202,6 +217,9 @@ struct Wave<'r> {
     possible: Vec<bool>,
     count: Vec<usize>,
     collapsed: Vec<Option<usize>>,
+    /// `outside[cell * 4 + d]`: the settled tile past the grid's edge `d`
+    /// of `cell`, if any (DR-0036 rule 3). Always `None` for 2.1's mazes.
+    outside: Vec<Option<usize>>,
 }
 
 /// A cell ran out of candidates.
@@ -221,24 +239,52 @@ impl<'r> Wave<'r> {
             possible: row.repeat(cells),
             count: vec![live; cells],
             collapsed: vec![None; cells],
+            outside: vec![None; cells * 4],
         }
     }
 
-    /// As `new`, but each cell starts from `mask[cell * size + variant]`,
-    /// still without zero-weight tiles: a chunk's border labels, pinned
-    /// spine and fallback tiles (DR-0031 rule 3). `run` fails on an empty
-    /// cell and propagates every cell first, so the masks spread with no
-    /// other change. Panics if `mask` doesn't fit the grid.
-    fn with_mask(rules: &'r Rules, width: usize, height: usize, mask: &[bool]) -> Wave<'r> {
+    /// As `new`, but starting from `start` (DR-0036 rule 3): each cell
+    /// keeps only the variants its mask allows (never a zero-weight tile),
+    /// a settled cell is collapsed to its tile, and an edge cell keeps only
+    /// what the settled tile beyond it supports. `run` fails on an empty
+    /// cell and propagates every cell first, so all of it spreads with no
+    /// other change. Panics if `start` doesn't fit the grid.
+    fn with_start(rules: &'r Rules, width: usize, height: usize, start: &Start) -> Wave<'r> {
         let mut wave = Wave::new(rules, width, height);
-        assert_eq!(mask.len(), wave.possible.len(), "mask doesn't fit the grid");
-        for (p, &m) in wave.possible.iter_mut().zip(mask) {
+        let cells = width * height;
+        assert_eq!(
+            start.mask.len(),
+            wave.possible.len(),
+            "mask doesn't fit the grid"
+        );
+        assert_eq!(start.settled.len(), cells, "settled doesn't fit the grid");
+        assert_eq!(
+            start.outside.len(),
+            cells * 4,
+            "outside doesn't fit the grid"
+        );
+        let size = rules.size;
+        for (p, &m) in wave.possible.iter_mut().zip(&start.mask) {
             *p &= m;
         }
-        for (cell, count) in wave.count.iter_mut().enumerate() {
-            let row = &wave.possible[cell * rules.size..(cell + 1) * rules.size];
-            *count = row.iter().filter(|&&p| p).count();
+        for cell in 0..cells {
+            if let Some(tile) = start.settled[cell] {
+                for v in 0..size {
+                    wave.possible[cell * size + v] = v == tile;
+                }
+                wave.collapsed[cell] = Some(tile);
+            }
+            for d in Direction::ALL {
+                if let Some(n) = start.outside[cell * 4 + d.index()] {
+                    for c in 0..size {
+                        wave.possible[cell * size + c] &= rules.supported[rules.at(d, c, n)];
+                    }
+                }
+            }
+            let row = &wave.possible[cell * size..(cell + 1) * size];
+            wave.count[cell] = row.iter().filter(|&&p| p).count();
         }
+        wave.outside = start.outside.clone();
         wave
     }
 
@@ -328,9 +374,9 @@ impl<'r> Wave<'r> {
         let rules = self.rules;
         let settled: Vec<(Direction, usize)> = Direction::ALL
             .into_iter()
-            .filter_map(|d| {
-                let n = neighbour(self.width, self.height, cell, d)?;
-                Some((d, self.collapsed[n]?))
+            .filter_map(|d| match neighbour(self.width, self.height, cell, d) {
+                Some(n) => Some((d, self.collapsed[n]?)),
+                None => Some((d, self.outside[cell * 4 + d.index()]?)),
             })
             .collect();
         let scores: Vec<(usize, f64)> = (0..rules.size)
@@ -339,7 +385,20 @@ impl<'r> Wave<'r> {
                 let score = settled.iter().fold(rules.weight[c], |s, &(d, n)| {
                     s * rules.pair[rules.at(d, c, n)]
                 });
-                (c, score)
+                // DR-0036 rule 9: a candidate whose walkable sides all face
+                // settled cells opens nothing new. Skipped at 1, so 2.1's
+                // scores stay bit for bit.
+                let walks: Vec<Direction> = Direction::ALL
+                    .into_iter()
+                    .filter(|d| rules.walkable[c * 4 + d.index()])
+                    .collect();
+                let closed =
+                    !walks.is_empty() && walks.iter().all(|w| settled.iter().any(|(d, _)| d == w));
+                if rules.pressure != 1.0 && closed {
+                    (c, score * rules.pressure)
+                } else {
+                    (c, score)
+                }
             })
             .collect();
         let total: f64 = scores.iter().map(|&(_, s)| s).sum();
@@ -445,9 +504,34 @@ pub fn generate_observed(
     }
 }
 
-/// Single WFC runs that start from per-cell candidate masks, for the chunk
-/// generator (DR-0031 rule 3). It reads the table once, so a chunk's many
-/// runs share that work; the restarts and seeds are the caller's.
+/// Where a single run starts (DR-0036 rule 3). Indices are
+/// row-major cells; `variants` is the table size.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Start {
+    /// `mask[cell * variants + variant]`: the variant may go there.
+    pub mask: Vec<bool>,
+    /// A settled cell's tile: pinned, and it counts in support and score.
+    pub settled: Vec<Option<usize>>,
+    /// `outside[cell * 4 + d]`: the settled tile just past the grid's edge
+    /// in direction `d` of an edge cell, if any. It counts in support and
+    /// score like a neighbour; `None` is unsettled, or nothing at all.
+    pub outside: Vec<Option<usize>>,
+}
+
+impl Start {
+    /// Nothing masked, settled or outside: a run like 2.1's.
+    pub fn open(cells: usize, variants: usize) -> Start {
+        Start {
+            mask: vec![true; cells * variants],
+            settled: vec![None; cells],
+            outside: vec![None; cells * 4],
+        }
+    }
+}
+
+/// Single WFC runs from a `Start`, for growing the world (DR-0036 rule 3).
+/// It reads the table once, so many runs share that work; the restarts
+/// and seeds are the caller's.
 pub struct Solver {
     rules: Rules,
 }
@@ -455,20 +539,18 @@ pub struct Solver {
 impl Solver {
     /// `table` must be calculated from `set`.
     pub fn new(set: &TileSet, table: &Table) -> Solver {
-        Solver {
-            rules: Rules::new(set, table),
-        }
+        let mut rules = Rules::new(set, table);
+        rules.pressure = set.opening_pressure;
+        Solver { rules }
     }
 
-    /// One attempt over `width` × `height` cells seeded with `seed`, each
-    /// cell starting from the variants `mask[cell * variants + variant]`
-    /// allows (never a zero-weight tile). Every cell's variant, row-major,
-    /// or `None` on a contradiction. Panics if `mask` doesn't have
-    /// `width × height × variants` entries.
-    pub fn run(&self, width: usize, height: usize, mask: &[bool], seed: u64) -> Option<Vec<usize>> {
+    /// One attempt over `width` × `height` cells from `start`, seeded with
+    /// `seed`. Every cell's variant, row-major, or `None` on a
+    /// contradiction. Panics if `start` doesn't fit the grid.
+    pub fn run(&self, width: usize, height: usize, start: &Start, seed: u64) -> Option<Vec<usize>> {
         let mut rng = SplitMix64::new(seed);
-        let mut wave = Wave::with_mask(&self.rules, width, height, mask);
-        wave.run(&mut rng).ok()?;
+        let mut wave = Wave::with_start(&self.rules, width, height, start);
+        wave.run(&mut rng, &mut ()).ok()?;
         let cells = wave.collapsed.into_iter();
         Some(
             cells

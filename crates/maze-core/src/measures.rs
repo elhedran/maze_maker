@@ -37,7 +37,7 @@ fn walkable(set: &TileSet, cell: Option<usize>) -> bool {
     cell.is_some_and(|v| set.tile_of(&set.variants[v]).kind != TileKind::Hedge)
 }
 
-fn connected(set: &TileSet, a: usize, d: Direction, b: usize) -> bool {
+pub(crate) fn connected(set: &TileSet, a: usize, d: Direction, b: usize) -> bool {
     set.variants[a].side(d) != SideKind::Hedge
         && set.variants[b].side(d.opposite()) != SideKind::Hedge
 }

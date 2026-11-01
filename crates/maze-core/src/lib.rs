@@ -1,7 +1,8 @@
 //! Maze Maker's domain logic: tiles, the adjacency table, table checks
-//! (including DR-0031's completeness check for endless mazes), WFC
-//! generation (DR-0028), measures of a generated maze (DR-0030) and the
-//! trace of one cell's draw (DR-0034).
+//! (including the completeness check for endless mazes), WFC generation
+//! (DR-0028), measures of a generated maze (DR-0030), the trace of one
+//! cell's draw (DR-0034), and the endless world, stored and grown from
+//! open endpoints (DR-0035, DR-0036).
 //!
 //! This crate is a plain library (DR-0012): it never depends on Tauri or a UI
 //! crate, and does no I/O. Callers hand it data and get values back.
@@ -14,6 +15,7 @@ pub mod table;
 pub mod tile_set;
 pub mod trace;
 pub mod wfc;
+pub mod world;
 
 pub use measures::{AreaCounts, Measure, count_areas, measures};
 pub use side::{BasePair, Direction, SideKind, SideMatch};

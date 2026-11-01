@@ -1,7 +1,7 @@
 import { LitElement, css, html, nothing } from "lit";
 import { customElement, query, state } from "lit/decorators.js";
 import { coreVersion, errorText, reloadTileSet, tableView, tilesOnlyRequest } from "./ipc.ts";
-import { formatLoadTime } from "./table/format.ts";
+import { fileName, formatLoadTime } from "./table/format.ts";
 import { themeStyles } from "./table/draw-tile.ts";
 import { TOOL_ERROR_EVENT } from "./tool-error.ts";
 import { BACK_TO_MAZE_EVENT, OPEN_EXPLORE_EVENT, type ExploreTarget } from "./explore/open-explore.ts";
@@ -56,7 +56,7 @@ export class MazeToolApp extends LitElement {
       .status { color: var(--muted); font-size: 0.85rem; }
       .status.error { color: var(--problem); }
       .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; }
-      .path { font-family: var(--mono); }
+      .path { font-family: var(--mono); white-space: nowrap; }
       .muted { color: var(--muted); }
       button {
         font: inherit;
@@ -144,7 +144,8 @@ export class MazeToolApp extends LitElement {
     return html`
       <header><h1>Maze Maker — Adjacency Tool</h1>${this.renderCoreStatus()}</header>
       <div class="bar">
-        <span>Tile set: <span class="path">${this.tileSet?.path ?? "—"}</span></span>
+        <!-- The file name only, so it never wraps mid-word; the full path on hover (DR-0029 review). -->
+        <span>Tile set: <span class="path" title=${this.tileSet?.path ?? ""}>${this.tileSet ? fileName(this.tileSet.path) : "—"}</span></span>
         ${this.tileSet ? html`<span class="muted">loaded ${formatLoadTime(this.tileSet.loadedAt)}</span>` : nothing}
         <button id="reload" @click=${() => this.reload()} ?disabled=${this.reloading}>Reload tile set</button>
       </div>

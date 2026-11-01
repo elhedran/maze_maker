@@ -122,3 +122,9 @@ export function formatLoadTime(iso: string): string {
   if (Number.isNaN(time.getTime())) return iso;
   return time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
 }
+
+/** The last part of a path, "/" or "\\" separated: "data/tile-sets/core.toml" is "core.toml". */
+export function fileName(path: string): string {
+  const parts = path.split(/[\\/]/).filter((p) => p !== "");
+  return parts[parts.length - 1] ?? path;
+}

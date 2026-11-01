@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { clashLine, formatNumber, formatShare, shadeStep, sideName } from "./format.ts";
+import { clashLine, fileName, formatNumber, formatShare, shadeStep, sideName } from "./format.ts";
 import { tileLabel, tileLook } from "./tile-glyphs.ts";
 
 describe("formatShare", () => {
@@ -71,5 +71,14 @@ describe("tile glyphs", () => {
       "Corridor corner, open N and E",
     );
     expect(tileLabel({ id: "hedge", name: "Hedge", orientation: 0 })).toBe("Hedge");
+  });
+});
+
+describe("fileName", () => {
+  test("the last part of a path, with either separator", () => {
+    expect(fileName("data/tile-sets/core.toml")).toBe("core.toml");
+    expect(fileName("C:\\Users\\ian\\maze_maker\\data\\tile-sets\\core.toml")).toBe("core.toml");
+    expect(fileName("core.toml")).toBe("core.toml");
+    expect(fileName("")).toBe("");
   });
 });

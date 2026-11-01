@@ -62,7 +62,10 @@ describe("maze-tool-app", () => {
   test("the tile set bar sits above both tabs, and Table opens first", async () => {
     backend();
     const el = mount();
-    await vi.waitFor(() => expect(text(el)).toContain("data/tile-sets/core.toml"));
+    await vi.waitFor(() => expect(text(el)).toContain("core.toml"));
+    const path = el.shadowRoot!.querySelector<HTMLElement>(".path")!;
+    expect(path.textContent).toBe("core.toml");
+    expect(path.title).toBe("data/tile-sets/core.toml");
     const labels = [...el.shadowRoot!.querySelectorAll('[role="tab"]')].map((t) => t.textContent?.trim());
     expect(labels).toEqual(["Table", "Explore", "Maze"]);
     expect(tab(el, "table").getAttribute("aria-selected")).toBe("true");

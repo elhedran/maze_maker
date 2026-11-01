@@ -343,6 +343,25 @@ describe("world-view", () => {
     expect(text(el, "#status")).toContain("1 step · 4 patches · 6 cells");
   });
 
+  test("Replay keeps the frame the walk ended on", async () => {
+    backend();
+    const el = await grown();
+    click(el, "#step");
+    await vi.waitFor(() => expect($<HTMLButtonElement>(el, "#replay")!.disabled).toBe(false));
+    key(el, "ArrowRight", true);
+    await el.updateComplete;
+    const corner = () => {
+      const first = $(el, ".map .cell")!;
+      return { x: first.dataset.x, y: first.dataset.y };
+    };
+    const before = corner();
+    click(el, "#replay");
+    await vi.waitFor(() => expect($(el, "#replay-play")).not.toBeNull());
+    click(el, "#replay-play");
+    await vi.waitFor(() => expect(text(el, "#status")).toContain("same world as walked: yes"));
+    expect(corner()).toEqual(before);
+  });
+
   test("a replay that differs ends at Rust's check, early, in the problem colour", async () => {
     backend({ check: { same: false, cells: 4, firstDifference: { x: 0, y: -1 } } });
     const el = await grown();

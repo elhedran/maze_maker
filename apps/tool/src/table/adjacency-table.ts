@@ -119,8 +119,10 @@ export class AdjacencyTable extends LitElement {
         color: var(--page);
         font-weight: 600;
       }
-      .legend { display: flex; gap: 0.25rem; align-items: center; }
-      .swatch { padding: 0 0.4rem; border: 1px solid var(--frame); }
+      /* A chip beside each label, not text in a filled box, so the legend doesn't read as pressed toggles. */
+      .legend { display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; align-items: center; }
+      .legend .step { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--muted); }
+      .legend .chip { display: inline-block; width: 1rem; height: 1rem; border: 1px solid var(--frame); }
       .body { display: flex; gap: 1rem; align-items: flex-start; }
       .grid-wrap { overflow: auto; max-height: calc(100vh - 8rem); }
       table:focus { outline: 2px solid var(--frame); }
@@ -310,8 +312,8 @@ export class AdjacencyTable extends LitElement {
         </span>
         <span class="legend" aria-label="Shade legend">
           <span class="muted">shade:</span>
-          ${SHADE_LEGEND.map((label, i) => html`<span class="swatch" style=${swatchStyle(i + 1)}>${label}</span>`)}
-          <span class="mark"></span><span class="muted">exception applied</span>
+          ${SHADE_LEGEND.map((label, i) => html`<span class="step"><span class="chip step-${i + 1}"></span>${label}</span>`)}
+          <span class="step"><span class="mark"></span>exception applied</span>
         </span>
       </div>
       ${v
@@ -467,11 +469,6 @@ export class AdjacencyTable extends LitElement {
       exceptions: v.exceptions,
     };
   }
-}
-
-function swatchStyle(step: number): string {
-  const text = step >= 4 ? "var(--shade-text-light)" : "var(--shade-text-dark)";
-  return `background: var(--shade-${step}); color: ${text}`;
 }
 
 declare global {

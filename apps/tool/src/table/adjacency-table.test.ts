@@ -221,6 +221,17 @@ describe("adjacency-table", () => {
     expect(cell(el, 0, 2).classList).toContain("step-0");
   });
 
+  test("the shade legend is a chip and a label per step, in the cells' own shades", async () => {
+    backend();
+    const el = await mount();
+    const steps = [...root(el).querySelectorAll(".legend .step")];
+    expect(steps.map((s) => s.textContent?.trim())).toEqual(["0–5", "5–10", "10–20", "20–40", "40+", "exception applied"]);
+    expect(steps.slice(0, 5).map((s) => s.querySelector(".chip")!.className)).toEqual([
+      "chip step-1", "chip step-2", "chip step-3", "chip step-4", "chip step-5",
+    ]);
+    expect(root(el).querySelector(".legend button")).toBeNull();
+  });
+
   test("switching direction sends a new request and relabels the grid", async () => {
     const ipc = backend();
     const el = await mount();

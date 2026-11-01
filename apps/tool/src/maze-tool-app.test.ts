@@ -67,7 +67,7 @@ describe("maze-tool-app", () => {
     expect(path.textContent).toBe("core.toml");
     expect(path.title).toBe("data/tile-sets/core.toml");
     const labels = [...el.shadowRoot!.querySelectorAll('[role="tab"]')].map((t) => t.textContent?.trim());
-    expect(labels).toEqual(["Table", "Explore", "Maze"]);
+    expect(labels).toEqual(["Table", "Explore", "Maze", "World"]);
     expect(tab(el, "table").getAttribute("aria-selected")).toBe("true");
     expect(panel(el, "table").hidden).toBe(false);
     expect(panel(el, "explore").hidden).toBe(true);

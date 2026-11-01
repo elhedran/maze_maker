@@ -8,17 +8,19 @@ import { BACK_TO_MAZE_EVENT, OPEN_EXPLORE_EVENT, type ExploreTarget } from "./ex
 import "./table/adjacency-table.ts";
 import "./explore/explore-view.ts";
 import "./maze/maze-view.ts";
+import "./world/world-view.ts";
 import type { AdjacencyTable } from "./table/adjacency-table.ts";
 import type { ExploreView } from "./explore/explore-view.ts";
 import type { MazeView } from "./maze/maze-view.ts";
 
-type Tab = "table" | "explore" | "maze";
+type Tab = "table" | "explore" | "maze" | "world";
 
 // Explore sits next to Table because it reads the same table (DR-0026 point 1).
 const TABS: { id: Tab; label: string }[] = [
   { id: "table", label: "Table" },
   { id: "explore", label: "Explore" },
   { id: "maze", label: "Maze" },
+  { id: "world", label: "World" },
 ];
 
 /**
@@ -138,6 +140,7 @@ export class MazeToolApp extends LitElement {
     this.table?.refresh();
     this.explore?.refresh();
     this.mazeView?.regenerateAfterReload();
+    this.renderRoot.querySelector("world-view")?.tileSetReloaded();
   }
 
   render() {
@@ -172,6 +175,9 @@ export class MazeToolApp extends LitElement {
       </div>
       <div role="tabpanel" id="panel-maze" aria-labelledby="tab-maze" ?hidden=${this.tab !== "maze"}>
         <maze-view></maze-view>
+      </div>
+      <div role="tabpanel" id="panel-world" aria-labelledby="tab-world" ?hidden=${this.tab !== "world"}>
+        <world-view></world-view>
       </div>
     `;
   }

@@ -77,6 +77,13 @@ Ian (`human:ian`), 2026-11-01, verbatim:
    - **The value.** An optional tile set key, with 0 < value ≤ 1. The loader rejects anything else, and an absent key means 1, so 2.1's seeds don't change. Wren sets the value.
    - **Why above 0.** It biases and never forbids, so support (DR-0028 rule 1) and rule 7's proof are untouched.
    - **The trace.** [DR-0034](/decisions/0034-data-contract-for-why-is-this-here.md)'s trace shows it as its own factor.
+   - **Note 2026-11-01, Yew (`architect/1`): the world reads its own key.** This follows Wren's [G.1 tuning](/plans/g1-tuning.md), which puts the grown world at 1 and the single maze at 0.5.
+     - The tile set gains an optional root key, `world_opening_pressure`. It has the same range check, and an absent key means 1. It does **not** fall back to `opening_pressure`.
+     - `World` uses only that key. `generate_maze`, the trace and the tool's opening-pressure line keep `opening_pressure` for the single maze.
+     - In `maze-core`: `TileSet` gains the field. `Solver` gets one additive constructor that takes the world's value (the engineers name it), and `World::empty` uses it.
+     - DR-0038's contract is unchanged: `edit_numbers` gets no new target, and the World tab shows no pressure. If Wren later wants to tune the world's value in the tool, that's one more `NumberTarget` and its own note.
+     - Tests: the loader refuses `world_opening_pressure` outside 0 < v ≤ 1, and a world grown with `opening_pressure = 0.3` and no world key equals one grown with neither key.
+     - `core.toml` needs no world key while Wren wants 1. A two-way door, and Rowan builds it.
 10. **Reproducibility.** A patch is a pure function of the stored world before it, its anchor, the tile set and the code. So the world is a pure function of (world seed, tile set, generator version, walk), and the growth log (DR-0035) records the anchors in order. Tests and the tool drive a walk from a seeded random walk or a scripted path. Any one patch can be regenerated from the world as it was before it.
 
 ## What carries over from 2.6 step 1, and what's dropped

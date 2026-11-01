@@ -8,7 +8,7 @@ approvers: [game-designer/1, product-manager/1]
 tags: [review, game, slice-g-1, tuning, opening-pressure]
 generated:
   by: game-designer/1
-  at: 2026-11-01T15:00:00Z
+  at: 2026-11-01T12:40:00Z
 verified:
   - by: product-manager/1
     at: 2026-11-01T12:45:30Z
@@ -86,7 +86,7 @@ What the player feels:
 - Corridors have a little more hedge around them.
 - When a dead end appears, it is usually a nook you can see the end of from the fork. The long walk back to nowhere becomes rare.
 
-v5 passes at both pressures and has the best starts of the passing variants. It is also the simplest, with one rule fewer than v6 to v8.
+v5 passes everything at pressure 1. At 0.5 it misses only the quiet-run mean, by 0.1 (2.9 against 3). It has the best starts of the passing variants. It is also the simplest, with one rule fewer than v6 to v8.
 
 ## Opening pressure: 1 for the world, 0.5 for the single maze
 

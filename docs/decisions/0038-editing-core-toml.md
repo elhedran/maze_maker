@@ -110,7 +110,7 @@ export type EditRecord = { at: string, target: NumberTarget, number: string, fro
 export type EditResult = { reload: ReloadResult, edits: Array<EditRecord>, warnings: Array<string>, };
 
 export type CompareRequest = { seed: number, width: number, height: number, };
-export type BeforeMaze = { maze: GeneratedMaze, tiles: Array<TileView>, };
+export type BeforeMaze = { maze: GeneratedMaze, tiles: Array<TileView>, loadedAt: string, };
 export type CompareResult = { before: BeforeMaze | null, after: GeneratedMaze, changed: Array<number>, edits: Array<EditRecord>, };
 
 export type CandidateScore = { tile: number, tileWeight: number, factors: Array<PairFactor>, pressure: number, score: number, share: number, };
@@ -124,6 +124,7 @@ What the fields mean:
   - `index` is an index into `TableView.exceptions` at `revision`. Exceptions have no id, and the revision and disk checks make the index safe.
   - The exact TypeScript of the tagged union is whatever ts-rs gives for `#[serde(tag = "kind", rename_all = "camelCase")]`. The shape is what's fixed here.
 - **`EditRecord`** is one line of the record. `number` is rule 4's path, `from` is `null` when the key was absent, and `at` is ISO 8601 UTC from the existing `iso8601_utc`.
+- **`loadedAt`:** when the before maze's load happened, as `ReloadResult.loadedAt`, for DR-0037's "BEFORE · as loaded" label.
 - **`changed`:** row-major cell indices, `y × width + x`, in ascending order.
 - **`edits` in compare:** the tool's edits between before and after. It is empty after a hand edit, or when there is no before.
 - **Measures:** both mazes carry DR-0030's measures in `GeneratedMaze.measures`, from the same code as `generate_maze`. Compare adds no measure code of its own, so 2.6 step 2's work on measures isn't touched.

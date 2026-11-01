@@ -20,6 +20,13 @@
 format = 1
 name = "core"
 
+# Opening pressure (DR-0036 rule 9): a piece whose open sides all face
+# settled cells, so it opens nothing new, has its score multiplied by this.
+# 0 < value <= 1; no key means 1. 0.5 is Wren's first value (game-designer/1,
+# 2026-11-01): it lifts the worst mazes most and still lets loops form. See
+# docs/plans/2.3-tuning-review.md.
+opening_pressure = 0.5
+
 # Seeded variation on every allowed entry (DR-0024). amount = 0 turns it off.
 # Kept as planned; Wren's DR-0013 concern about noise is on record, and the
 # sample mazes will tell us whether 0.15 makes them samey or muddy.

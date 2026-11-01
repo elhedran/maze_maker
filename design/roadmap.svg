@@ -6,7 +6,7 @@
   Every box also carries a status word and icon. Self-contained: no external fonts, images or scripts.
 -->
 <title id="roadmap-title">Maze Maker roadmap, as of 2026-11-01</title>
-<desc id="roadmap-desc">Maze Maker roadmap as of 2026-11-01. Phase 1, the table and the viewer, closed 2026-11-01: 1.0 Skeleton done; 1.1 First look at the table done; 1.2 Explore one tile folded into 2.2; 1.3 Filter the table done; 1.4 Table checks dropped; 1.5 Full tile set v1 dropped. Phase 2, sample mazes, in progress: 2.1 First sample maze done. Tool track: 2.2 Why is this here? in progress, then 2.3 Tune and compare (adds opening pressure), 2.4 Watch it collapse and 2.5 Judge many samples, all pending. Engine track: 2.6 Beyond the edge, paused; its new shape waits on Yew’s record replacing DR-0031. Step 1 chunk generator partly built and paused; step 2 measures and step 3 view and review pending; step 3 after 2.2 lands. 2.6 goes ahead of 2.4 and 2.5. The game, its own app after Phase 2, pending: walk a maze grown around the player, then keep the world when the player walks back, then a debug mode. Later, not scheduled: zones, and rooms with no way in.</desc>
+<desc id="roadmap-desc">Maze Maker roadmap as of 2026-11-01. Phase 1, the table and the viewer, closed 2026-11-01: 1.0 Skeleton done; 1.1 First look at the table done; 1.2 Explore one tile folded into 2.2; 1.3 Filter the table done; 1.4 Table checks dropped; 1.5 Full tile set v1 dropped. Phase 2, sample mazes, in progress: 2.1 First sample maze done. Tool track: 2.2 Why is this here? in progress, then 2.3 Tune and compare (adds opening pressure), 2.4 Watch it collapse and 2.5 Judge many samples, all pending. Engine track: 2.6 Beyond the edge, paused; its new shape waits on Yew’s record DR-0036, a draft, which replaces DR-0031. Step 1 chunk generator partly built and paused; step 2 measures and step 3 view and review pending; step 3 after 2.2 lands. 2.6 goes ahead of 2.4 and 2.5. The game, its own app after Phase 2, pending: walk a maze grown around the player, then keep the world when the player walks back, then a debug mode. Later, not scheduled: zones, and rooms with no way in.</desc>
 <style>
   text { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; fill: #14181F; }
   .title { font-size: 26px; font-weight: 700; }
@@ -24,8 +24,11 @@
   .gone-t { fill: #3C4043; }
   .note { font-size: 12px; fill: #333A44; }
   .step-num { font-size: 12px; font-weight: 700; }
-  .step-name { font-size: 12px; font-weight: 700; }
+  .step-name { font-size: 12px; }
   .pill-t { font-size: 12px; font-weight: 700; }
+  .pt-light { fill: #FFFFFF; }
+  .pt-blue { fill: #1A4F96; }
+  .pt-grey { fill: #4F555C; }
   .foot { font-size: 12px; fill: #4A5260; }
 
   /* Boxes: done is green; in progress, paused and pending are blue; dropped and folded are grey. */
@@ -86,12 +89,12 @@
 <rect class="panel" x="40" y="150" width="1120" height="156" rx="12"/>
 <text class="phase" x="56" y="179">Phase 1: the table and the viewer</text>
 <text class="phase-desc" x="1053" y="177" text-anchor="end">Closed 2026-11-01, with 1.1</text>
-<rect class="pill p-green" x="1063" y="163" width="81" height="20" rx="10"/><g transform="translate(1072 167)"><path d="M2.2 6.4 L5 9.2 L10 3.2" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g><text class="pill-t" x="1089" y="177.5" fill="#FFFFFF">Closed</text>
+<rect class="pill p-green" x="1063" y="163" width="81" height="20" rx="10"/><g transform="translate(1072 167)"><path d="M2.2 6.4 L5 9.2 L10 3.2" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g><text class="pill-t pt-light" x="1089" y="177.5">Closed</text>
 <!-- 1.0 Skeleton: Done -->
 <g>
 <rect class="box done" x="56" y="194" width="164" height="96" rx="8"/>
 <text class="num" x="68" y="217">1.0</text>
-<rect class="pill p-green" x="145" y="202" width="65" height="20" rx="10"/><g transform="translate(154 206)"><path d="M2.2 6.4 L5 9.2 L10 3.2" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g><text class="pill-t" x="171" y="216.5" fill="#FFFFFF">Done</text>
+<rect class="pill p-green" x="145" y="202" width="65" height="20" rx="10"/><g transform="translate(154 206)"><path d="M2.2 6.4 L5 9.2 L10 3.2" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g><text class="pill-t pt-light" x="171" y="216.5">Done</text>
 <text class="name" x="68" y="241">Skeleton</text>
 <text class="note" x="68" y="278">Rust reaches Lit</text>
 </g>
@@ -99,7 +102,7 @@
 <g>
 <rect class="box done" x="241" y="194" width="164" height="96" rx="8"/>
 <text class="num" x="253" y="217">1.1</text>
-<rect class="pill p-green" x="330" y="202" width="65" height="20" rx="10"/><g transform="translate(339 206)"><path d="M2.2 6.4 L5 9.2 L10 3.2" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g><text class="pill-t" x="356" y="216.5" fill="#FFFFFF">Done</text>
+<rect class="pill p-green" x="330" y="202" width="65" height="20" rx="10"/><g transform="translate(339 206)"><path d="M2.2 6.4 L5 9.2 L10 3.2" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g><text class="pill-t pt-light" x="356" y="216.5">Done</text>
 <text class="name" x="253" y="241">First look</text>
 <text class="name" x="253" y="258">at the table</text>
 <text class="note" x="253" y="278">Ian: “looks good”</text>
@@ -108,7 +111,7 @@
 <g>
 <rect class="box gone" x="426" y="194" width="164" height="96" rx="8"/>
 <text class="num" x="438" y="217">1.2</text>
-<rect class="pill p-line-grey" x="499" y="202" width="81" height="20" rx="10"/><g transform="translate(508 206)"><path d="M3 1.5 V7 H9.6 M7.2 4.6 L9.7 7 L7.2 9.4" fill="none" stroke="#4F555C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></g><text class="pill-t" x="525" y="216.5" fill="#4F555C">Folded</text>
+<rect class="pill p-line-grey" x="499" y="202" width="81" height="20" rx="10"/><g transform="translate(508 206)"><path d="M3 1.5 V7 H9.6 M7.2 4.6 L9.7 7 L7.2 9.4" fill="none" stroke="#4F555C" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></g><text class="pill-t pt-grey" x="525" y="216.5">Folded</text>
 <text class="name gone-t" x="438" y="241">Explore one tile</text>
 <text class="note" x="438" y="278">Built in 2.2</text>
 </g>
@@ -116,7 +119,7 @@
 <g>
 <rect class="box done" x="610" y="194" width="164" height="96" rx="8"/>
 <text class="num" x="622" y="217">1.3</text>
-<rect class="pill p-green" x="699" y="202" width="65" height="20" rx="10"/><g transform="translate(708 206)"><path d="M2.2 6.4 L5 9.2 L10 3.2" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g><text class="pill-t" x="725" y="216.5" fill="#FFFFFF">Done</text>
+<rect class="pill p-green" x="699" y="202" width="65" height="20" rx="10"/><g transform="translate(708 206)"><path d="M2.2 6.4 L5 9.2 L10 3.2" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g><text class="pill-t pt-light" x="725" y="216.5">Done</text>
 <text class="name" x="622" y="241">Filter the table</text>
 <text class="note" x="622" y="278">Ran alongside 2.1</text>
 </g>
@@ -124,7 +127,7 @@
 <g>
 <rect class="box gone" x="795" y="194" width="164" height="96" rx="8"/>
 <text class="num" x="807" y="217">1.4</text>
-<rect class="pill p-line-grey" x="861" y="202" width="88" height="20" rx="10"/><g transform="translate(870 206)"><path d="M3 3 L9 9 M9 3 L3 9" fill="none" stroke="#4F555C" stroke-width="1.9" stroke-linecap="round"/></g><text class="pill-t" x="887" y="216.5" fill="#4F555C">Dropped</text>
+<rect class="pill p-line-grey" x="861" y="202" width="88" height="20" rx="10"/><g transform="translate(870 206)"><path d="M3 3 L9 9 M9 3 L3 9" fill="none" stroke="#4F555C" stroke-width="1.9" stroke-linecap="round"/></g><text class="pill-t pt-grey" x="887" y="216.5">Dropped</text>
 <text class="name gone-t" x="807" y="241">Table checks</text>
 <text class="note" x="807" y="278">Ian didn’t need it</text>
 </g>
@@ -132,7 +135,7 @@
 <g>
 <rect class="box gone" x="980" y="194" width="164" height="96" rx="8"/>
 <text class="num" x="992" y="217">1.5</text>
-<rect class="pill p-line-grey" x="1046" y="202" width="88" height="20" rx="10"/><g transform="translate(1055 206)"><path d="M3 3 L9 9 M9 3 L3 9" fill="none" stroke="#4F555C" stroke-width="1.9" stroke-linecap="round"/></g><text class="pill-t" x="1072" y="216.5" fill="#4F555C">Dropped</text>
+<rect class="pill p-line-grey" x="1046" y="202" width="88" height="20" rx="10"/><g transform="translate(1055 206)"><path d="M3 3 L9 9 M9 3 L3 9" fill="none" stroke="#4F555C" stroke-width="1.9" stroke-linecap="round"/></g><text class="pill-t pt-grey" x="1072" y="216.5">Dropped</text>
 <text class="name gone-t" x="992" y="241">Full tile set v1</text>
 <text class="note" x="992" y="278">Add tiles as needed</text>
 </g>
@@ -142,14 +145,14 @@
 <rect class="panel" x="40" y="326" width="1120" height="368" rx="12"/>
 <text class="phase" x="56" y="355">Phase 2: sample mazes</text>
 <text class="phase-desc" x="1015" y="353" text-anchor="end">2.1 done; two tracks run in parallel</text>
-<rect class="pill p-blue" x="1025" y="339" width="119" height="20" rx="10"/><g transform="translate(1034 343)"><path d="M3 1.8 L10.4 6 L3 10.2 Z" fill="#FFFFFF"/></g><text class="pill-t" x="1051" y="353.5" fill="#FFFFFF">In progress</text>
+<rect class="pill p-blue" x="1025" y="339" width="119" height="20" rx="10"/><g transform="translate(1034 343)"><path d="M3 1.8 L10.4 6 L3 10.2 Z" fill="#FFFFFF"/></g><text class="pill-t pt-light" x="1051" y="353.5">In progress</text>
 <text class="lane" x="279" y="380">TOOL TRACK</text>
 <text class="lane" x="279" y="515">ENGINE TRACK</text>
 <!-- 2.1 First sample maze: Done -->
 <g>
 <rect class="box done" x="56" y="485" width="196" height="96" rx="8"/>
 <text class="num" x="68" y="508">2.1</text>
-<rect class="pill p-green" x="177" y="493" width="65" height="20" rx="10"/><g transform="translate(186 497)"><path d="M2.2 6.4 L5 9.2 L10 3.2" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g><text class="pill-t" x="203" y="507.5" fill="#FFFFFF">Done</text>
+<rect class="pill p-green" x="177" y="493" width="65" height="20" rx="10"/><g transform="translate(186 497)"><path d="M2.2 6.4 L5 9.2 L10 3.2" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g><text class="pill-t pt-light" x="203" y="507.5">Done</text>
 <text class="name" x="68" y="532">First sample maze</text>
 <text class="note" x="68" y="569">One maze from a seed</text>
 </g>
@@ -157,7 +160,7 @@
 <g>
 <rect class="box progress" x="279" y="388" width="196" height="96" rx="8"/>
 <text class="num" x="291" y="411">2.2</text>
-<rect class="pill p-blue" x="346" y="396" width="119" height="20" rx="10"/><g transform="translate(355 400)"><path d="M3 1.8 L10.4 6 L3 10.2 Z" fill="#FFFFFF"/></g><text class="pill-t" x="372" y="410.5" fill="#FFFFFF">In progress</text>
+<rect class="pill p-blue" x="346" y="396" width="119" height="20" rx="10"/><g transform="translate(355 400)"><path d="M3 1.8 L10.4 6 L3 10.2 Z" fill="#FFFFFF"/></g><text class="pill-t pt-light" x="372" y="410.5">In progress</text>
 <text class="name" x="291" y="435">Why is this here?</text>
 <text class="name" x="291" y="452">(includes 1.2)</text>
 <text class="note" x="291" y="472">Click a cell, see why</text>
@@ -166,7 +169,7 @@
 <g>
 <rect class="box pending" x="502" y="388" width="196" height="96" rx="8"/>
 <text class="num" x="514" y="411">2.3</text>
-<rect class="pill p-line-blue" x="600" y="396" width="88" height="20" rx="10"/><g transform="translate(609 400)"><circle cx="6" cy="6" r="4" fill="none" stroke="#1A4F96" stroke-width="1.7"/></g><text class="pill-t" x="626" y="410.5" fill="#1A4F96">Pending</text>
+<rect class="pill p-line-blue" x="600" y="396" width="88" height="20" rx="10"/><g transform="translate(609 400)"><circle cx="6" cy="6" r="4" fill="none" stroke="#1A4F96" stroke-width="1.7"/></g><text class="pill-t pt-blue" x="626" y="410.5">Pending</text>
 <text class="name" x="514" y="435">Tune and compare</text>
 <text class="note" x="514" y="472">Adds opening pressure</text>
 </g>
@@ -174,7 +177,7 @@
 <g>
 <rect class="box pending" x="725" y="388" width="196" height="96" rx="8"/>
 <text class="num" x="737" y="411">2.4</text>
-<rect class="pill p-line-blue" x="823" y="396" width="88" height="20" rx="10"/><g transform="translate(832 400)"><circle cx="6" cy="6" r="4" fill="none" stroke="#1A4F96" stroke-width="1.7"/></g><text class="pill-t" x="849" y="410.5" fill="#1A4F96">Pending</text>
+<rect class="pill p-line-blue" x="823" y="396" width="88" height="20" rx="10"/><g transform="translate(832 400)"><circle cx="6" cy="6" r="4" fill="none" stroke="#1A4F96" stroke-width="1.7"/></g><text class="pill-t pt-blue" x="849" y="410.5">Pending</text>
 <text class="name" x="737" y="435">Watch it collapse</text>
 <text class="note" x="737" y="472">Step through generation</text>
 </g>
@@ -182,49 +185,49 @@
 <g>
 <rect class="box pending" x="948" y="388" width="196" height="96" rx="8"/>
 <text class="num" x="960" y="411">2.5</text>
-<rect class="pill p-line-blue" x="1046" y="396" width="88" height="20" rx="10"/><g transform="translate(1055 400)"><circle cx="6" cy="6" r="4" fill="none" stroke="#1A4F96" stroke-width="1.7"/></g><text class="pill-t" x="1072" y="410.5" fill="#1A4F96">Pending</text>
+<rect class="pill p-line-blue" x="1046" y="396" width="88" height="20" rx="10"/><g transform="translate(1055 400)"><circle cx="6" cy="6" r="4" fill="none" stroke="#1A4F96" stroke-width="1.7"/></g><text class="pill-t pt-blue" x="1072" y="410.5">Pending</text>
 <text class="name" x="960" y="435">Judge many samples</text>
 <text class="note" x="960" y="472">Measures over batches</text>
 </g>
 <!-- 2.6 Beyond the edge: Paused (in progress, on hold) -->
-<rect class="box paused group" x="279" y="522" width="419" height="156" rx="10"/>
+<rect class="box paused group" x="279" y="522" width="427" height="156" rx="10"/>
 <text class="num" x="291" y="546">2.6<tspan class="name-lg" dx="8">Beyond the edge</tspan></text>
-<rect class="pill p-blue" x="475" y="531" width="81" height="20" rx="10"/><g transform="translate(484 535)"><rect x="2.4" y="2" width="2.7" height="8" fill="#FFFFFF"/><rect x="6.9" y="2" width="2.7" height="8" fill="#FFFFFF"/></g><text class="pill-t" x="501" y="545.5" fill="#FFFFFF">Paused</text>
-<text class="note" x="291" y="567">New shape waits on Yew’s record replacing DR-0031</text>
+<rect class="pill p-blue" x="475" y="531" width="81" height="20" rx="10"/><g transform="translate(484 535)"><rect x="2.4" y="2" width="2.7" height="8" fill="#FFFFFF"/><rect x="6.9" y="2" width="2.7" height="8" fill="#FFFFFF"/></g><text class="pill-t pt-light" x="501" y="545.5">Paused</text>
+<text class="note" x="291" y="567">New shape waits on DR-0036 (draft), replacing DR-0031</text>
 <!-- 2.6 Step 1 Chunk generator: Paused -->
 <g>
-<rect class="box paused step" x="291" y="578" width="121" height="88" rx="7"/>
+<rect class="box paused step" x="291" y="578" width="125" height="88" rx="7"/>
 <text class="step-num" x="301" y="597">Step 1</text>
 <text class="step-name" x="301" y="614">Chunk generator</text>
-<rect class="pill p-blue" x="301" y="622" width="81" height="20" rx="10"/><g transform="translate(310 626)"><rect x="2.4" y="2" width="2.7" height="8" fill="#FFFFFF"/><rect x="6.9" y="2" width="2.7" height="8" fill="#FFFFFF"/></g><text class="pill-t" x="327" y="636.5" fill="#FFFFFF">Paused</text>
+<rect class="pill p-blue" x="301" y="622" width="81" height="20" rx="10"/><g transform="translate(310 626)"><rect x="2.4" y="2" width="2.7" height="8" fill="#FFFFFF"/><rect x="6.9" y="2" width="2.7" height="8" fill="#FFFFFF"/></g><text class="pill-t pt-light" x="327" y="636.5">Paused</text>
 <text class="note" x="301" y="656">Partly built</text>
 </g>
 <!-- 2.6 Step 2 Measures: Pending -->
 <g>
-<rect class="box pending step" x="428" y="578" width="121" height="88" rx="7"/>
-<text class="step-num" x="438" y="597">Step 2</text>
-<text class="step-name" x="438" y="614">Measures</text>
-<rect class="pill p-line-blue" x="438" y="622" width="88" height="20" rx="10"/><g transform="translate(447 626)"><circle cx="6" cy="6" r="4" fill="none" stroke="#1A4F96" stroke-width="1.7"/></g><text class="pill-t" x="464" y="636.5" fill="#1A4F96">Pending</text>
-<text class="note" x="438" y="656">After step 1</text>
+<rect class="box pending step" x="430" y="578" width="125" height="88" rx="7"/>
+<text class="step-num" x="440" y="597">Step 2</text>
+<text class="step-name" x="440" y="614">Measures</text>
+<rect class="pill p-line-blue" x="440" y="622" width="88" height="20" rx="10"/><g transform="translate(449 626)"><circle cx="6" cy="6" r="4" fill="none" stroke="#1A4F96" stroke-width="1.7"/></g><text class="pill-t pt-blue" x="466" y="636.5">Pending</text>
+<text class="note" x="440" y="656">After step 1</text>
 </g>
 <!-- 2.6 Step 3 View and review: Pending -->
 <g>
-<rect class="box pending step" x="565" y="578" width="121" height="88" rx="7"/>
-<text class="step-num" x="575" y="597">Step 3</text>
-<text class="step-name" x="575" y="614">View and review</text>
-<rect class="pill p-line-blue" x="575" y="622" width="88" height="20" rx="10"/><g transform="translate(584 626)"><circle cx="6" cy="6" r="4" fill="none" stroke="#1A4F96" stroke-width="1.7"/></g><text class="pill-t" x="601" y="636.5" fill="#1A4F96">Pending</text>
-<text class="note" x="575" y="656">After 2.2 lands</text>
+<rect class="box pending step" x="569" y="578" width="125" height="88" rx="7"/>
+<text class="step-num" x="579" y="597">Step 3</text>
+<text class="step-name" x="579" y="614">View and review</text>
+<rect class="pill p-line-blue" x="579" y="622" width="88" height="20" rx="10"/><g transform="translate(588 626)"><circle cx="6" cy="6" r="4" fill="none" stroke="#1A4F96" stroke-width="1.7"/></g><text class="pill-t pt-blue" x="605" y="636.5">Pending</text>
+<text class="note" x="579" y="656">After 2.2 lands</text>
 </g>
-<path class="arrow" d="M414 622 H426" marker-end="url(#head)"/>
-<path class="arrow" d="M551 622 H563" marker-end="url(#head)"/>
+<path class="arrow" d="M418 622 H428" marker-end="url(#head)"/>
+<path class="arrow" d="M557 622 H567" marker-end="url(#head)"/>
 <!-- Phase 2 order -->
 <path class="arrow" d="M252 533 H265 V436 H277" marker-end="url(#head)"/>
 <path class="arrow" d="M265 533 V600 H277" marker-end="url(#head)"/>
 <path class="arrow" d="M477 436 H500" marker-end="url(#head)"/>
 <path class="arrow" d="M700 436 H723" marker-end="url(#head)"/>
 <path class="arrow" d="M923 436 H946" marker-end="url(#head)"/>
-<path class="arrow" d="M439 486 V503 H645 V576" marker-end="url(#head)"/>
-<path class="arrow" d="M700 600 H823 V486" marker-end="url(#head)"/>
+<path class="arrow" d="M439 486 V503 H672 V576" marker-end="url(#head)"/>
+<path class="arrow" d="M708 600 H823 V486" marker-end="url(#head)"/>
 <text class="note" x="837" y="588">2.6 goes ahead of 2.4 and 2.5</text>
 <!-- 1.2 is folded into 2.2 -->
 <path class="fold-arrow" d="M450 292 V385" marker-end="url(#head-grey)"/>
@@ -233,28 +236,28 @@
 <rect class="panel" x="40" y="714" width="1120" height="156" rx="12"/>
 <text class="phase" x="56" y="743">The game</text>
 <text class="phase-desc" x="1046" y="741" text-anchor="end">Its own app, after Phase 2</text>
-<rect class="pill p-line-blue" x="1056" y="727" width="88" height="20" rx="10"/><g transform="translate(1065 731)"><circle cx="6" cy="6" r="4" fill="none" stroke="#1A4F96" stroke-width="1.7"/></g><text class="pill-t" x="1082" y="741.5" fill="#1A4F96">Pending</text>
+<rect class="pill p-line-blue" x="1056" y="727" width="88" height="20" rx="10"/><g transform="translate(1065 731)"><circle cx="6" cy="6" r="4" fill="none" stroke="#1A4F96" stroke-width="1.7"/></g><text class="pill-t pt-blue" x="1082" y="741.5">Pending</text>
 <!-- Game: Walk a maze grown around the player: Pending -->
 <g>
 <rect class="box pending" x="56" y="758" width="338" height="96" rx="8"/>
 <text class="num" x="68" y="781">First</text>
-<rect class="pill p-line-blue" x="296" y="766" width="88" height="20" rx="10"/><g transform="translate(305 770)"><circle cx="6" cy="6" r="4" fill="none" stroke="#1A4F96" stroke-width="1.7"/></g><text class="pill-t" x="322" y="780.5" fill="#1A4F96">Pending</text>
+<rect class="pill p-line-blue" x="296" y="766" width="88" height="20" rx="10"/><g transform="translate(305 770)"><circle cx="6" cy="6" r="4" fill="none" stroke="#1A4F96" stroke-width="1.7"/></g><text class="pill-t pt-blue" x="322" y="780.5">Pending</text>
 <text class="name" x="68" y="805">Walk a maze grown around the player</text>
 <text class="note" x="68" y="842">Grows from open endpoints (Ian’s steering)</text>
 </g>
-<!-- Game: Keep the world when the player walks back: Pending -->
+<!-- Game: Keep the world when walking back: Pending -->
 <g>
 <rect class="box pending" x="431" y="758" width="338" height="96" rx="8"/>
 <text class="num" x="443" y="781">Then</text>
-<rect class="pill p-line-blue" x="671" y="766" width="88" height="20" rx="10"/><g transform="translate(680 770)"><circle cx="6" cy="6" r="4" fill="none" stroke="#1A4F96" stroke-width="1.7"/></g><text class="pill-t" x="697" y="780.5" fill="#1A4F96">Pending</text>
-<text class="name" x="443" y="805">Keep the world when the player walks back</text>
+<rect class="pill p-line-blue" x="671" y="766" width="88" height="20" rx="10"/><g transform="translate(680 770)"><circle cx="6" cy="6" r="4" fill="none" stroke="#1A4F96" stroke-width="1.7"/></g><text class="pill-t pt-blue" x="697" y="780.5">Pending</text>
+<text class="name" x="443" y="805">Keep the world when walking back</text>
 <text class="note" x="443" y="842">Ian: the world is stored (DR-0035)</text>
 </g>
 <!-- Game: Debug mode: Pending -->
 <g>
 <rect class="box pending" x="806" y="758" width="338" height="96" rx="8"/>
 <text class="num" x="818" y="781">Then</text>
-<rect class="pill p-line-blue" x="1046" y="766" width="88" height="20" rx="10"/><g transform="translate(1055 770)"><circle cx="6" cy="6" r="4" fill="none" stroke="#1A4F96" stroke-width="1.7"/></g><text class="pill-t" x="1072" y="780.5" fill="#1A4F96">Pending</text>
+<rect class="pill p-line-blue" x="1046" y="766" width="88" height="20" rx="10"/><g transform="translate(1055 770)"><circle cx="6" cy="6" r="4" fill="none" stroke="#1A4F96" stroke-width="1.7"/></g><text class="pill-t pt-blue" x="1072" y="780.5">Pending</text>
 <text class="name" x="818" y="805">Debug mode</text>
 <text class="note" x="818" y="842">With the tool’s views</text>
 </g>
@@ -265,19 +268,19 @@
 <rect class="panel" x="40" y="890" width="1120" height="124" rx="12"/>
 <text class="phase" x="56" y="919">Later</text>
 <text class="phase-desc" x="1015" y="917" text-anchor="end">Not scheduled, nothing decided</text>
-<rect class="pill p-line-blue" x="1025" y="903" width="119" height="20" rx="10"/><g transform="translate(1034 907)"><circle cx="6" cy="6" r="4" fill="none" stroke="#1A4F96" stroke-width="1.7"/></g><text class="pill-t" x="1051" y="917.5" fill="#1A4F96">Unscheduled</text>
+<rect class="pill p-line-blue" x="1025" y="903" width="119" height="20" rx="10"/><g transform="translate(1034 907)"><circle cx="6" cy="6" r="4" fill="none" stroke="#1A4F96" stroke-width="1.7"/></g><text class="pill-t pt-blue" x="1051" y="917.5">Unscheduled</text>
 <!-- Zones: Unscheduled -->
 <g>
 <rect class="box pending" x="56" y="934" width="338" height="64" rx="8"/>
 <text class="name-lg" x="68" y="957">Zones</text>
-<rect class="pill p-line-blue" x="265" y="942" width="119" height="20" rx="10"/><g transform="translate(274 946)"><circle cx="6" cy="6" r="4" fill="none" stroke="#1A4F96" stroke-width="1.7"/></g><text class="pill-t" x="291" y="956.5" fill="#1A4F96">Unscheduled</text>
+<rect class="pill p-line-blue" x="265" y="942" width="119" height="20" rx="10"/><g transform="translate(274 946)"><circle cx="6" cy="6" r="4" fill="none" stroke="#1A4F96" stroke-width="1.7"/></g><text class="pill-t pt-blue" x="291" y="956.5">Unscheduled</text>
 <text class="note" x="68" y="984">Different probabilities per zone</text>
 </g>
 <!-- Rooms with no way in: Unscheduled -->
 <g>
 <rect class="box pending" x="431" y="934" width="338" height="64" rx="8"/>
 <text class="name-lg" x="443" y="957">Rooms with no way in</text>
-<rect class="pill p-line-blue" x="640" y="942" width="119" height="20" rx="10"/><g transform="translate(649 946)"><circle cx="6" cy="6" r="4" fill="none" stroke="#1A4F96" stroke-width="1.7"/></g><text class="pill-t" x="666" y="956.5" fill="#1A4F96">Unscheduled</text>
+<rect class="pill p-line-blue" x="640" y="942" width="119" height="20" rx="10"/><g transform="translate(649 946)"><circle cx="6" cy="6" r="4" fill="none" stroke="#1A4F96" stroke-width="1.7"/></g><text class="pill-t pt-blue" x="666" y="956.5">Unscheduled</text>
 <text class="note" x="443" y="984">Allowed for now; revisit later</text>
 </g>
 

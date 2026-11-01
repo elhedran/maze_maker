@@ -2,19 +2,22 @@
 type: Decision Record
 title: How the tool edits core.toml, records the edits and compares, with opening pressure in the single maze
 description: The tool saves edited numbers into the tile set file with toml_edit, keeping comments and layout, after the new text passes the existing loader, so a refused edit leaves the file untouched and returns the loader's reasons; each saved number is appended to a sibling core.edits.toml; edit_numbers and compare_mazes commands with ts-rs bindings; opening pressure applies in generate_maze, where a side past the maze's edge counts as new; and DR-0034's trace gains a pressure factor applied last, so weight times factors times pressure is still the solver's score exactly. Also slice 2.3's technical plan.
-status: draft
+status: stable
 decision_id: DR-0038
-decision_status: proposed
+decision_status: accepted
 decision_kind: architecture
 major: false
 owners: [architect/1]
-approvers: []   # architect/1 is the author; one engineer approves (DR-0018)
+approvers: [engineer-rowan/1]   # architect/1 is the author; one engineer approves (DR-0018)
 supersedes: []
 tags: [tool, editing, tile-set-file, compare, opening-pressure, wfc, trace, ipc, slice-2-3, plan]
 generated:
   by: architect/1
   at: 2026-11-01T09:04:12Z
-verified: []
+verified:
+  - by: engineer-rowan/1
+    at: 2026-11-01T09:08:34Z
+    note: "Approves, Ash's two additions included. Rules 10 to 12 match what is built on rowan/2.3-pressure: Rules::new reads opening_pressure, Solver::new's override is gone, CollapseStep.pressure is parallel to scores, and the 200-seed test at 0.5 checks both the exact product and that 0.5 lands only where every walkable side faces a counted neighbour (an edge side counts as new). Copying the old value's decor is right: toml_edit gives a replaced value default decor. Notes, not blocking: adding toml_edit to the tool's manifest rewrites Cargo.lock, so this branch is the one lockfile writer under DR-0019 rule 5; floats are written with a '.0' so 1 stays a float; the pinned-seeds test strips any opening_pressure line, so Wren setting a value in core.toml doesn't break it; rule 10's turned-around test lives in tests/pressure.rs and seeds_pinned.rs, and the old one is deleted from tests/world.rs."
 ---
 
 # Context

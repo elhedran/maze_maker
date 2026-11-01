@@ -38,11 +38,11 @@ One file per decision ([DR-0001](/decisions/0001-record-every-decision.md)). Onl
 - [DR-0036 Endless generation by growing the stored world from open endpoints](/decisions/0036-growth-from-open-endpoints.md) - The stored world grows in patches, one WFC run over a window past each open endpoint near the player, with stored cells pinned, only joined cells kept, a frontier of hedge, passage or door, a guaranteed way onward and an opening-pressure factor. Supersedes DR-0031.
 - [DR-0042 The game starts now, alongside Phase 2](/decisions/0042-the-game-starts-now.md) - Ian's decision: the game starts now, in parallel with Phase 2, because the tool is good enough to build on; amends DR-0008's "the game comes after".
 - [DR-0044 G.1: walking and looking through a growing world](/decisions/0044-walking-the-growing-world.md)](/decisions/0044-walking-the-growing-world.md) - What the player does and sees in G.1: one cell per key press, hedge and unknown cells block, start at the origin, a 13 by 13 view with no fog, a trodden trail, and what makes it fun.
+- [DR-0045 The game screen for G.1](/decisions/0045-game-screen-for-g1.md) - A status line, a centred 13 by 13 view in DR-0017's glyphs with `@` for the player, a haze for the unknown, a trodden trail, a bump for a blocked move, and a game-set walking pace.
 
 ## Proposed
 
 - [DR-0043 How code is shared between the tool and the game](/decisions/0043-code-shared-by-tool-and-game.md) - apps/game shaped like the tool with its own IPC and bindings; the game uses World's public API, and its core additions go in play.rs; G.1 copies the tool's glyph code; maze-core stays engine-agnostic and Send for a later Unity wrapper.
-- [DR-0045 The game screen for G.1](/decisions/0045-game-screen-for-g1.md) - A status line, a centred 13 by 13 view in DR-0017's glyphs with `@` for the player, a haze for the unknown, a trodden trail, a bump for a blocked move, and a game-set walking pace.
 
 
 

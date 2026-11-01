@@ -4,7 +4,7 @@ title: How the game screen looks and takes keys in G.1
 description: A 13 by 13 world view centred on the player, drawn with DR-0017's glyphs two characters per cell at 32px; a status line with seed, position in words and step count; the player as a bold @; a held key walks at a set pace of about 8 steps a second; a blocked move is a small nudge with "Can't go north."; visited cells get a trodden wash; cells not yet known are a flat haze, never hedge; keys work from launch, with no click first.
 status: stable
 decision_id: DR-0045
-decision_status: proposed
+decision_status: accepted
 decision_kind: design
 major: false
 owners: [ux-designer/1]
@@ -110,7 +110,7 @@ Damson (`ux-designer/1`). This is a two-way door: it's one screen, and nothing i
   - **Lost keyups.** If the window loses focus while a key is held, its keyup never arrives and the player would walk on by itself. The game drops every held key on window `blur`.
   - **A press during a step.** Point 8 says the next step "waits rather than queuing". I read that as at most one waiting press, the newest, so a quick tap during a slow step isn't lost and holding a key still can't build a backlog. Hold ticks never wait: a tick that finds a step in flight is skipped.
   - **Focus permission.** `setFocus()` needs `core:window:allow-set-focus`, which isn't in `core:default`. Rowan adds it to the game's capabilities. If the call fails, the game carries on, because the window listener still works once the window has focus.
-  - **Launch seed (Marram's concern).** The frontend can't read the command line or the environment, so Rust has to supply the launch seed. I propose `start_game({ seed: number | null })`: null means the launch seed if one was given, otherwise a random one. `GameView` carries `seed` so the status line shows the seed actually used. [New world] sends a random seed. Rowan confirms or changes this.
+  - **Launch seed (Marram's concern).** The frontend can't read the command line or the environment, so Rust has to supply the launch seed. Following DR-0043, the frontend asks Rust for it with an `initial_seed` command (the launch seed if one was given, otherwise a random one), then calls `start_game(seed)` and shows that seed. [New world] sends a random seed. Rowan confirms the command.
   - **Nudge replay.** The nudge is a CSS animation on the `@`, replayed on each bump, and `prefers-reduced-motion` turns it off in CSS. A held key bumps once (point 8), so the animation never stutters.
 
 # AI guidance

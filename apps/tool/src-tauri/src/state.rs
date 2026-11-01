@@ -3,8 +3,8 @@
 //! temporary files; `lib.rs` wraps it in a `Mutex` as Tauri managed state.
 
 use crate::ipc::{
-    GenerateRequest, GeneratedMaze, ReloadResult, TableView, TableViewRequest, ToolError,
-    ToolErrorKind,
+    CellTrace, ExploreRequest, ExploreView, GenerateRequest, GeneratedMaze, ReloadResult,
+    TableView, TableViewRequest, ToolError, ToolErrorKind, TraceCellRequest,
 };
 use crate::maze;
 use crate::view::{self, Loaded};
@@ -87,6 +87,18 @@ impl ToolState {
     /// nothing has loaded yet.
     pub fn generate(&self, request: &GenerateRequest) -> Result<GeneratedMaze, ToolError> {
         maze::generated_maze(self.loaded()?, request)
+    }
+
+    /// The explore view of one tile and orientation (DR-0034), or the load
+    /// errors if nothing has loaded yet.
+    pub fn explore(&self, request: &ExploreRequest) -> Result<ExploreView, ToolError> {
+        view::explore(self.loaded()?, request)
+    }
+
+    /// Why a maze cell holds its tile (DR-0034): the load errors if nothing
+    /// has loaded yet, then `stale` if the maze is from another revision.
+    pub fn trace(&self, request: &TraceCellRequest) -> Result<CellTrace, ToolError> {
+        maze::cell_trace(self.loaded()?, request)
     }
 
     fn loaded(&self) -> Result<&Loaded, ToolError> {
@@ -183,6 +195,68 @@ mod tests {
         let err = state.generate(&request).unwrap_err();
         assert_eq!(err.kind, ToolErrorKind::NotLoaded);
         assert!(err.messages[0].contains("doesn't parse"));
+        let err = state
+            .explore(&ExploreRequest {
+                tile_id: "hedge".into(),
+                orientation: 0,
+            })
+            .unwrap_err();
+        assert_eq!(err.kind, ToolErrorKind::NotLoaded);
+        assert!(err.messages[0].contains("doesn't parse"));
+        // Not loaded comes before stale: there is no revision to compare.
+        let err = state.trace(&trace_request(0)).unwrap_err();
+        assert_eq!(err.kind, ToolErrorKind::NotLoaded);
+        assert!(err.messages[0].contains("doesn't parse"));
+    }
+
+    fn trace_request(revision: u32) -> TraceCellRequest {
+        TraceCellRequest {
+            revision,
+            seed: 9,
+            width: 4,
+            height: 3,
+            cell: crate::ipc::CellPos { x: 3, y: 2 },
+        }
+    }
+
+    /// The race DR-0034 names: a maze generated, then a Reload, then the
+    /// trace asked for with the maze's revision.
+    #[test]
+    fn a_trace_after_a_reload_is_stale() {
+        let file = TempFile::new("trace", CORE);
+        let mut state = ToolState::default();
+        state.reload(&file.0).unwrap();
+        let maze = state
+            .generate(&GenerateRequest {
+                seed: 9,
+                width: 4,
+                height: 3,
+            })
+            .unwrap();
+        let trace = state.trace(&trace_request(maze.revision)).unwrap();
+        assert_eq!(trace.collapse.unwrap().chosen, maze.cells[11].unwrap());
+
+        state.reload(&file.0).unwrap();
+        let err = state.trace(&trace_request(maze.revision)).unwrap_err();
+        assert_eq!(err.kind, ToolErrorKind::Stale);
+        assert_eq!(err.messages, vec![maze::STALE_MESSAGE.to_string()]);
+        assert_eq!(state.trace(&trace_request(2)).unwrap().revision, 2);
+    }
+
+    #[test]
+    fn explore_uses_the_current_revision() {
+        let file = TempFile::new("explore", CORE);
+        let mut state = ToolState::default();
+        state.reload(&file.0).unwrap();
+        state.reload(&file.0).unwrap();
+        let view = state
+            .explore(&ExploreRequest {
+                tile_id: "open_room".into(),
+                orientation: 0,
+            })
+            .unwrap();
+        assert_eq!(view.revision, 2);
+        assert_eq!(view.arms.len(), 4);
     }
 
     #[test]

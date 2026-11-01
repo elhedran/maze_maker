@@ -88,6 +88,88 @@ fn finite(v: f64) -> f64 {
     if v.is_finite() { v } else { 0.0 }
 }
 
+/// One table entry with its explanation. The one place an `EntryView` is
+/// built, so `table_view`, the explore view's arms and a trace's pair
+/// factors show the same numbers from the same source (DR-0026, DR-0034
+/// rule 1). Panics if `row` or `column` is out of range, as `Table::entry`
+/// does; callers index from the table itself.
+pub fn entry_view(
+    table: &Table,
+    d: maze_core::Direction,
+    row: usize,
+    column: usize,
+) -> ipc::EntryView {
+    let e = table.entry(d, row, column);
+    // Indices are at most the variant count, so `as u32` is lossless.
+    ipc::EntryView {
+        direction: direction(d),
+        row: row as u32,
+        column: column as u32,
+        facing: ipc::Facing {
+            row: side_kind(e.row_side),
+            column: side_kind(e.column_side),
+        },
+        allowed: e.allowed,
+        may_meet: e
+            .row_side
+            .may_meet_list()
+            .into_iter()
+            .map(side_kind)
+            .collect(),
+        base: finite(e.base),
+        row_weight: finite(e.row_weight),
+        column_weight: finite(e.column_weight),
+        exceptions: e.exception.map(|i| i as u32).into_iter().collect(),
+        noise: finite(e.noise),
+        weight: finite(e.weight),
+        row_total: finite(table.row_total(d, row)),
+        probability: finite(table.probability(d, row, column)),
+    }
+}
+
+/// The explore view for one (tile, orientation) (DR-0026, DR-0034 rules 1
+/// to 3). Fails with `bad_request` if the loaded tile set has no such pair.
+pub fn explore(
+    loaded: &Loaded,
+    request: &ipc::ExploreRequest,
+) -> Result<ipc::ExploreView, ipc::ToolError> {
+    let set = &loaded.tile_set;
+    let table = &loaded.table;
+    let centre = set
+        .variants
+        .iter()
+        .position(|v| set.tile_of(v).id == request.tile_id && v.orientation == request.orientation)
+        .ok_or_else(|| ipc::ToolError {
+            kind: ipc::ToolErrorKind::BadRequest,
+            messages: vec![format!(
+                "The loaded tile set has no tile \"{}\" in orientation {}.",
+                request.tile_id, request.orientation
+            )],
+        })?;
+    let arm = |d: maze_core::Direction| {
+        let (mut neighbours, zeros): (Vec<_>, Vec<_>) = (0..table.size())
+            .map(|c| entry_view(table, d, centre, c))
+            .partition(|e| e.weight > 0.0);
+        // `partition` keeps table order; sort the visible part only.
+        neighbours.sort_by(|a, b| {
+            b.probability
+                .total_cmp(&a.probability)
+                .then(a.column.cmp(&b.column))
+        });
+        ipc::ArmView {
+            direction: direction(d),
+            centre_side: side_kind(set.variants[centre].side(d)),
+            neighbours,
+            zeros,
+        }
+    };
+    Ok(ipc::ExploreView {
+        revision: loaded.revision,
+        centre: centre as u32,
+        arms: maze_core::Direction::ALL.map(arm),
+    })
+}
+
 /// Fails with `bad_request` if a side filter is set and the request doesn't
 /// name exactly one direction (DR-0027): which side is "on the shared edge"
 /// depends on the direction.
@@ -159,33 +241,8 @@ pub fn table_view(
     let mut entries = Vec::with_capacity(directions.len() * rows.len() * columns.len());
     for &d in &directions {
         for &r in &rows {
-            let row_total = finite(table.row_total(d, r as usize));
             for &c in &columns {
-                let e = table.entry(d, r as usize, c as usize);
-                entries.push(ipc::EntryView {
-                    direction: direction(d),
-                    row: r,
-                    column: c,
-                    facing: ipc::Facing {
-                        row: side_kind(e.row_side),
-                        column: side_kind(e.column_side),
-                    },
-                    allowed: e.allowed,
-                    may_meet: e
-                        .row_side
-                        .may_meet_list()
-                        .into_iter()
-                        .map(side_kind)
-                        .collect(),
-                    base: finite(e.base),
-                    row_weight: finite(e.row_weight),
-                    column_weight: finite(e.column_weight),
-                    exceptions: e.exception.map(|i| i as u32).into_iter().collect(),
-                    noise: finite(e.noise),
-                    weight: finite(e.weight),
-                    row_total,
-                    probability: finite(table.probability(d, r as usize, c as usize)),
-                });
+                entries.push(entry_view(table, d, r as usize, c as usize));
             }
         }
     }
@@ -640,5 +697,118 @@ mod tests {
         let request: TableViewRequest = serde_json::from_str(json).unwrap();
         assert_eq!(request.directions, vec![ipc::Direction::East]);
         assert_eq!(request.rows.count, u32::MAX);
+    }
+
+    // explore_tile (DR-0034 rules 1 to 3).
+
+    const DIRECTIONS: [ipc::Direction; 4] = [
+        ipc::Direction::North,
+        ipc::Direction::East,
+        ipc::Direction::South,
+        ipc::Direction::West,
+    ];
+
+    fn explore_request(id: &str, orientation: u32) -> ipc::ExploreRequest {
+        ipc::ExploreRequest {
+            tile_id: id.into(),
+            orientation,
+        }
+    }
+
+    /// Every pair in every direction: an arm is that row of `table_view`,
+    /// split at weight 0, the visible part sorted and the 0s in table order.
+    #[test]
+    fn explore_agrees_with_the_table() {
+        let core = loaded(CORE);
+        let full = ok_view(&core, &TableViewRequest::everything());
+        let mut arms = 0;
+        for (i, tile) in full.tiles.iter().enumerate() {
+            let i = i as u32;
+            let view = explore(&core, &explore_request(&tile.id, tile.orientation)).unwrap();
+            assert_eq!((view.revision, view.centre), (core.revision, i));
+            for (k, (arm, d)) in view.arms.iter().zip(DIRECTIONS).enumerate() {
+                assert_eq!(arm.direction, d);
+                assert_eq!(arm.centre_side, tile.sides[k]);
+                let row: Vec<&ipc::EntryView> = full
+                    .entries
+                    .iter()
+                    .filter(|e| e.direction == d && e.row == i)
+                    .collect();
+                let mut both: Vec<&ipc::EntryView> =
+                    arm.neighbours.iter().chain(&arm.zeros).collect();
+                both.sort_by_key(|e| e.column);
+                assert_eq!(both, row, "{} turned {} {d:?}", tile.id, tile.orientation);
+
+                assert!(!arm.neighbours.is_empty(), "every side meets something");
+                assert!(arm.neighbours.iter().all(|e| e.weight > 0.0));
+                for pair in arm.neighbours.windows(2) {
+                    let (a, b) = (&pair[0], &pair[1]);
+                    assert!(
+                        a.probability > b.probability
+                            || (a.probability == b.probability && a.column < b.column),
+                        "{} {d:?}: {} before {}",
+                        tile.id,
+                        a.column,
+                        b.column
+                    );
+                }
+                assert!(arm.zeros.iter().all(|e| e.weight == 0.0));
+                assert!(arm.zeros.windows(2).all(|p| p[0].column < p[1].column));
+                arms += 1;
+            }
+        }
+        assert_eq!(arms, 29 * 4);
+    }
+
+    #[test]
+    fn explore_names_the_centre_by_identity() {
+        let core = loaded(CORE);
+        let full = ok_view(&core, &TableViewRequest::everything());
+        let view = explore(&core, &explore_request("corridor_corner", 2)).unwrap();
+        let tile = &full.tiles[view.centre as usize];
+        assert_eq!((tile.id.as_str(), tile.orientation), ("corridor_corner", 2));
+        // Passage S and W, hedge N and E, at two quarter turns.
+        let sides: Vec<SideKind> = view.arms.iter().map(|a| a.centre_side).collect();
+        assert_eq!(
+            sides,
+            [
+                SideKind::Hedge,
+                SideKind::Hedge,
+                SideKind::Passage,
+                SideKind::Passage
+            ]
+        );
+        let json = serde_json::to_string(&view).unwrap();
+        assert!(!json.contains("null"));
+        assert!(json.contains("\"centreSide\""));
+    }
+
+    #[test]
+    fn explore_refuses_an_unknown_pair() {
+        let core = loaded(CORE);
+        // An unknown tile, a turn past the tile's distinct orientations,
+        // and a case that differs.
+        for (id, k) in [
+            ("no_such_tile", 0),
+            ("hedge", 1),
+            ("corridor_straight", 2),
+            ("Hedge", 0),
+        ] {
+            let err = explore(&core, &explore_request(id, k)).unwrap_err();
+            assert_eq!(err.kind, ipc::ToolErrorKind::BadRequest);
+            assert_eq!(
+                err.messages,
+                vec![format!(
+                    "The loaded tile set has no tile \"{id}\" in orientation {k}."
+                )]
+            );
+        }
+    }
+
+    #[test]
+    fn explore_request_deserialises_from_camel_case_json() {
+        let request: ipc::ExploreRequest =
+            serde_json::from_str(r#"{"tileId":"room_wall","orientation":3}"#).unwrap();
+        assert_eq!(request, explore_request("room_wall", 3));
     }
 }

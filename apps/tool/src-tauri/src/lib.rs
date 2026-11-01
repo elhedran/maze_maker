@@ -6,6 +6,10 @@
 //! - `reload_tile_set() -> Result<ReloadResult, ToolError>`
 //! - `generate_maze(request: GenerateRequest) -> Result<GeneratedMaze, ToolError>`
 //!   (DR-0028)
+//! - `explore_tile(request: ExploreRequest) -> Result<ExploreView, ToolError>`
+//!   (DR-0034)
+//! - `trace_cell(request: TraceCellRequest) -> Result<CellTrace, ToolError>`
+//!   (DR-0034)
 //! - `core_version() -> String`
 
 pub mod ipc;
@@ -13,7 +17,10 @@ pub mod maze;
 pub mod state;
 pub mod view;
 
-use ipc::{GenerateRequest, GeneratedMaze, ReloadResult, TableView, TableViewRequest, ToolError};
+use ipc::{
+    CellTrace, ExploreRequest, ExploreView, GenerateRequest, GeneratedMaze, ReloadResult,
+    TableView, TableViewRequest, ToolError, TraceCellRequest,
+};
 use state::ToolState;
 use std::sync::Mutex;
 
@@ -54,6 +61,24 @@ fn generate_maze(
     lock(&state).generate(&request)
 }
 
+#[tauri::command]
+fn explore_tile(
+    state: tauri::State<'_, Mutex<ToolState>>,
+    request: ExploreRequest,
+) -> Result<ExploreView, ToolError> {
+    lock(&state).explore(&request)
+}
+
+/// Replays the maze to trace one cell: one generation's work, so like
+/// `generate_maze` it runs in the command directly.
+#[tauri::command]
+fn trace_cell(
+    state: tauri::State<'_, Mutex<ToolState>>,
+    request: TraceCellRequest,
+) -> Result<CellTrace, ToolError> {
+    lock(&state).trace(&request)
+}
+
 pub fn run() {
     // A failed startup load doesn't stop the app: `table_view` returns the
     // errors so they show in the tool (DR-0024).
@@ -67,7 +92,9 @@ pub fn run() {
             core_version,
             table_view,
             reload_tile_set,
-            generate_maze
+            generate_maze,
+            explore_tile,
+            trace_cell
         ])
         .run(tauri::generate_context!())
         .expect("error while running the Maze Maker tool");

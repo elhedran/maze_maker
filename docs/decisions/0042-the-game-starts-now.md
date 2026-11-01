@@ -19,6 +19,9 @@ verified:
   - by: human:ian
     at: 2026-11-01T10:20:41Z
     note: "Said to the parent facilitator (session_01AqTzintpyngWme4BK9LQr6) on 2026-11-01 and relayed to this session; time is when it was recorded. Verbatim: \"That said - this should not hold up attempting the actual game now - the tooling shows we are \"good enough\" to work on the game while we improve the tool\". Then: \"I'm happy for both existing branches to land - this advice is more for future work\". The proposals below are the facilitator's, not Ian's."
+  - by: product-manager/1
+    at: 2026-11-01T10:22:42Z
+    note: "Approves as product approver, items 2 to 5 included. A two-way door: the game can pause again and nothing in the tool is thrown away. Sequencing is Marram's call (DR-0018), and a third track now is the right one. G.1 is sliced in the roadmap. Concerns 1 to 3 below."
 ---
 
 # Context
@@ -58,7 +61,11 @@ The facilitator's proposals (Ian can strike any of them):
 
 # Concerns raised
 
-None yet.
+Marram (`product-manager/1`), on approving, 2026-11-01:
+
+1. **Clashes in `maze-core`.** Three tracks now touch it (2.3, 2.6 steps 2 to 3, the game). Item 5 says the game raises changes first; Marram adds that G.1 should use the World through what step 1 already exposes, and anything it must add is additive. On a clash with the tool's tracks, the game adapts, so Phase 2 isn't held up. Yew's DR-0043 can override this.
+2. **G.1 stays thin.** The risk in starting the game is a long build with nothing to show. G.1 is one window, one walk, no saves, no debug views, no loot (see the roadmap's G.1). Anything else waits for G.2 onwards.
+3. **Ian runs G.1's demo himself, on Windows.** The game is a new window that cloud sessions can't drive, as with 2.2. The README steps must work from the repo root in PowerShell without help.
 
 # AI guidance
 

@@ -39,6 +39,8 @@ One file per decision ([DR-0001](/decisions/0001-record-every-decision.md)). Onl
 
 ## Proposed
 
+- [DR-0042 The game starts now, alongside Phase 2](/decisions/0042-the-game-starts-now.md) - Ian's decision: the game starts now, in parallel with Phase 2, because the tool is good enough to build on; amends DR-0008's "the game comes after".
+- [DR-0044 Walking the growing world (G.1)](/decisions/0044-walking-the-growing-world.md) - What the player does and sees in G.1: one cell per key press, hedge and unknown cells block, start at the origin, a 13 by 13 view with no fog, a trodden trail, and what makes it fun.
 
 
 

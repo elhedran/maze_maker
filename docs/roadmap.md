@@ -81,20 +81,23 @@ And Ian (`human:ian`), verbatim, 2026-11-01, on what he meant:
 
 ## Now and next
 
-Updated 2026-11-01 by Marram, after 2.2 landed and [DR-0036](/decisions/0036-growth-from-open-endpoints.md) gave 2.6 its new shape. Ian wants work to keep going today, so both tracks run now.
+Updated 2026-11-01 by Marram, when 2.6 step 1 landed and the game started ([DR-0042](/decisions/0042-the-game-starts-now.md)). Ian (`human:ian`), verbatim, 2026-11-01:
 
-- **Done:** Phase 1 is closed. 1.1, 1.3, 2.1 and 2.2 (which includes 1.2) are on `main`. Ian, verbatim, on 2.2: "I looked at the 2.2 demo, its approved and can land on main". [DR-0035](/decisions/0035-the-world-is-stored.md) (the world is stored) and [DR-0036](/decisions/0036-growth-from-open-endpoints.md) (growth from open endpoints) are accepted. [Q-0008](/questions/open/0008-global-maze-properties.md)'s first part is settled by [DR-0030](/decisions/0030-measures-for-2-1.md); the rest stays open for 2.5 and the game.
-- **Now, two tracks in parallel** (Marram's call; Ian, 2026-11-01: "Happy to use tokens faster if we can doo more work concurrently"):
-  - **Tool track: 2.3 Tune and compare.** Its two gates first, side by side: Damson's design record for compare and edit (DR-0037) and Yew's record on editing `core.toml` (DR-0038). The engineers can build against stubs while they settle.
-  - **Engine track: 2.6 step 1**, built as `a813a73` on `rowan/2.6-chunks` and being rebased onto `main` by Rowan. Then its no-window demo for Ian, and it lands with his OK. Step 2, the measures, starts as soon as the rebase is green.
+> That said - this should not hold up attempting the actual game now - the tooling shows we are "good enough" to work on the game while we improve the tool
+
+- **Done:** Phase 1 is closed. 1.1, 1.3, 2.1, 2.2 (which includes 1.2) and 2.6 step 1 are on `main`. Ian, verbatim, on 2.2: "I looked at the 2.2 demo, its approved and can land on main". [DR-0035](/decisions/0035-the-world-is-stored.md) (the world is stored) and [DR-0036](/decisions/0036-growth-from-open-endpoints.md) (growth from open endpoints) are accepted. [Q-0008](/questions/open/0008-global-maze-properties.md)'s first part is settled by [DR-0030](/decisions/0030-measures-for-2-1.md); the rest stays open for 2.5 and later game slices.
+- **Now, three tracks in parallel** (Marram's call, a two-way door; Ian, 2026-11-01: "Happy to use tokens faster if we can doo more work concurrently"):
+  - **Tool track: 2.3 Tune and compare,** with its gates DR-0037 and DR-0038.
+  - **Engine track: 2.6 step 2** (the measures, DR-0040), **step 2b** (the random walker) and **step 3** (the tool's World tab, DR-0039 and DR-0041), each in its own session.
+  - **Game track: G.1 Walk a growing world** ([DR-0042](/decisions/0042-the-game-starts-now.md)). Its three gates are written side by side now: DR-0043 (Yew, code sharing and any new tech), DR-0044 (Wren, what the player does and sees) and DR-0045 (Damson, the game screen). Rowan and Ash build `apps/game/` against a stub while they settle. See G.1 below.
+  - **Who gives way:** none of the three pauses for another. In `maze-core`, the game adapts to the tool's tracks on a clash (Marram, DR-0042 concern 1).
 - **Next:**
-  - engine track: 2.6 step 3, the view of a growing world with a walk, once step 1 has landed. Damson writes its small design record straight after DR-0037;
-  - then 2.5 Judge many samples, then 2.4 Watch it collapse (see "Later in Phase 2" for why that order);
-  - then the game, starting with G.1.
+  - 2.5 Judge many samples, then 2.4 Watch it collapse (see "Later in Phase 2" for why that order);
+  - on the game track, G.2 Save and load once G.1 lands, unless G.1's fun review points somewhere more urgent.
 
 ## How it works
 
-- Phases follow [DR-0008](/decisions/0008-adjacency-tool-first.md). Phase 1 is the table and a tool to view and filter it. Phase 2 adds sample mazes to the same tool. The game comes after, as its own app.
+- Phases follow [DR-0008](/decisions/0008-adjacency-tool-first.md). Phase 1 is the table and a tool to view and filter it. Phase 2 adds sample mazes to the same tool. The game is its own app, and since 2026-11-01 it runs alongside Phase 2 rather than after it ([DR-0042](/decisions/0042-the-game-starts-now.md), amending DR-0008).
 - Every slice works end to end, from Rust to the screen.
 - Every slice ends in a demo, written as tasks Ian does himself without help (Damson's suggestion). Each demo comes with a commit on `main`, a line in `/log.md` and the steps to run it.
 - A slice starts once the decisions it waits on are accepted. This roadmap names those decisions but doesn't make them.
@@ -448,18 +451,52 @@ Marram's calls, all sequencing and scope, so two-way doors ([DR-0018](/decisions
 
 ## The game (outline)
 
-The game is its own app (`apps/game/`, [DR-0012](/decisions/0012-code-layout-and-core-crate.md)), and comes after Phase 2 ([DR-0008](/decisions/0008-adjacency-tool-first.md)).
+The game is its own app (`apps/game/`, [DR-0012](/decisions/0012-code-layout-and-core-crate.md)). Since 2026-11-01 it runs now, as its own track alongside Phase 2 ([DR-0042](/decisions/0042-the-game-starts-now.md), amending [DR-0008](/decisions/0008-adjacency-tool-first.md)'s "the game comes after"). DR-0008's "don't start on game features without a decision record" still holds: G.1's records are DR-0043 to DR-0045.
 
-- **Waits on:**
-  - the full decision on how code is shared with the tool (Yew, with an engineer);
-  - **persistence is settled:** the world is stored ([DR-0035](/decisions/0035-the-world-is-stored.md), Ian: "we want to know where the player has been, we will add loot"). What's left is how the game writes saves to disk, its own record when the game starts, and it gates G.2 only. Yew re-checks DR-0036's frontier rule (rule 1) before the game first saves a world;
-  - how the rest of the global maze properties are enforced ([Q-0008](/questions/open/0008-global-maze-properties.md)); the way onward is guaranteed by DR-0036 rule 6;
-  - game-design records from Wren on what the player does;
-  - possibly technology choices. Any that change the tech stack are Ian's ([DR-0018](/decisions/0018-one-way-doors-go-to-ian.md)).
+- **Waits on,** for G.1:
+  - **how code is shared with the tool,** and whether G.1 needs any new technology: DR-0043 (Yew; Yew and one engineer). New technology that changes the tech stack would be Ian's ([DR-0018](/decisions/0018-one-way-doors-go-to-ian.md));
+  - **what the player does and sees:** DR-0044 (Wren; Wren and Marram);
+  - **the game screen:** DR-0045 (Damson; Damson and Marram).
+- **Settled, or not a G.1 gate:**
+  - **persistence:** the world is stored ([DR-0035](/decisions/0035-the-world-is-stored.md), Ian: "we want to know where the player has been, we will add loot"). How the game writes saves to disk is its own record and gates G.2 only. Yew re-checks DR-0036's frontier rule (rule 1) before the game first saves a world;
+  - **the way onward** is guaranteed by DR-0036 rule 6;
+  - **the rest of [Q-0008](/questions/open/0008-global-maze-properties.md)** (pacing, dead ends, room spacing) is not a G.1 gate (Marram's call, a two-way door). G.1 walks whatever the generator grows today, and Wren's fun review says what to change. It comes back for 2.5 and later game slices.
 - **Game slices,** numbered G.1 onwards so they don't clash with Phase 2's numbers (Marram's call, a two-way door). Like Phase 2's, numbers are stable once given.
-  - **G.1 Walk a growing world:** a player walks through a world grown around them from open endpoints along their path ([DR-0036](/decisions/0036-growth-from-open-endpoints.md)), and walking back finds it as it was. Keeping the world is no longer its own slice: DR-0035 stores it in `maze-core`, so G.1 gets it for free.
-  - **G.2 Save and load:** the world and the player survive closing the game. Waits on the save-format record (DR-0035 leaves it to the game). This is where the one-way part of DR-0035 starts to bite, so its record may go to Ian.
-  - **G.3 Debug mode:** the tool's views (the "why" trace, overlays) inside the game.
+
+### G.1 Walk a growing world (now, game track)
+
+Sliced by Marram on 2026-11-01, as the smallest thing that is the game: one window, one player, one walk. Scope and sequencing are Marram's calls, two-way doors ([DR-0018](/decisions/0018-one-way-doors-go-to-ian.md)). Ian (`human:ian`), verbatim, 2026-11-01:
+
+> don't forget we have a game designer to ensure looking through the maze (based on our generator) is fun.
+
+- **Goal:** a player walks through a world grown around them from open endpoints along their path ([DR-0036](/decisions/0036-growth-from-open-endpoints.md)), and walking back finds it as it was ([DR-0035](/decisions/0035-the-world-is-stored.md)). And it is fun to look through, which Wren judges before Ian sees it.
+- **Demo tasks** (Ian, without help, on Windows, in PowerShell, from the repo root):
+  - Ian starts the game with the one command in the README. A window opens with the player on the start tile, the world around them drawn in [DR-0017](/decisions/0017-tile-glyphs-and-colours.md)'s glyphs and colours, and the seed shown.
+  - Ian walks at least 20 steps away from the start with the keyboard, heading east wherever the passages allow. When a wall is in the way the player doesn't move, and the screen makes that clear. New world appears ahead as he goes.
+  - Ian walks back the same way to the start, and every tile he passed is as it was.
+  - Ian closes the game, starts it again with the same seed, and sees the same start.
+- **What's in it:**
+  - `apps/game/`, a Tauri v2 app with a Lit frontend, sharing `maze-core` as DR-0043 says.
+  - Three commands, as the engineers' stub has them: `start_game(seed)`, and `step(direction)` returning the player's position, whether they moved, and the stored cells within a radius. Growth, storage and whether a step is blocked are all in Rust ([DR-0005](/decisions/0005-tauri-rust-backend-lit-frontend.md)); the frontend only draws.
+  - Moving one cell at a time in the grid's four directions ([DR-0014](/decisions/0014-square-grid.md)), with the keyboard. What blocks, how far the player sees (6 cells), the trodden trail and how unsettled cells look are Wren's (DR-0044) and Damson's (DR-0045). Unsettled cells read as the unknown, not as stored hedge (DR-0044 rule 5).
+  - The generator as it is on `main`, with `core.toml` as it is.
+  - **Wren's fun review:** before Ian's demo, Wren plays the built G.1 (or walks it by script) on several seeds with the real generator, and writes a short review in `/plans/`, with a verdict and what to change. Like [2.1's review](/plans/2.1-maze-review.md), it is a gate for the demo. Generator changes Wren asks for go to the 2.3 and 2.6 tracks, not to G.1.
+- **Not in it:** saving and loading (G.2); debug views, the "why" trace and overlays (G.3); loot, enemies, goals or a score; menus, settings, sound and animation beyond what DR-0045 needs; mouse or click-to-walk; zones; changing the generator or `core.toml` (those go to 2.3 and 2.6); an incremental rule 6 check (DR-0036), unless G.1's walks show growth is slow.
+- **Done when:**
+  - every step goes through Rust, and the world the game shows is `maze-core`'s stored World;
+  - a test walks out and back over many seeds: stored cells never change, and the player ends where they started;
+  - a test shows the same seed and the same steps give the same world and the same position;
+  - a test shows a step into a wall leaves the player where they were, and a step never panics, including when growth falls back;
+  - a step, growth included, is quick enough that walking doesn't stall in a release build (the engineers measure it and write the number down);
+  - Wren's fun review is written, with a verdict, and Damson has reviewed the screen against DR-0045;
+  - bindings regenerated; Rust tests, Vitest, clippy and the build are clean; the demo steps are in the README; the slice is on `main` with a line in `/log.md`. Ian runs the demo in the window himself, since cloud sessions can't drive it (as with 2.2).
+- **Waits on:** DR-0043, DR-0044 and DR-0045 (see above), settled at the start of the build, with no planning round. The engineers build against the stub meanwhile. If DR-0043 finds G.1 needs new technology, that one part goes to Ian.
+- **Beside Phase 2** (Marram's call): its own sessions and worktrees. G.1 holds `apps/game/` and adds to `maze-core` only if it must, additively; on a clash, the game adapts (DR-0042 concern 1).
+
+### Later game slices (outline)
+
+- **G.2 Save and load:** the world and the player survive closing the game. Waits on the save-format record (DR-0035 leaves it to the game). This is where the one-way part of DR-0035 starts to bite, so its record may go to Ian.
+- **G.3 Debug mode:** the tool's views (the "why" trace, overlays) inside the game.
 
 ## Later (not scheduled, nothing decided)
 
@@ -514,12 +551,15 @@ Already settled:
 | Design for the generation view (small, settled during the 2.1 build) and the link from maze to table | design | Damson; Damson and Marram | no | 2.1, 2.2 |
 | Research into infinite WFC, and how the world grows | DR-0007 | Yew; two engineers (Yew authored) | no, unless Yew judges a part one-way | done: [DR-0031](/decisions/archive/0031-endless-generation-approach.md), superseded by [DR-0036](/decisions/0036-growth-from-open-endpoints.md) (accepted 2026-11-01), which gives 2.6 its shape |
 | Persistence | DR-0007 | Ian, 2026-11-01: the world is stored | **yes**: Ian decided it | done ([DR-0035](/decisions/0035-the-world-is-stored.md)); how saves are written to disk is the game's own record, gating G.2 |
-| How global properties are enforced | [Q-0008](/questions/open/0008-global-maze-properties.md) | Yew, with Wren | no, unless Yew judges it one-way | Ian's steering of 2026-11-01: growing from open endpoints and the way onward, done ([DR-0036](/decisions/0036-growth-from-open-endpoints.md)); opening pressure in the single maze, 2.3 (DR-0038); the rest, the game |
+| How global properties are enforced | [Q-0008](/questions/open/0008-global-maze-properties.md) | Yew, with Wren | no, unless Yew judges it one-way | Ian's steering of 2026-11-01: growing from open endpoints and the way onward, done ([DR-0036](/decisions/0036-growth-from-open-endpoints.md)); opening pressure in the single maze, 2.3 (DR-0038); the rest, 2.5 and game slices after G.1 (not a G.1 gate) |
 | Compare and edit design (DR-0037) | design | Damson; Damson and Marram | no | 2.3 (settled at the start of the build) |
 | How the tool edits `core.toml` and records edits, and opening pressure in the single maze and its trace (DR-0038) | architecture, [DR-0024](/decisions/0024-tile-set-file-format.md), [DR-0034](/decisions/0034-data-contract-for-why-is-this-here.md) | Yew; Yew and one engineer | no, unless Yew judges a part one-way | 2.3 (settled at the start of the build) |
 | Design for the growing-world view (next free number) | design | Damson; Damson and Marram | no | 2.6 step 3 |
 | How the game saves the world to disk | [DR-0035](/decisions/0035-the-world-is-stored.md) | Yew; Yew and one engineer | likely **yes**, if Yew judges the save format one-way | G.2 |
-| How code is shared with the game, in full | DR-0008, [DR-0012](/decisions/0012-code-layout-and-core-crate.md) | Yew; Yew and one engineer | no | the game |
+| How code is shared with the game, and whether G.1 needs new technology (DR-0043) | DR-0008, [DR-0012](/decisions/0012-code-layout-and-core-crate.md), [DR-0042](/decisions/0042-the-game-starts-now.md) | Yew; Yew and one engineer | no, unless it adds new technology | G.1 (settled at the start of the build) |
+| G.1 game design: what the player does and sees (DR-0044) | game design, [DR-0042](/decisions/0042-the-game-starts-now.md) | Wren; Wren and Marram | no | G.1 (settled at the start of the build) |
+| The game screen for G.1 (DR-0045) | design | Damson; Damson and Marram | no | G.1 (settled at the start of the build) |
+| Wren's fun review of G.1 | game design, Ian 2026-11-01 | Wren | no | G.1's demo |
 | Replacing WFC as the generation approach, only if 2.6 finds WFC can't do endless mazes after all (the research found it can, DR-0031, and DR-0036 builds on it) | [DR-0007](/decisions/0007-wave-function-collapse.md) | Yew | **yes**: it changes the tech stack and throws away the generator built in Phase 2 | 2.6; the game |
-| Technology for the game beyond Tauri v2, Rust and Lit, if any is needed | [DR-0005](/decisions/0005-tauri-rust-backend-lit-frontend.md) | Yew | **yes**: it changes the tech stack, and the game would be built on it | the game |
+| Technology for the game beyond Tauri v2, Rust and Lit, if any is needed | [DR-0005](/decisions/0005-tauri-rust-backend-lit-frontend.md) | Yew, in DR-0043 | **yes**: it changes the tech stack, and the game would be built on it | G.1, only if DR-0043 finds it needed |
 | Anything that costs Ian money or ties down his time, such as a paid service or publishing | [DR-0018](/decisions/0018-one-way-doors-go-to-ian.md) | whoever needs it | **yes**: the cost falls on Ian | none planned |

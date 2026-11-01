@@ -336,7 +336,7 @@ mod tests {
     fn entries_name_their_base_pair_and_the_view_its_pressure() {
         let set = TileSet::from_toml(CORE).unwrap();
         let view = ok_view(&loaded(CORE), &TableViewRequest::everything());
-        assert_eq!(view.opening_pressure, 1.0);
+        assert_eq!(view.opening_pressure, set.opening_pressure);
         let mut seen = std::collections::BTreeSet::new();
         for e in &view.entries {
             match &e.base_pair {
@@ -353,12 +353,20 @@ mod tests {
             }
         }
         assert_eq!(seen.len(), 6, "every pair appears: {seen:?}");
-        let pressed = CORE.replace(
+        // No key reads as 1; a key as its value.
+        let bare: String = CORE
+            .lines()
+            .filter(|l| !l.trim_start().starts_with("opening_pressure"))
+            .map(|l| format!("{l}\n"))
+            .collect();
+        let view = ok_view(&loaded(&bare), &TableViewRequest::everything());
+        assert_eq!(view.opening_pressure, 1.0);
+        let pressed = bare.replace(
             "name = \"core\"\n",
-            "name = \"core\"\nopening_pressure = 0.5\n",
+            "name = \"core\"\nopening_pressure = 0.35\n",
         );
         let view = ok_view(&loaded(&pressed), &TableViewRequest::everything());
-        assert_eq!(view.opening_pressure, 0.5);
+        assert_eq!(view.opening_pressure, 0.35);
     }
 
     #[test]

@@ -303,6 +303,15 @@ mod tests {
 
     const CORE: &str = include_str!("../../../data/tile-sets/core.toml");
 
+    /// `text` without its `opening_pressure` line, for checks that need the
+    /// key absent (no key means 1) whatever value `core.toml` has.
+    fn without_pressure(text: &str) -> String {
+        text.lines()
+            .filter(|l| !l.trim_start().starts_with("opening_pressure"))
+            .map(|l| format!("{l}\n"))
+            .collect()
+    }
+
     fn core() -> (TileSet, Table) {
         let set = TileSet::from_toml(CORE).expect("core.toml loads");
         let table = Table::calculate(&set);
@@ -352,10 +361,12 @@ mod tests {
         (generation, traces)
     }
 
-    /// DR-0034's factor test, for every cell of several seeds.
+    /// DR-0034's factor test, for every cell of several seeds, with no
+    /// opening pressure (the 200-seed test below has it on).
     #[test]
     fn factors_multiply_to_the_solvers_score() {
-        let (set, table) = core();
+        let set = TileSet::from_toml(&without_pressure(CORE)).expect("core.toml loads");
+        let table = Table::calculate(&set);
         let (w, h) = (DEFAULT_WIDTH, DEFAULT_HEIGHT);
         for seed in [0, 1, 7, 42, 2026] {
             let (maze, traces) = all_traces(&set, &table, seed, w, h);
@@ -430,7 +441,7 @@ mod tests {
     /// sides all face counted neighbours; a side past the edge is new.
     #[test]
     fn pressure_is_the_last_factor_over_200_seeds() {
-        let text = CORE.replace(
+        let text = without_pressure(CORE).replace(
             "name = \"core\"\n",
             "name = \"core\"\nopening_pressure = 0.5\n",
         );

@@ -15,9 +15,16 @@ fn core() -> (TileSet, Table) {
     core_with("")
 }
 
-/// `core.toml` with `extra` top-level keys.
+/// `core.toml` with `extra` top-level keys, after taking out any
+/// `opening_pressure` it has: these tests (and the pinned world) are at no
+/// pressure unless `extra` sets one.
 fn core_with(extra: &str) -> (TileSet, Table) {
-    let text = CORE.replace("name = \"core\"\n", &format!("name = \"core\"\n{extra}"));
+    let text: String = CORE
+        .lines()
+        .filter(|l| !l.trim_start().starts_with("opening_pressure"))
+        .map(|l| format!("{l}\n"))
+        .collect();
+    let text = text.replace("name = \"core\"\n", &format!("name = \"core\"\n{extra}"));
     let set = TileSet::from_toml(&text).unwrap_or_else(|e| panic!("refused: {e:?}"));
     let table = Table::calculate(&set);
     (set, table)

@@ -534,7 +534,12 @@ mod tests {
 
     #[test]
     fn an_absent_opening_pressure_is_recorded_without_from() {
-        let file = TempFile::new("pressure", CORE);
+        let bare: String = CORE
+            .lines()
+            .filter(|l| !l.trim_start().starts_with("opening_pressure"))
+            .map(|l| format!("{l}\n"))
+            .collect();
+        let file = TempFile::new("pressure", &bare);
         let mut state = ToolState::default();
         state.reload(&file.0).unwrap();
         let result = save(&mut state, &file, NumberTarget::OpeningPressure, 0.5).unwrap();

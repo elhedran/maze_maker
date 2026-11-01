@@ -280,6 +280,15 @@ mod tests {
         TileSet::from_toml(CORE).unwrap()
     }
 
+    /// `text` without its `opening_pressure` line, for checks that need the
+    /// key absent (no key means 1) whatever value `core.toml` has.
+    fn without_pressure(text: &str) -> String {
+        text.lines()
+            .filter(|l| !l.trim_start().starts_with("opening_pressure"))
+            .map(|l| format!("{l}\n"))
+            .collect()
+    }
+
     fn edit(target: NumberTarget, value: f64) -> NumberEdit {
         NumberEdit { target, value }
     }
@@ -366,13 +375,10 @@ mod tests {
 
     #[test]
     fn opening_pressure_is_inserted_after_name_then_replaced() {
-        let set = core();
-        assert!(
-            !CORE.contains("opening_pressure"),
-            "core.toml gained the key; use a fixture"
-        );
+        let bare = without_pressure(CORE);
+        let set = TileSet::from_toml(&bare).unwrap();
         let (text, applied) =
-            apply(CORE, &set, &[edit(NumberTarget::OpeningPressure, 0.5)]).unwrap();
+            apply(&bare, &set, &[edit(NumberTarget::OpeningPressure, 0.5)]).unwrap();
         assert_eq!(applied[0].from, None);
         assert_eq!(applied[0].number, "opening_pressure");
         assert!(
@@ -381,7 +387,7 @@ mod tests {
             &text[..text.find("[noise]").unwrap()]
         );
         // Everything else is byte for byte as it was.
-        assert_eq!(text.replacen("opening_pressure = 0.5\n", "", 1), CORE);
+        assert_eq!(text.replacen("opening_pressure = 0.5\n", "", 1), bare);
         let pressed = validate(&text).unwrap();
         assert_eq!(pressed.opening_pressure, 0.5);
 
@@ -432,13 +438,14 @@ mod tests {
 
     #[test]
     fn several_edits_apply_in_turn() {
-        let set = core();
+        let bare = without_pressure(CORE);
+        let set = TileSet::from_toml(&bare).unwrap();
         let edits = [
             edit(weight("hedge"), 3.0),
             edit(NumberTarget::OpeningPressure, 0.7),
             edit(weight("hedge"), 2.5),
         ];
-        let (text, applied) = apply(CORE, &set, &edits).unwrap();
+        let (text, applied) = apply(&bare, &set, &edits).unwrap();
         let froms: Vec<Option<f64>> = applied.iter().map(|a| a.from).collect();
         let hedge = set.tiles.iter().find(|t| t.id == "hedge").unwrap().weight;
         assert_eq!(froms, [Some(hedge), None, Some(3.0)]);

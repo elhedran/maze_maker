@@ -113,6 +113,35 @@ Damson (`ux-designer/1`). This is a two-way door: it's one screen, and nothing i
   - **Launch seed (Marram's concern).** The frontend can't read the command line or the environment, so Rust has to supply the launch seed. Following DR-0043, the frontend asks Rust for it with an `initial_seed` command (the launch seed if one was given, otherwise a random one), then calls `start_game(seed)` and shows that seed. [New world] sends a random seed. Rowan confirms the command.
   - **Nudge replay.** The nudge is a CSS animation on the `@`, replayed on each bump, and `prefers-reduced-motion` turns it off in CSS. A held key bumps once (point 8), so the animation never stutters.
 
+- **Damson (`ux-designer/1`), review of the build, 2026-11-01:** **pass for the demo, once the three must-fixes below are in.** I reviewed Rowan's screenshots of the real Tauri window under Xvfb (seed 1: launch, blocked, east 5 and 10, the far end, back at the start, a restart, and every step) and `apps/game/src` on `mm-rowan-g1`. What works:
+  - Keys walk with no click.
+  - The `@` stays in the centre.
+  - The status line reads as a walker thinks ("8 east, 4 north of the start · 14 steps").
+  - "Can't go east." is quiet and not red.
+  - The haze reads as "not yet known".
+  - The way back matches cell for cell, and a restart is identical.
+  - The pace (250ms, then 125ms) and Ash's five calls are as asked, and all are **accepted**.
+
+  Wren's fix that draws sealed unknown pockets as hedge (░) is **accepted**, and it amends point 7. A pocket that can never be reached can never become a path, so drawing it as hedge is honest. The haze stays for unknown cells that can still grow.
+
+  **Must fix before the demo** (all CSS or template, minutes each):
+  1. **The blank bands above and below the rows** (the frame is about 646px for about 494px of rows). It isn't the font. The `.map` div has `white-space: pre`, so the newlines and indents around `${layoutGrid(...)}` in the template render as empty lines at 32px. Put the expression flush against the tags, `<div ...>${...}</div>`, as the tool's `maze-view.ts` does. The frame then hugs the rows, and the edge of sight sits where it should.
+  2. **The trail.** There are two problems. The black wash makes room tint muddy. And on corridors it's a flat light grey right next to the flat grey haze, so in `far-end` the trail reads as a lighter patch of "not yet known", the one thing it mustn't look like. The fix:
+     - make the trail a warm "trodden earth" tint, `--trail: rgba(160, 120, 40, 0.10)` in light and `rgba(242, 166, 90, 0.08)` in dark, so it's warm where the haze is cool;
+     - leave it off room cells (`.cell.room.visited { box-shadow: none; }`). Rooms are small and their doorways carry the trail in and out. Wren, that's a small departure from "every cell stood on" (DR-0044 rule 6); say if it matters to you.
+  3. **The room tint bleeds past east walls.** About 6 to 10px of amber shows outside ║, ╝ and ╗ (in `launch`, the right edges of all three rooms). A two-character cell puts its vertical lines at 25% of the cell, not 50%, so a "left" tint should stop at 25% and a "right" tint should start there:
+     - `.tint-left`, `-lower-left` and `-upper-left` become `background-size: 25% …`;
+     - `.tint-right`, `-lower-right` and `-upper-right` become `background-size: 75% …`, still positioned right.
+
+     Rooms are meant to be the finds, so their edges should be clean. The tool has the same rule (DR-0043 point 5 says fix both copies), but there it's smaller at 18px, so the tool's fix can follow.
+
+  **Check on Windows before the demo** (not fixes): that WebView2 takes keys with no click on Ian's machine; the dark theme; and 150% scaling.
+
+  **Follow-ups**, none blocking:
+  1. **For Wren:** seed 1's views are dense corridor grids, with a junction almost every cell and very little hedge, close to the "graph-paper grid" DR-0044 warns against. It's a generator question for the 2.3 tuning, not the screen's.
+  2. The `@` hides the tile under it. If Ian asks "what am I standing on?", the message line could name it when he stops.
+  3. My two concerns above (voids behind hedges, a snapping camera) stand until Ian has walked it.
+
 # AI guidance
 
 - Draw tiles from (tile id, orientation) through the copied DR-0017 mapping. Never identify a tile by its glyph.

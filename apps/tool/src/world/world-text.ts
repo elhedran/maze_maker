@@ -41,11 +41,25 @@ export function positionText(x: number, y: number): string {
   return `x ${x}, y ${y}`;
 }
 
-/** "World 48213 · 112 steps · 37 patches · 1,912 cells" (DR-0039 rule 4). */
-export function worldStatus(seed: number, steps: number, patches: number, cells: number): string {
-  return `World ${seed} · ${count(steps)} ${steps === 1 ? "step" : "steps"} · ${count(patches)} ${
+/** "112 steps · 37 patches · 1,912 cells": a world's totals. */
+function totalsText(steps: number, patches: number, cells: number): string {
+  return `${count(steps)} ${steps === 1 ? "step" : "steps"} · ${count(patches)} ${
     patches === 1 ? "patch" : "patches"
   } · ${count(cells)} cells`;
+}
+
+/** "World 48213 · 112 steps · 37 patches · 1,912 cells" (DR-0039 rule 4). */
+export function worldStatus(seed: number, steps: number, patches: number, cells: number): string {
+  return `World ${seed} · ${totalsText(steps, patches, cells)}`;
+}
+
+/**
+ * The status line during replay, until Rust's check arrives. The totals are the
+ * walk's, said so, so they don't read as the replay's own count; that is the
+ * timeline's "Replay · patch k of n" (Damson, 2.6 step 3 review, fix 4).
+ */
+export function replayStatus(seed: number, steps: number, patches: number, cells: number): string {
+  return `Replaying world ${seed} · walked: ${totalsText(steps, patches, cells)}`;
 }
 
 /** DR-0039 rule 12, after a Reload: the world stays on the set it was grown with. */

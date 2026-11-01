@@ -23,6 +23,7 @@ import {
   patchPanel,
   reloadNote,
   replayProgress,
+  replayStatus,
   storedCellText,
   unsettledCellText,
   worldStatus,
@@ -653,7 +654,8 @@ export class WorldView extends LitElement {
     if (replay?.check && this.queue.length === 0) {
       return html`<span id="status" class=${replay.check.same ? "" : "problem"} role="status">${checkText(replay.replayed, replay.check)}</span>`;
     }
-    const parts = [worldStatus(world.seed, this.totals.steps, this.totals.patchCount, this.totals.storedCount)];
+    const { steps, patchCount, storedCount } = this.totals;
+    const parts = [(replay ? replayStatus : worldStatus)(world.seed, steps, patchCount, storedCount)];
     if (this.reloadedNote) parts.push(this.reloadedNote);
     return html`<span id="status">${parts.join(" · ")}</span>`;
   }

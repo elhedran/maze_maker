@@ -326,6 +326,7 @@ describe("world-view", () => {
     await vi.waitFor(() => expect($<HTMLButtonElement>(el, "#replay")!.disabled).toBe(false));
     click(el, "#replay");
     await vi.waitFor(() => expect(text(el, "#replay-progress")).toBe("Replay · patch 0 of 4"));
+    expect(text(el, "#status")).toMatch(/^Replaying world \d+ · walked: 1 step · 4 patches · 6 cells$/);
     // Walking is off during replay, and the map starts empty.
     expect($<HTMLButtonElement>(el, "#step")!.disabled).toBe(true);
     expect(cell(el, 0, 0).getAttribute("aria-label")).toBe("Unsettled · x 0, y 0");

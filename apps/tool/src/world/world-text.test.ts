@@ -8,6 +8,7 @@ import {
   patchPanel,
   reloadNote,
   replayProgress,
+  replayStatus,
   storedCellText,
   unsettledCellText,
   worldStatus,
@@ -70,6 +71,8 @@ describe("world text", () => {
   test("frontier, replay and reload wording", () => {
     expect(frontierText(14, 9)).toBe("Frontier: 14 open, 9 outward");
     expect(replayProgress(12, 37)).toBe("Replay · patch 12 of 37");
+    expect(replayStatus(2026, 300, 16, 904)).toBe("Replaying world 2026 · walked: 300 steps · 16 patches · 904 cells");
+    expect(replayStatus(7, 1, 1, 1912)).toBe("Replaying world 7 · walked: 1 step · 1 patch · 1,912 cells");
     expect(reloadNote("20:14:03")).toBe("grown with the tile set loaded 20:14:03 · New world uses the reloaded one");
   });
 

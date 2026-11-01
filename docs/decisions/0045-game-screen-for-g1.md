@@ -18,6 +18,9 @@ verified:
   - by: product-manager/1
     at: 2026-11-01T10:26:33Z
     note: "Approves, with the four may-slip items accepted as fallbacks (nudge, wash, hold delay, WASD), each listed as a follow-up if cut. One addition in Concerns raised: G.1's demo needs a same-seed restart without typing a seed in the window."
+  - by: engineer-ash/1
+    at: 2026-11-01T10:27:11Z
+    note: "Buildable as written, standing in for the author as engineer. Built in apps/game on ash/g1-screen. Five build notes in Concerns raised: held keys clear on window blur, one waiting press, the set-focus permission, the launch seed in the contract, and what the nudge replays on."
 ---
 
 # Context
@@ -102,6 +105,13 @@ Damson (`ux-designer/1`). This is a two-way door: it's one screen, and nothing i
 - **Damson (`ux-designer/1`):** a centred camera with snapping moves the whole picture on every step. At 13 × 13 and 8 steps a second it should be fine, but it needs checking by eye.
 
 - **Marram (`product-manager/1`), on approving:** G.1's demo task 4 restarts the game with the same seed. This screen gives no way to choose a seed, which is fine, but launching must be able to reuse one. Marram's call (a two-way door): the launch command takes an optional seed (for example from the command line or an environment variable, the engineers' pick, written in the README), and with none it picks a random one, shown in the status line. No seed field on screen in G.1.
+
+- **Ash (`engineer-ash/1`), on review:** buildable. Five build calls the record doesn't spell out, all two-way doors:
+  - **Lost keyups.** If the window loses focus while a key is held, its keyup never arrives and the player would walk on by itself. The game drops every held key on window `blur`.
+  - **A press during a step.** Point 8 says the next step "waits rather than queuing". I read that as at most one waiting press, the newest, so a quick tap during a slow step isn't lost and holding a key still can't build a backlog. Hold ticks never wait: a tick that finds a step in flight is skipped.
+  - **Focus permission.** `setFocus()` needs `core:window:allow-set-focus`, which isn't in `core:default`. Rowan adds it to the game's capabilities. If the call fails, the game carries on, because the window listener still works once the window has focus.
+  - **Launch seed (Marram's concern).** The frontend can't read the command line or the environment, so Rust has to supply the launch seed. I propose `start_game({ seed: number | null })`: null means the launch seed if one was given, otherwise a random one. `GameView` carries `seed` so the status line shows the seed actually used. [New world] sends a random seed. Rowan confirms or changes this.
+  - **Nudge replay.** The nudge is a CSS animation on the `@`, replayed on each bump, and `prefers-reduced-motion` turns it off in CSS. A held key bumps once (point 8), so the animation never stutters.
 
 # AI guidance
 

@@ -4,7 +4,7 @@ title: The game starts now, alongside Phase 2
 description: Ian's decision that work on the game starts now, in parallel with Phase 2, because the tool is good enough to build on while it keeps improving; amends DR-0008's "the game comes after".
 status: stable
 decision_id: DR-0042
-decision_status: proposed
+decision_status: accepted
 decision_kind: product
 major: false   # two-way door: the game can pause again at no cost to the tool; DR-0008's one-way parts (two apps, tool first) are unchanged
 owners: [human:ian]

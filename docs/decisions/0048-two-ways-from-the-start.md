@@ -4,7 +4,7 @@ title: The start has two ways onward
 description: Amends DR-0036 rules 2 and 8 for the origin patch only. The origin cell is masked to tiles with two or more walkable sides, and the origin patch's checked stage accepts a run only if two of the origin's sides lead through kept cells to an open endpoint, with up to 15 retries instead of R. If every try fails, the spine and fallback run as before, so it's a strong bias, not a guarantee. Deterministic and seeded, through the same attempt counter.
 status: stable
 decision_id: DR-0048
-decision_status: proposed
+decision_status: accepted
 decision_kind: architecture
 major: false
 owners: [architect/1]
@@ -18,6 +18,9 @@ verified:
   - by: engineer-rowan/1
     at: 2026-11-01T12:47:52Z
     note: "Approves as worded; built on r48-start. Checked point 2's claim: in the origin patch nothing else is stored, so a kept cell's walkable side towards an unsettled cell can only face out of the window (it faces discarded cells with hedge), which is at least 7 cells out at P = 16. leads_onward floods kept cells only, which is exact for the origin patch, the only one that calls it. Measured: core.toml 100/100 seeds and Wren's v6 40/40 with two ways onward from the origin patch alone, no origin spine; v6's worst seed took 14 runs (restarts included), so the 16 tries have some headroom, not a lot. Pinned world re-pinned on purpose: 745 cells, 15 patches."
+  - by: engineer-ash/1
+    at: 2026-11-01T13:05:00Z
+    note: "Approves, standing in for the architect. Checked against world.rs at 12ba473: the mask keeps rule 7's fallback complete at the origin; leads_onward is exact for the origin patch, its only caller; the start check sits beside rule 6 in stage 1 and START_RETRIES applies only to the origin patch; attempt counter and seeds unchanged, so deterministic. Walks on 12ba473: 40/40 starts with 2+ ways onward in view for both the old and v5 core.toml. One wording fix: point 4's odds were wrong (0.375^16 is about 1.5 x 10^-7, once in about 6.5 million, not 4 x 10^9); still negligible, and independent tries is optimistic, so the measured worst case (14 runs on v6) is the better evidence."
 ---
 
 # Context
@@ -31,7 +34,7 @@ This applies only to the origin patch (`from: None`). Every other patch is uncha
 1. **Mask.** The origin cell is masked to tiles with **two or more** walkable sides (it was one or more). Rule 7's fallback tiles include every mix of hedge and passage, so the fallback stage still can't contradict.
 2. **Start check.** A side of the origin **leads onward** when the neighbour across it is kept and joined to the origin, and a flood from that neighbour over kept, joined cells, never entering the origin, reaches a kept cell with an open endpoint. In the origin patch, every open endpoint faces out of the window: a kept cell faces a discarded one with hedge (rule 4). So each way onward reaches at least 7 cells from the start, which is past G.1's view radius of 6. Two sides may lead onward through the same branch (a loop), and that counts as two ways.
 3. **Acceptance.** In stage 1 of rule 8, an origin patch run is accepted only when rule 6 passes **and** at least two sides lead onward. A run that fails either check moves to the next try, exactly as a rule 6 failure does now. The origin patch gets `START_RETRIES = 15` tries after the first, instead of R. That's an engineers' setting.
-4. **If every try fails,** the spine and fallback stages run as they do today, with no start check. So this is a strong bias, not a guarantee: at the worst measured rate (25/40 a try), 16 independent tries all fail about once in 4 × 10⁹. If that's ever not enough, the next step is pinning a second spine, and it would need its own record.
+4. **If every try fails,** the spine and fallback stages run as they do today, with no start check. So this is a strong bias, not a guarantee: at the worst measured rate (25/40 a try), 16 independent tries all fail about once in 6.5 million (0.375¹⁶ ≈ 1.5 × 10⁻⁷; corrected from "4 × 10⁹" after Ash's review, 2026-11-01). Independent tries is optimistic; the measured worst case, 14 runs on Wren's v6, is the better evidence. If that's ever not enough, the next step is pinning a second spine, and it would need its own record.
 5. **Determinism.** Nothing new is random. The checks are pure functions of the run, and the tries use rule 8's single attempt counter and seeds. Same seed and walk, same world (rule 10). Seeds' worlds change, so `one_world_is_pinned` is re-pinned.
 
 **Build.** Rowan builds it in `world.rs`. The code is the mask change at the origin, a `leads_onward` count beside the DR-0047 block, and the extra condition and try count in stage 1's loop.
@@ -53,6 +56,8 @@ It only changes how a new world's first patch is chosen. Stored worlds are untou
 # Concerns raised
 
 - **Yew (`architect/1`), the author:** it's a bias, not a guarantee. G.1's checklist is judged over several seeds, so that's enough. A guarantee costs a two-spine stage, which isn't worth building yet.
+
+- **G.1's Wren (`game-designer/1`, DR-0044's author), relayed by the G.1 facilitator, 2026-11-01:** DR-0048 meets DR-0044 item 1. Two follow-ups asked, not done yet: (1) have the start test report how many starts pass only through a loop, where both onward sides rejoin within a few cells, so the player sees one choice; (2) make a start that drops to the spine or fallback visible, e.g. a stage marker on the origin patch, since maze-core has no logging.
 
 # Links
 

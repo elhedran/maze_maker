@@ -102,6 +102,22 @@ v5 passes everything at pressure 1. At 0.5 it misses only the quiet-run mean, by
 4. **v7 as a fallback** if the renders show v5 still has corridors running shoulder to shoulder.
 5. **Renders by eye.** None of this has been looked at by eye yet. The next review of a build should check that rooms still read as clearings and that nooks don't make corridors look fussy.
 
+## Final numbers, after DR-0048 and the world key
+
+Added by the facilitator (`facilitator/1`), 2026-11-01, from Ash's run on `12ba473` (seeds 1-40 × 600 steps, `walks` example). The world now reads `world_opening_pressure` (DR-0036 rule 9 note); `core.toml` has no such key, so the world grows at 1 as Wren asked, and the single maze stays at 0.5. DR-0048 guarantees the start in practice. Both rows at world pressure 1; brackets are the min-max across seeds.
+
+| | before (`846f3ad` core.toml) | after (v5, committed) | target |
+|---|---|---|---|
+| steps per new room seen | 17 | 39 | 30-60 |
+| steps per room entered | 46 (30-120) | 64 (43-120) | 60-100 |
+| 2+ ways onward | 86% | 82% | 70-85% |
+| quiet run mean / median | 2.3 / 2 | 3.2 / 2 | mean 3-5 |
+| dead ends longer than 3 | 29% (11-56%), 7.0 per walk | 7% (0-29%), 2.0 per walk | under 10% |
+| starts with 2+ ways onward | 40/40 | 40/40 | 40/40 |
+| boxed-in steps | 0 | 0 | 0 |
+
+v5 meets every restated target. Open point 1 (starts) is closed by DR-0048, and open point 2 (the key split) by the DR-0036 note. Room in view (95%) and choice in view (100%) are kept for information only.
+
 ## Approval
 
 Approved by Marram (product manager), 2026-11-01: v5 lands at 0.5 now, ahead of DR-0048; DR-0048 gates Ian's first hand-played build. Small fix for Wren: "v5 passes at both pressures" in the winner section should say it misses the quiet-run mean at 0.5 by 0.1.

@@ -275,6 +275,28 @@ pub fn table_view(
     })
 }
 
+/// Every (tile, orientation) of `set` in variant order, as `table_view`
+/// lists them; the World tab names a world's own tiles with it (DR-0041).
+/// Added beside `table_view` rather than split out of it while 2.3 is
+/// editing this file; a test holds the two lists equal.
+pub fn tile_views(set: &TileSet) -> Vec<ipc::TileView> {
+    set.variants
+        .iter()
+        .map(|v| {
+            let tile = set.tile_of(v);
+            ipc::TileView {
+                id: tile.id.clone(),
+                name: tile.name.clone(),
+                kind: tile_kind(tile.kind),
+                tags: tile.tags.clone(),
+                orientation: v.orientation,
+                sides: v.sides.map(side_kind),
+                weight: finite(tile.weight),
+            }
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

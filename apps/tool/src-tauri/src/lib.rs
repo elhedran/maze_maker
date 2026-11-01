@@ -10,12 +10,15 @@
 //!   (DR-0034)
 //! - `trace_cell(request: TraceCellRequest) -> Result<CellTrace, ToolError>`
 //!   (DR-0034)
+//! - `world_start`, `world_walk`, `world_replay_start`, `world_replay_step`:
+//!   the World tab, in `world.rs` (DR-0041)
 //! - `core_version() -> String`
 
 pub mod ipc;
 pub mod maze;
 pub mod state;
 pub mod view;
+pub mod world;
 
 use ipc::{
     CellTrace, ExploreRequest, ExploreView, GenerateRequest, GeneratedMaze, ReloadResult,
@@ -88,13 +91,18 @@ pub fn run() {
     }
     tauri::Builder::default()
         .manage(Mutex::new(initial))
+        .manage(Mutex::new(world::WorldState::default()))
         .invoke_handler(tauri::generate_handler![
             core_version,
             table_view,
             reload_tile_set,
             generate_maze,
             explore_tile,
-            trace_cell
+            trace_cell,
+            world::world_start,
+            world::world_walk,
+            world::world_replay_start,
+            world::world_replay_step
         ])
         .run(tauri::generate_context!())
         .expect("error while running the Maze Maker tool");

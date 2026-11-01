@@ -11,3 +11,4 @@ Designs and task plans for major work ([DR-0003](/decisions/0003-open-knowledge-
 ## Done
 
 _None yet._
+- [G.1 fun review](/plans/g1-fun-review.md) - Wren's review of five scripted 600-step walks of the built G.1: good enough for Ian's demo; rooms too common and no hedge stored; one game-side fix (sealed unknown pockets drawn as hedge) and five generator requests.

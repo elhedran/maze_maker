@@ -416,13 +416,14 @@ Marram's calls, all sequencing and scope, so two-way doors ([DR-0018](/decisions
     - Ian runs `cargo test -p maze-core` and reads the 2.6 tests passing, named for what they check.
     - Ian sets `passage_passage` to 0 in `core.toml` and presses Reload: the tool refuses the set and says why. He puts it back, and Reload works.
   - **Landing (Marram's call):** step 1 can land on `main` before the rest of 2.6, with Ian's OK after the demo, once the rebase is green. It is additive and leaves 2.1's path alone while the pressure is 1. 2.6 isn't done until step 3.
-- **Step 2, the measures (next, still no window).** DR-0036's list, re-cut for patches, from a release build:
+- **Step 2, the measures (built, no window).** DR-0036's list, re-cut for patches, from a release build:
   - per patch: the restart, spine and fallback rates;
   - the frontier (open and outward endpoints) over a walk, with pressure at 1 and at Wren's value from 2.3;
   - room sizes at P = 16 and P = 32, and whether rooms avoid the edges of patches (Yew's concern 1);
   - time per patch (median, 99th percentile and the forced worst case), and how the rule 6 check's time grows with the explored area (Yew's concern 2);
   - memory per 1,000 stored cells (DR-0035).
 
+  - **Status:** built by Rowan, judged by Wren and checked by Yew: every measure passes ([report](/plans/2.6-measures.md)). The command is `cargo run --release -p maze-core --example measures`. Restarts are 0–0.1%, with no spines or fallbacks; the frontier never closes; grown worlds are 100% reachable against 2.1's median 59%; a P = 16 patch takes about 1 ms. Wren keeps the world's pressure at 1, and P stays 16; both are watched on screen in step 3. The incremental rule 6 check is deferred to the game, with Yew's trigger in DR-0036.
   Ian reads them as a short report from one command, and they are written into the 2.6 records. It starts as soon as step 1's rebase is green, without waiting for it to land. A miss gets one of the recorded answers, not open-ended rework: a larger P for rooms that avoid patch edges (DR-0036), an incremental rule 6 check for growth time (the engineers' call), or a new pressure value for a closing frontier (Wren). 2.5 reuses the frontier and room-size measures.
 - **Step 3, the view and the review (after step 1 lands, alongside 2.3).**
   - **In it:** DR-0036's view: a world seed and a walker (a seeded random walk, or click to walk), with overlays for stored cells, the frontier and the last patch, and a way to replay the walk. Unsettled cells are drawn as solid hedge. Plus the world commands and their ts-rs bindings, with what Ash listed on DR-0036: a frontier accessor, per-patch deltas over IPC, and `i64` positions typed as `number`.

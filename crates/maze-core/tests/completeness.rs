@@ -152,7 +152,7 @@ fn a_straight_to_straight_multiplier_of_zero_is_refused() {
 /// passage across the frontier, so a zero there is refused too.
 #[test]
 fn a_doorway_against_a_dead_end_of_zero_is_refused() {
-    let errors = errors(&edit("multiplier = 0.1", "multiplier = 0.0"));
+    let errors = errors(&edit("multiplier = 0.1\n", "multiplier = 0.0\n"));
     assert_eq!(
         errors,
         vec![LoadError::FallbackPairIsZero {
@@ -182,7 +182,7 @@ fn a_passage_door_base_of_zero_is_refused() {
 #[test]
 fn zeros_outside_the_fallback_tiles_still_load() {
     for text in [
-        edit("door_door = 0.3", "door_door = 0.0"),
+        edit("door_door = 0.05", "door_door = 0.0"),
         edit("floor_floor = 1.0", "floor_floor = 0.0"),
         with_weight("open_room", "0.0"),
         with_weight("room_doorway", "0.0"),

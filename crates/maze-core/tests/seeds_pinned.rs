@@ -1,8 +1,10 @@
 //! Slice 2.1's seeds keep giving the same mazes (roadmap 2.6 step 1: "2.1
-//! is unchanged"). The fingerprints were taken from `main` at 0f2001b,
-//! before the chunk generator was added. If this fails, a seed the tool
-//! shows now draws a different maze: that needs a decision, not a test
-//! update.
+//! is unchanged"). The fingerprints were first taken from `main` at
+//! 0f2001b, before the chunk generator was added, and retaken on
+//! 2026-11-01 when core.toml's numbers were retuned for the game (Wren's
+//! G.1 tuning, variant v5; docs/plans/g1-tuning.md). If this fails, a seed
+//! the tool shows now draws a different maze: that needs a decision, not a
+//! test update.
 
 use maze_core::wfc::{DEFAULT_HEIGHT, DEFAULT_WIDTH, MAX_SIZE};
 use maze_core::{Generation, Table, TileSet, generate};
@@ -27,27 +29,28 @@ fn fingerprint(maze: &Generation) -> u64 {
     h
 }
 
-/// (seed, width, height, restarts, fingerprint). Seed 56 at 64 × 64 is the
-/// first that restarts, so the restart path is pinned too.
+/// (seed, width, height, restarts, fingerprint). Seed 692 at 64 × 64 is the
+/// first that restarts with the retuned numbers (it was 56 before), so the
+/// restart path is pinned too.
 const PINNED: [(u32, usize, usize, u32, u64); 6] = [
-    (0, DEFAULT_WIDTH, DEFAULT_HEIGHT, 0, 0x1b04_8e15_7d42_d308),
-    (1, DEFAULT_WIDTH, DEFAULT_HEIGHT, 0, 0xa30d_31c9_b4e5_6de7),
-    (42, DEFAULT_WIDTH, DEFAULT_HEIGHT, 0, 0x62c3_fdbe_5ea3_148f),
+    (0, DEFAULT_WIDTH, DEFAULT_HEIGHT, 0, 0x2c5d_0c3a_a601_ee02),
+    (1, DEFAULT_WIDTH, DEFAULT_HEIGHT, 0, 0xf52e_51fc_8895_0c46),
+    (42, DEFAULT_WIDTH, DEFAULT_HEIGHT, 0, 0x32e4_eab0_87db_e164),
     (
         2026,
         DEFAULT_WIDTH,
         DEFAULT_HEIGHT,
         0,
-        0xcc59_bfaf_c82d_45df,
+        0xa1de_2bca_26cb_4c08,
     ),
     (
         u32::MAX,
         DEFAULT_WIDTH,
         DEFAULT_HEIGHT,
         0,
-        0x05d8_01c8_4287_eafc,
+        0xb10f_0dc2_6c79_9bf2,
     ),
-    (56, MAX_SIZE, MAX_SIZE, 1, 0x457c_724f_3769_c3f2),
+    (692, MAX_SIZE, MAX_SIZE, 1, 0xf374_b895_34af_d1d8),
 ];
 
 fn check_pinned(text: &str) {

@@ -401,7 +401,7 @@ mod tests {
 
     #[test]
     fn a_trailing_comment_and_spacing_are_kept() {
-        let text = CORE.replace("door_door = 0.3\n", "door_door   =   0.3   # uncommon\n");
+        let text = CORE.replace("door_door = 0.05\n", "door_door   =   0.05   # uncommon\n");
         let set = TileSet::from_toml(&text).unwrap();
         let target = NumberTarget::Base {
             pair: "door_door".into(),
@@ -470,7 +470,8 @@ mod tests {
             NumberTarget::Base {
                 pair: "hedge_door".into(),
             },
-            NumberTarget::Exception { index: 2 },
+            // One past core.toml's last exception.
+            NumberTarget::Exception { index: 5 },
         ];
         for target in bad {
             let err = apply(CORE, &set, &[edit(target.clone(), 0.5)]).unwrap_err();

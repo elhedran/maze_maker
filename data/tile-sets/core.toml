@@ -8,11 +8,13 @@
 #
 # Edit, save, and press Reload in the tool; no rebuild needed.
 #
-# Numbers: Wren's first pass (game-designer/1, 2026-10-31). They aim at a
-# hedge maze that is inviting to wander: plenty of hedge, winding corridors
-# that turn more than they run straight, some junctions for choice, real
-# rooms with walls, and crossroads and dead ends kept as rare fallbacks
-# (DR-0016). They are a starting point for review in the tool, not final.
+# Numbers: Wren's first pass (game-designer/1, 2026-10-31), retuned for the
+# game in G.1 tuning (2026-11-01, variant v5; see docs/plans/g1-tuning.md).
+# They aim at a hedge maze that is inviting to wander: plenty of hedge,
+# winding corridors with a short walk between choices, rooms that feel like
+# finds rather than wallpaper, and dead ends that are mostly nooks beside a
+# junction rather than corridors to nowhere (DR-0016). Judged on 40 seeds of
+# the walks example; still open to review.
 #
 # Tile order is table order: kind order (corridor, room, hedge), with
 # fallbacks last within their kind (DR-0017 rule 8).
@@ -22,9 +24,10 @@ name = "core"
 
 # Opening pressure (DR-0036 rule 9): a piece whose open sides all face
 # settled cells, so it opens nothing new, has its score multiplied by this.
-# 0 < value <= 1; no key means 1. 0.5 is Wren's first value (game-designer/1,
-# 2026-11-01): it lifts the worst mazes most and still lets loops form. See
-# docs/plans/2.3-tuning-review.md.
+# 0 < value <= 1; no key means 1. 0.5 is Wren's value for the single maze
+# (game-designer/1, 2026-11-01): it lifts the worst mazes most and still lets
+# loops form. See docs/plans/2.3-tuning-review.md. The grown world wants 1
+# (docs/plans/g1-tuning.md); until the key is split, both read 0.5.
 opening_pressure = 0.5
 
 # Seeded variation on every allowed entry (DR-0024). amount = 0 turns it off.
@@ -46,8 +49,9 @@ passage_passage = 1.0
 # A corridor arriving at a room's door: rooms should be reachable, so neutral.
 passage_door = 1.0
 # Doorway facing doorway: two rooms joined by a door with no corridor between.
-# Allowed, but it skips the walk between rooms, so uncommon.
-door_door = 0.3
+# Rare (G.1: 0.3 -> 0.05): rooms chained door to door read as one cluster,
+# and five rooms at once is no longer a find.
+door_door = 0.05
 # Open floor beside open floor: room interiors. Neutral.
 floor_floor = 1.0
 # Wall-edged floor continuing along a room's wall. Neutral, so room walls
@@ -64,9 +68,10 @@ kind = "corridor"
 tags = []
 sides = ["passage", "hedge", "passage", "hedge"]
 orientations = 2
-# The reference corridor. Long straight runs are damped by an exception
-# below rather than here, so a single straight stays ordinary.
-weight = 1.0
+# Level with the corner (G.1: 1.0 -> 1.2, taking the T junction's share).
+# Long straight runs are still damped by an exception below, so corridors
+# wind rather than run on.
+weight = 1.2
 
 [[tile]]
 id = "corridor_corner"
@@ -75,8 +80,8 @@ kind = "corridor"
 tags = []
 sides = ["passage", "passage", "hedge", "hedge"]
 orientations = 4
-# A little above straight: hedge mazes wind, and a turn hides what's next,
-# which is where curiosity comes from.
+# Hedge mazes wind, and a turn hides what's next, which is where curiosity
+# comes from.
 weight = 1.2
 
 [[tile]]
@@ -86,9 +91,9 @@ kind = "corridor"
 tags = ["junction"]
 sides = ["passage", "passage", "hedge", "passage"]
 orientations = 4
-# Choices matter, but too many make the maze a tangle; a junction every few
-# tiles, not every other one.
-weight = 0.6
+# Choices matter, but the rhythm should be walk, choose, walk, not choose,
+# choose, choose (G.1: 0.6 -> 0.3).
+weight = 0.3
 
 [[tile]]
 id = "corridor_crossroads"
@@ -108,9 +113,11 @@ kind = "corridor"
 tags = ["fallback"]
 sides = ["passage", "hedge", "hedge", "hedge"]
 orientations = 4
-# Fallback (DR-0016): very low. A dead end with nothing in it is a small
-# punishment; until dead ends can hold a reward, keep them rare.
-weight = 0.05
+# Fallback (DR-0016), but a little higher (G.1: 0.05 -> 0.1) so the solver
+# has a short nook to choose instead of winding a corridor into a trap. The
+# exceptions below decide where it goes: beside a junction, not at the end
+# of a long run.
+weight = 0.1
 
 [[tile]]
 id = "open_room"
@@ -152,9 +159,12 @@ kind = "room"
 tags = ["room_edge"]
 sides = ["door", "floor_wall_n", "floor", "floor_wall_n"]
 orientations = 4
-# One or two ways in per room: a doorway is a threshold, and too many make
-# the room just another junction.
-weight = 0.4
+# A grown world keeps only cells joined to what is stored (DR-0036), so a
+# room only joins the world through a doorway: this weight sets how many
+# rooms there are.
+# G.1: 0.4 -> 0.1, so a room is entered every 60-100 steps and feels like a
+# find. Walls, corners and floor are untouched so room sizes stay the same.
+weight = 0.1
 
 [[tile]]
 id = "hedge"
@@ -164,8 +174,9 @@ tags = []
 sides = ["hedge", "hedge", "hedge", "hedge"]
 orientations = 1
 # Common (DR-0016): solid hedge is what makes it a hedge maze and gives
-# corridors their shape.
-weight = 1.5
+# corridors their shape. G.1: 1.5 -> 2.5, for more hedge between paths and
+# fewer corridors running shoulder to shoulder.
+weight = 2.5
 
 # Exceptions multiply particular pairs, both ways round (DR-0022). Each end
 # names a tile (tile = "<id>") or a tag (tag = "<tag>") and the side it
@@ -185,3 +196,26 @@ name = "Doorway rarely faces a dead end"
 a = { tile = "room_doorway", side = "door" }
 b = { tile = "corridor_dead_end", side = "passage" }
 multiplier = 0.1
+
+# G.1: a dead end right off a junction is a nook you can see the end of: a
+# glance, no walk back. The tag also matches the crossroads.
+[[exception]]
+name = "Dead ends sit beside junctions"
+a = { tag = "junction", side = "passage" }
+b = { tile = "corridor_dead_end", side = "passage" }
+multiplier = 10.0
+
+# G.1: a dead end at the end of a long run is a corridor to nowhere, and the
+# walk back is what costs patience. These two take long dead ends from about
+# a quarter to under a tenth.
+[[exception]]
+name = "Dead ends rarely end a straight run"
+a = { tile = "corridor_straight", side = "passage" }
+b = { tile = "corridor_dead_end", side = "passage" }
+multiplier = 0.15
+
+[[exception]]
+name = "Dead ends rarely end a winding run"
+a = { tile = "corridor_corner", side = "passage" }
+b = { tile = "corridor_dead_end", side = "passage" }
+multiplier = 0.15

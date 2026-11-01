@@ -422,7 +422,7 @@ fn one_world_is_pinned() {
     );
     assert_eq!(
         (world.len(), world.log().len(), fingerprint(&world)),
-        (1185, 18, 0xcef7_8323_62c5_c85e)
+        (253, 9, 0x57b5_920b_f7fe_922a)
     );
 }
 

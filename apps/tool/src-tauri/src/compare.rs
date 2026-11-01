@@ -130,7 +130,7 @@ mod tests {
     fn changed_cells_and_measures_match_two_generations() {
         let before = loaded(CORE, 1);
         let text = CORE
-            .replace("door_door = 0.3", "door_door = 1.0")
+            .replace("door_door = 0.05", "door_door = 1.0")
             .replace("multiplier = 0.5", "multiplier = 1.0");
         let after = loaded(&text, 2);
         let mut any_changed = false;

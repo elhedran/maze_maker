@@ -621,7 +621,7 @@ mod tests {
         unchanged(&state, &file);
 
         // A hand edit on disk, not yet reloaded: not overwritten.
-        let hand = CORE.replace("door_door = 0.3", "door_door = 0.4");
+        let hand = CORE.replace("door_door = 0.05", "door_door = 0.4");
         file.write(&hand);
         let err = save(&mut state, &file, hedge_weight(), 0.5).unwrap_err();
         assert_eq!(err.kind, ToolErrorKind::Stale);
@@ -655,7 +655,7 @@ mod tests {
         state.reload(&file.0).unwrap();
         save(&mut state, &file, hedge_weight(), 0.5).unwrap();
         let saved = std::fs::read_to_string(&file.0).unwrap();
-        file.write(&saved.replace("door_door = 0.3", "door_door = 0.4"));
+        file.write(&saved.replace("door_door = 0.05", "door_door = 0.4"));
         state.reload(&file.0).unwrap();
         let compared = state.compare(&COMPARE).unwrap();
         assert!(compared.edits.is_empty());

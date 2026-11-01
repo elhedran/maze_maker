@@ -7,7 +7,7 @@ Project documentation, written in [Open Knowledge Format v0.2](https://github.co
 
 ## Roadmap
 
-- [Roadmap](/roadmap.md) - Phases, deliverables and demos for Maze Maker. Phase 1 closed with slice 1.1; maze generation, starting with slice 2.1, is next. Approved by Ian on 2026-10-31; the 2026-11-01 revision waits on his approval.
+- [Roadmap](/roadmap.md) - Phases, deliverables and demos for Maze Maker. Phase 1 is closed and 2.1 is done; slice 2.2 and the first step of 2.6, the chunk generator, run in parallel. Approved by Ian on 2026-10-31 and 2026-11-01; sequencing since is Marram's call (DR-0018).
 
 ## Decisions
 

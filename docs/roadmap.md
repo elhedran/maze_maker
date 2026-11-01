@@ -1,7 +1,7 @@
 ---
 type: Roadmap
 title: Maze Maker roadmap
-description: Phases, deliverables and demos for Maze Maker. Phase 1 closed with slice 1.1; maze generation, starting with slice 2.1, is next.
+description: Phases, deliverables and demos for Maze Maker. Phase 1 is closed and 2.1 is done; slice 2.2 and the first step of 2.6, the chunk generator, run in parallel.
 status: stable
 owners: [product-manager/1]
 approvers: [human:ian]
@@ -46,14 +46,16 @@ So Marram brought 1.3 back, a sequencing call and a two-way door ([DR-0018](/dec
 
 ## Now and next
 
-- **Now:**
-  - 1.0 and 1.1 are done. 1.1 is on `main` (ae9a6c3), and Ian has seen it: the table is built in Rust from `data/tile-sets/core.toml` with Wren's first numbers, and every entry explains itself.
-  - Phase 1 is closed (see the revision above).
-  - The designs for 1.2 and 1.3 are settled ([DR-0026](/decisions/0026-explore-one-tile-design.md), [DR-0027](/decisions/0027-filter-table-design.md)). 1.2 waits for 2.2.
-  - [Q-0008](/questions/open/0008-global-maze-properties.md) (global maze properties) was parked until before 2.1. That trigger is now: its first part, what to measure on a sample maze, is due, and Wren answers it for 2.1.
-  - 2.1, the first sample maze, is done and on `main`.
-  - 1.3, filtering the table, is done and on `main`.
-- **Next:** 2.2, which brings in 1.2's explore view.
+Updated 2026-11-01 by Marram, when Ian asked to start 2.6 (see 2.6 below).
+
+- **Done:** Phase 1 is closed. 1.1, 1.3 and 2.1 (the first sample maze) are on `main`. 1.2's design is settled ([DR-0026](/decisions/0026-explore-one-tile-design.md)) and gets built in 2.2. [Q-0008](/questions/open/0008-global-maze-properties.md)'s first part is settled by [DR-0030](/decisions/0030-measures-for-2-1.md); the rest stays open for 2.5 and the game.
+- **Now, two tracks in parallel** (Marram's call; Ian, 2026-11-01: "Happy to use tokens faster if we can doo more work concurrently"):
+  - **Tool track: 2.2**, its design gates and then the build.
+  - **Engine track: 2.6 step 1**, the chunk generator in `maze-core`, with no window.
+- **Next:**
+  - engine track: 2.6 step 2, the measures, straight after step 1;
+  - tool track: 2.3 once 2.2 lands, with 2.6 step 3 (its view and the seam review) alongside it;
+  - then 2.4 and 2.5.
 
 ## How it works
 
@@ -248,7 +250,7 @@ The original definition, kept for reference:
 
 **Done when** Wren and Ian can judge the maps the table makes ([DR-0008](/decisions/0008-adjacency-tool-first.md)), and Ian can trace a problem he sees in a maze back to the probabilities behind it ([Q-0005](/questions/resolved/0005-what-to-find-out-from-the-table.md)).
 
-**Status:** in progress. 2.1 is done and on `main`; 2.2 is next.
+**Status:** in progress. 2.1 is done and on `main`. 2.2 and 2.6's first step run in parallel (since 2026-11-01).
 
 ### 2.1 First sample maze
 
@@ -294,7 +296,43 @@ The original definition, kept for reference:
 - **Goal:** click a spot in a maze, and the explore view from 1.2 opens on it, showing how its neighbours combined (Damson).
 - **Demo:** Ian clicks a bit of maze he doesn't like and sees why it's there. 1.2's demo tasks come with it: Ian names a corridor corner's most likely east neighbour, and clicks from a corridor into a room and back out, through doorways.
 - **What's in it:** 1.2's explore view, built to [DR-0026](/decisions/0026-explore-one-tile-design.md), plus the link from the maze.
-- **Waits on:** Damson's design for the link (Damson and Marram). The explore view's design is settled.
+- **Waits on:** Damson's design for the link (Damson and Marram), and Yew's data contract for it (Yew and one engineer). The explore view's design is settled.
+- **Status:** in progress (2026-11-01): design gates, then the build.
+  - **Gates**, settled at the start of the build: Damson's link design (DR-0033) and Yew's data contract (DR-0034).
+  - **Build:** Rowan (Rust) and Ash (the explore view and the link), each in their own worktree (`rowan/2.2-cell-why`, `ash/2.2-explore-view`).
+  - **Alongside 2.6** (Marram's call): 2.2 holds `README.md`, and its shape wins if the two clash in `wfc.rs`.
+
+### 2.6 Beyond the edge (in progress, in parallel with 2.2)
+
+Started 2026-11-01. Ian (`human:ian`), verbatim:
+
+> Start slice 2.6's chunk generator in crates/maze-core, built to DR-0031. Start with the order-independence and way-onward tests, plus the completeness check when the tile set loads. It's pure Rust and needs no window.
+
+Marram's calls, all sequencing and scope, so two-way doors ([DR-0018](/decisions/0018-one-way-doors-go-to-ian.md)): 2.6 runs as an engine track beside 2.2, in three steps, and moves ahead of 2.4 and 2.5. Steps 1 and 2 are `maze-core` only, with no design gate and no window, so they take nothing from 2.2. As a whole, 2.6 still ends on screen (step 3).
+
+- **Goal:** grow a maze past its edge in chunks, to test where new areas meet old ones. Seam-first chunks on 2.1's generator ([DR-0031](/decisions/0031-endless-generation-approach.md)); the measures and definition of done are in [Endless WFC](/plans/endless-wfc-research.md).
+- **Step 1, the chunk generator (now).**
+  - **In it:** DR-0031 rules 1 to 6: border labels and gates from each border's canonical key, per-cell starting masks, the gate check, the spine, the fallback run with the spine, and the fixed attempt order. A chunk's result reports attempts, spine and fallback, and carries its gate positions and spine cells (Ash's DR-0031 note), so step 3 needs no core change. S = 16; R is the engineers' call.
+  - **Not in it:** the measures (step 2); any view, IPC or window (step 3); new dependencies.
+  - **Done when:**
+    - order independence passes as tests (measure 1): a chunk made alone and after its neighbours in three shuffled orders comes out identical; each border's labels match from both its chunks; one chunk's tiles are pinned;
+    - a way onward passes as tests (measure 2): the gates are joined in each of 1,000 chunks, and every gate in a 9 × 9 window is reachable from the origin's gate;
+    - the spine and the fallback run are each forced in a test, and each gives a complete chunk with its gates joined;
+    - the completeness check (DR-0031 rule 6) runs on table entries when a tile set loads, as an error. `core.toml` passes. A missing variant, a `passage_passage` or `hedge_hedge` base of 0, or a straight-to-straight multiplier of 0 fails, with a message that says what is missing and that endless mazes need it. It runs where the tool already loads the tile set, so Reload's banner shows it with no tool change;
+    - 2.1 is unchanged: its tests pass as they are, and its seeds give the same mazes as on `main` today;
+    - clippy and the build are clean.
+  - **Demo, no new window:**
+    - Ian runs `cargo test -p maze-core` and reads the 2.6 tests passing, named for what they check.
+    - Ian sets `passage_passage` to 0 in `core.toml` and presses Reload: the tool refuses the set and says why. He puts it back, and Reload works. This is the one change he can see: a tile set that breaks the guarantee no longer loads, in any view.
+  - **Landing (Marram's call):** step 1 can land on `main` before the rest of 2.6, with Ian's OK after the demo. It is additive and leaves 2.1's path alone, and landing early keeps the `wfc.rs` rebase against 2.2 small. 2.6 isn't done until step 3.
+  - **Beside 2.2:** 2.6 changes `wfc.rs` only for the starting masks, and keeps the chunk code in its own files. Either can land first; on a clash in `wfc.rs`, 2.6 adapts. Its demo steps go in its report, and into `README.md` when it lands.
+- **Step 2, the measures (next, still no window).** Measures 3 to 7 from the research note, from a release build, written into the 2.6 records: fallback rate, restarts and spines, seam statistics, room sizes at S = 16 and 32, and time per chunk (median, 99th percentile, the forced worst case). Ian reads them as a short report from one command. It starts once step 1 is green, without waiting for it to land. A miss is answered by one of the research note's recorded choices (tune the seam labels, raise S, or layered blocks), not by open-ended rework. 2.5 reuses the room-size measure.
+- **Step 3, the view and the review (after 2.2 lands, alongside 2.3).**
+  - **In it:** the research note's "Beyond the edge" view: a world seed, a 5 × 5 window of chunks, panning, a chunk-grid overlay, and restarts, spine and fallback on hover. Plus the chunk command and its ts-rs bindings, with `i64` coordinates typed as `number` (Ash's DR-0031 note).
+  - **Waits on** a small design gate: Damson's short record for the view, approved by Damson and Marram, like [DR-0029](/decisions/0029-generation-view-design.md). Damson can settle it once 2.2's link design is done, so the build starts as soon as 2.2 lands.
+  - **Then** Wren and Damson review seams and rooms: measure 5's "can't reliably point out borders", and judging measures 4 and 6.
+  - **Demo, which closes 2.6:** Ian pans a world, toggles the overlay, regenerates in a different order and sees the same world.
+  - **Why after 2.2:** it shares the tool's shell and maze drawing with 2.2, and Damson's design time goes to 2.2 first.
 
 ### Later in Phase 2 (outline)
 
@@ -307,7 +345,7 @@ The original definition, kept for reference:
   - dead ends per area;
   - corridor run lengths;
   - room sizes and spacing.
-- **2.6 Beyond the edge:** grow a sample by generating areas next to it, to test where new areas meet old ones. Builds on 2.1's generator with seam-first chunks ([DR-0031](/decisions/0031-endless-generation-approach.md)); the measures and definition of done are in [Endless WFC](/plans/endless-wfc-research.md).
+- **2.6 Beyond the edge:** started early; see 2.6 above.
 
 ## The game (outline)
 

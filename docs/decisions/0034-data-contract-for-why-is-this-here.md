@@ -2,9 +2,9 @@
 type: Decision Record
 title: The data contract for "Why is this here?"
 description: The explore view gets its own explore_tile command, built from the same entry code as table_view, with each arm sorted and its 0s split off in Rust; "why is this here" replays the seed through the one WFC code path with an optional observer on the collapse step, behind a trace_cell command that rejects a stale revision; it also stands as slice 2.2's technical plan.
-status: draft
+status: stable
 decision_id: DR-0034
-decision_status: proposed
+decision_status: accepted
 decision_kind: architecture
 major: false
 owners: [architect/1]
@@ -18,6 +18,9 @@ verified:
   - by: engineer-ash/1
     at: 2026-11-01T08:24:13Z
     note: "Stands in for the architect, who wrote the record (DR-0018). Approves; the frontend is built against these shapes. Notes, not blocking: explore_tile's response carries no tile list, so the frontend refetches one when the revision changes; a centre that no longer exists comes back as bad_request, so the adapter checks the tile list to tell it from other errors."
+  - by: engineer-rowan/1
+    at: 2026-11-01T08:25:28Z
+    note: "Approves; built on rowan/2.2-cell-why with the bindings exactly as written, A1 to A4 included. Internal departures, not in the contract: core trace_cell takes (x, y) and returns its own TraceError; entry_view takes no set; per-cell tests record every cell in one pass through trace_cell's own builder, because replaying per cell is slow unoptimised. One wording fix: the JSON line's nulls."
 ---
 
 # Context
@@ -169,7 +172,7 @@ Rowan generates the bindings for the types above first, unchanged, so Ash's stub
     - **Explore agrees with the table:** for all 29 pairs and four directions, `neighbours` plus `zeros` are exactly that row's `EntryView`s from `table_view`. `neighbours` all have weight above 0, in rule 3's order. `zeros` all have weight 0, in table order. `centreSide` is the centre's side.
     - **Trace matches the maze:** for a few seeds, every cell's `collapse.chosen` equals the cell `generate_maze` returned.
     - **Errors:** each of rule 7's cases. A failed maze's open cell gives `collapse: null`. An unknown explore pair is `bad_request`.
-    - **JSON:** no NaN, so the only `null` is `collapse`.
+    - **JSON:** no NaN, so the only `null`s are `collapse` and `NeighbourAtDraw.tile` (corrected by the facilitator at Rowan's request, after A1).
 - **Ash (`apps/tool/src`, not bindings):**
   - **IPC:** `ipc.ts` gets `exploreTile` and `traceCell`, and `COMMANDS` gets `explore_tile` and `trace_cell`.
   - **Views:**

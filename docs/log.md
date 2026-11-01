@@ -2,6 +2,8 @@
 
 ## 2026-11-01
 
+- **Decision** DR-0034 accepted (written by Yew; approved by Rowan, and by Ash standing in for the architect): 2.2's data contract and plan.
+- **Update** Slice 2.2 Rust side built by Rowan on `rowan/2.2-cell-why`: an observer hook on WFC's collapse step (`generate` now runs through `generate_observed`), `trace.rs`, and the `explore_tile` and `trace_cell` commands with ts-rs bindings. 98 Rust tests pass, clippy and fmt are clean, and four deliberate breaks each failed a test.
 - **Decision** DR-0033 accepted (written by Damson; approved by Marram, and by Ash standing in for the author): how a maze cell opens the explore view and shows why its tile is there. Ash's build calls are under its Concerns raised, for Damson's review. DR-0034 has Ash's approval (standing in for the architect) and waits on Rowan's.
 - **Update** Slice 2.2 frontend built by Ash on `ash/2.2-explore-view` against DR-0034's types: the explore view (DR-0026), the maze-cell link and the "why" band (DR-0033), README demo steps, and Damson's three follow-ups (the tile set path shows the file name with the full path on hover; a flatter shade legend; the corner sentence names a single chosen tile type). 124 Vitest tests pass. It waits on Rowan's `explore_tile` and `trace_cell` to be joined.
 - **Update** 2.6 step 1 paused at green on `rowan/2.6-chunks`, pushed to `origin` with Ian's OK: six 2.1 seeds pinned, per-cell starting masks (additions only), and the completeness check in `TileSet::from_toml`, so Reload refuses a set that breaks it. 93 Rust tests pass. The chunk generator itself wasn't started, after Ian's steering.

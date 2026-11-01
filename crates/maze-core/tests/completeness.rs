@@ -208,7 +208,7 @@ fn opening_pressure_must_be_above_0_and_at_most_1() {
         TileSet::from_toml(&with("1.0")).unwrap().opening_pressure,
         1.0
     );
-    for bad in ["0.0", "-0.5", "1.5", "nan"] {
+    for bad in ["0.0", "-0.0", "-0.5", "1.0000001", "1.5", "inf", "-inf", "nan"] {
         let all = messages(&errors(&with(bad)));
         assert_eq!(all.len(), 1, "{bad}: {all:#?}");
         assert!(all[0].starts_with("opening_pressure is "), "{}", all[0]);

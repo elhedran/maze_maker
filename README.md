@@ -93,16 +93,19 @@ In PowerShell, from the repo root:
 
 ```powershell
 cd apps\tool
+npm install        # once, and after a pull
 npm run tauri dev
 ```
 
+Maximise the window: the map and its side panel need about 1,200 px of width.
+
 Pick the **World** tab, the last one ([DR-0039](docs/decisions/0039-world-view-design.md)). Click the map before using keys, so it has focus.
 
-1. **A new world.** Press **New world**. The origin patch appears around the player, the inverted cell at the dotted origin, then the growth around it, one patch per tick.
+1. **A new world.** Type **2026** in **World seed** and **7** in **Walk seed**, then press **New world**. With the default 200 steps, that walk grows 16 patches. Some seeds' walks never reach an arrow, so nothing grows and **Replay walk** stays disabled. Try another walk seed. The origin patch appears around the player, the inverted cell at the dotted origin, then the growth around it, one patch per tick.
 2. **Watch it grow ahead of the walker.** Leave **Frontier (F)** and **Last patch (L)** on and press **Play**. The walker takes **Steps** steps (200 by default). Arrows mark outward open endpoints, pointing away from the stored world; ○ marks the others. New patches arrive at the arrows, with a dashed outline round the last one and older patches dimmed. **Speed** sets the pace; the view follows the walker.
-3. **Walk it yourself.** Press **Pause**, click the map, and walk with the **arrow keys** toward an arrow: a patch grows there. Into a hedge, nothing moves and the line under the map says "Hedge to the north". **Shift+arrows** pan the map; **C** or **Centre on player** follows the player again.
+3. **Walk it yourself.** Press **Pause**, click the map, and walk with the **arrow keys** to within 8 cells of an arrow: a patch grows there. Into a hedge, nothing moves and the line at the top of the side panel says "Hedge to the north". **Shift+arrows** pan the map; **C** or **Centre on player** follows the player again.
 4. **Read a patch.** Turn on **Patch debug (D)** and press **Step** a few times. The panel on the right gives the last patch's anchor and direction, its window, attempts ("1 = clean run"), spine and fallback, and the cells it stored. Turn **Stored (S)** off to see unsettled cells as solid hedge, as a player would.
 5. **Replay.** Press **Replay walk**, then **Play** on the timeline. The map clears and the world grows back from the growth log, "Replay · patch k of n". At the end the status line gives Rust's answer: "same world as walked: yes (… cells match)". **Back to walk** returns to the walked world.
-6. **Optional: same seeds, same world.** Note the **World seed** and **Walk seed**, press **New world** with the same world seed, and **Play**: the same world grows.
+6. **Optional: same seeds, same world.** With any seeds you like, note the **World seed** and **Walk seed**, press **New world** with the same world seed, and **Play**: the same world grows.
 
 After **Reload tile set**, the world keeps the tile set it was grown with and the status line says so; **New world** uses the reloaded one. Keys with the map focused: arrows walk, Shift+arrows pan, C centres, Space plays or pauses, `.` steps, S F L D toggle the overlays.

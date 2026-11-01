@@ -435,7 +435,8 @@ export class WorldView extends LitElement {
       const update = await worldReplayStart({ worldId: world.id });
       if (generation !== this.generation) return;
       this.replay = { model: new WorldModel(), total: update.total, replayed: 0, check: null };
-      this.corner = centredOn({ x: 0, y: 0 });
+      // The corner stays where the walk left it, so the replay ends looking exactly
+      // like the walked world (Damson, 2.6 step 3 review, fix 3). C centres on the origin.
       this.applyReplay(update);
     } catch (e) {
       if (generation === this.generation) this.fail(e);

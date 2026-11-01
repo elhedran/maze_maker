@@ -17,7 +17,9 @@ import type { TableView } from "../bindings/TableView.ts";
 import type { TableViewRequest } from "../bindings/TableViewRequest.ts";
 import type { TileKind } from "../bindings/TileKind.ts";
 import type { TileView } from "../bindings/TileView.ts";
-import type { CellTrace, ExploreRequest, ExploreView, TraceCellRequest } from "./contract-types.ts";
+import type { CellTrace, ExploreRequest, ExploreView, PairFactor, TraceCellRequest } from "./contract-types.ts";
+import type { GenerateRequest } from "../bindings/GenerateRequest.ts";
+import type { GeneratedMaze } from "../bindings/GeneratedMaze.ts";
 
 /** A rejected command, as Rust sends it; `kind` may be DR-0034's `stale`. */
 export type FixtureError = { kind: string; messages: string[] };
@@ -156,6 +158,60 @@ export function fixtureExplore(request: ExploreRequest, revision = 1, tiles: Til
   return { revision, centre, arms: arms as ExploreView["arms"] };
 }
 
+const NORTH = 0;
+const WEST = 3;
+
+/**
+ * A trace that fits the fixture: ┐ drawn 41st of 384, with ░ to its north
+ * and ─ to its west counted, └ to its south came later, and the maze's edge
+ * to the east. Only ┐ and ─ have a hedge north and a passage west, so they
+ * are the candidates: ┐ scores 1.2 × 1 × 1, ─ 1 × 1 × 0.5 (straight beside
+ * straight), so ┐ is 70.6% and ─ 29.4%; the other six were ruled out.
+ */
+export function fixtureTrace(request: TraceCellRequest): CellTrace {
+  const factor = (direction: number, candidate: number, neighbour: number): PairFactor => {
+    const entry = entryFor(direction, candidate, neighbour);
+    const multiplier = entry.exceptions.length > 0 ? 0.5 : 1;
+    return {
+      direction: DIRECTIONS[direction],
+      neighbour,
+      base: entry.base,
+      exceptions: entry.exceptions,
+      multiplier,
+      noise: entry.noise,
+      factor: entry.base * multiplier * entry.noise,
+      entry,
+    };
+  };
+  const candidate = (tile: number, score: number) => ({
+    tile,
+    tileWeight: TILES[tile].weight,
+    factors: [factor(NORTH, tile, 7), factor(WEST, tile, 0)],
+    score,
+    share: score / 1.7,
+  });
+  return {
+    revision: request.revision,
+    cell: request.cell,
+    restarts: 0,
+    failed: false,
+    steps: 384,
+    collapse: {
+      step: 41,
+      neighbours: [
+        { direction: "north", state: "counted", tile: 7 },
+        { direction: "east", state: "edge", tile: null },
+        { direction: "south", state: "later", tile: 1 },
+        { direction: "west", state: "counted", tile: 0 },
+      ],
+      candidates: [candidate(2, 1.2), candidate(0, 0.5)],
+      ruledOut: 6,
+      total: 1.7,
+      chosen: 2,
+    },
+  };
+}
+
 export interface FixtureBackend {
   /** Every request, by command name. */
   calls: { cmd: string; request?: unknown }[];
@@ -164,13 +220,31 @@ export interface FixtureBackend {
   /** Replaces the tile list, as if the file had been edited and reloaded. */
   tiles: TileView[];
   revision: number;
-  /** What `trace_cell` answers: a trace, or an error to reject with. */
-  trace?: (request: TraceCellRequest) => CellTrace;
+  /** What `trace_cell` answers. */
+  trace: (request: TraceCellRequest) => CellTrace;
+  /** What `generate_maze` answers: by default ─┐, one row of two cells. */
+  maze: (request: GenerateRequest) => GeneratedMaze;
 }
 
 /** A mockIPC backend for the whole tool over the fixture (DR-0020). */
 export function fixtureBackend(): FixtureBackend {
-  const state: FixtureBackend = { calls: [], tiles: TILES, revision: 1 };
+  const state: FixtureBackend = {
+    calls: [],
+    tiles: TILES,
+    revision: 1,
+    trace: fixtureTrace,
+    maze: (request) => ({
+      revision: state.revision,
+      seed: request.seed,
+      width: 2,
+      height: 1,
+      cells: [0, 2],
+      centre: { x: 0, y: 0 },
+      restarts: 0,
+      failed: false,
+      measures: [],
+    }),
+  };
   mockIPC((cmd, payload) => {
     const request = (payload as { request?: unknown } | undefined)?.request;
     state.calls.push({ cmd, request });
@@ -189,9 +263,10 @@ export function fixtureBackend(): FixtureBackend {
           const error: FixtureError = { kind: "stale", messages: ["The maze's tile set has been reloaded since."] };
           throw error;
         }
-        if (!state.trace) throw new Error("no trace set for this test");
         return state.trace(r);
       }
+      case COMMANDS.generateMaze:
+        return state.maze(request as GenerateRequest);
       case COMMANDS.reloadTileSet:
         state.revision++;
         return { revision: state.revision, tileSetPath: "data/tile-sets/core.toml", loadedAt: "2026-11-01T09:30:00Z" };

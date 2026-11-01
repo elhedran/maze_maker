@@ -4,7 +4,7 @@ import { coreVersion, errorText, reloadTileSet, tableView, tilesOnlyRequest } fr
 import { formatLoadTime } from "./table/format.ts";
 import { themeStyles } from "./table/draw-tile.ts";
 import { TOOL_ERROR_EVENT } from "./tool-error.ts";
-import { OPEN_EXPLORE_EVENT, type ExploreTarget } from "./explore/open-explore.ts";
+import { BACK_TO_MAZE_EVENT, OPEN_EXPLORE_EVENT, type ExploreTarget } from "./explore/open-explore.ts";
 import "./table/adjacency-table.ts";
 import "./explore/explore-view.ts";
 import "./maze/maze-view.ts";
@@ -86,6 +86,7 @@ export class MazeToolApp extends LitElement {
     super.connectedCallback();
     this.addEventListener(TOOL_ERROR_EVENT, this.onToolError);
     this.addEventListener(OPEN_EXPLORE_EVENT, this.onOpenExplore);
+    this.addEventListener(BACK_TO_MAZE_EVENT, this.onBackToMaze);
     coreVersion()
       .then((version) => (this.coreVersion = version))
       .catch((e: unknown) => (this.coreError = errorText(e)));
@@ -98,6 +99,7 @@ export class MazeToolApp extends LitElement {
   disconnectedCallback(): void {
     this.removeEventListener(TOOL_ERROR_EVENT, this.onToolError);
     this.removeEventListener(OPEN_EXPLORE_EVENT, this.onOpenExplore);
+    this.removeEventListener(BACK_TO_MAZE_EVENT, this.onBackToMaze);
     super.disconnectedCallback();
   }
 
@@ -105,10 +107,15 @@ export class MazeToolApp extends LitElement {
     this.error = (event as CustomEvent<string>).detail;
   };
 
-  /** DR-0026 point 10: any view can open the explore view on a tile. */
+  /** DR-0026 point 10: any view can open the explore view on a tile; the maze does with its cell (DR-0033). */
   private onOpenExplore = (event: Event) => {
     this.tab = "explore";
     this.explore?.open((event as CustomEvent<ExploreTarget>).detail);
+  };
+
+  /** DR-0033 point 8: "< Back to maze" shows the Maze tab, still with its maze and selection. */
+  private onBackToMaze = () => {
+    this.tab = "maze";
   };
 
   /**

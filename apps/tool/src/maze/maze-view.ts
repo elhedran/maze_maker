@@ -3,6 +3,8 @@ import { customElement, state } from "lit/decorators.js";
 import { errorText, generateMaze, tableView, tilesOnlyRequest } from "../ipc.ts";
 import { themeStyles } from "../table/draw-tile.ts";
 import { tileLabel, tileLook } from "../table/tile-glyphs.ts";
+import { openExplore } from "../explore/open-explore.ts";
+import { NOT_PLACED } from "../explore/why-text.ts";
 import type { TileView } from "../bindings/TileView.ts";
 import type { GeneratedMaze } from "../bindings/GeneratedMaze.ts";
 import {
@@ -34,6 +36,12 @@ export class MazeView extends LitElement {
   /** A command that failed outright (not a maze that gave up). The last maze stays. */
   @state() private error?: string;
   @state() private hover?: { x: number; y: number };
+  /**
+   * The cell picked for "Why is this here?" (DR-0033 points 1 to 4), by
+   * column and row: kept across tabs and Reload's regeneration, whatever
+   * tile is there now; cleared by Generate and Random seed.
+   */
+  @state() private selected?: { x: number; y: number };
 
   private tilesRevision?: number;
   /** Ignores a response that arrives after a newer request was sent. */
@@ -116,6 +124,10 @@ export class MazeView extends LitElement {
       .tint-lower-right { background-size: 50% 50%; background-position: right bottom; }
       /* The centre DR-0030 counts from: text colour, never red or magenta (DR-0029 point 9). */
       .cell.centre { outline: 2px solid var(--text); outline-offset: -2px; }
+      /* The selected cell, in the selection colour, on top of the centre mark (DR-0033 point 1). */
+      .cell.selected { outline: 2px solid var(--selection); outline-offset: -2px; }
+      .map .cell { cursor: pointer; }
+      .selected-line { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; min-height: 1.8em; }
       .readout { min-height: 1.4em; }
       .measures { flex: 0 0 20rem; display: flex; flex-direction: column; gap: 0.75rem; }
       .measures p { margin: 0; }
@@ -163,13 +175,50 @@ export class MazeView extends LitElement {
 
   private onGenerate() {
     const parsed = parseSeed(this.seedText);
-    if ("seed" in parsed) void this.generate(parsed.seed);
+    if (!("seed" in parsed)) return;
+    this.selected = undefined;
+    void this.generate(parsed.seed);
   }
 
   private onRandomSeed() {
     const seed = randomSeed();
     this.seedText = String(seed);
+    this.selected = undefined;
     void this.generate(seed);
+  }
+
+  /** The cell under a pointer event on the map, if any. */
+  private cellAt(event: Event): { x: number; y: number } | undefined {
+    const cell = (event.target as HTMLElement).closest<HTMLElement>(".cell");
+    return cell ? { x: Number(cell.dataset.x), y: Number(cell.dataset.y) } : undefined;
+  }
+
+  private onMapClick(event: Event) {
+    const at = this.cellAt(event);
+    if (at) this.selected = at;
+  }
+
+  /** DR-0033 point 3: double-click opens, as [Why is this here?] does. */
+  private onMapDoubleClick(event: Event) {
+    const at = this.cellAt(event);
+    if (!at) return;
+    this.selected = at;
+    this.openWhy();
+  }
+
+  /**
+   * Opens the Explore tab on the selected cell's tile, through DR-0026's
+   * entry point, with the maze cell so the view can say why it's there.
+   */
+  private openWhy() {
+    const maze = this.maze;
+    const at = this.selected;
+    const tile = maze && at ? this.tileAt(maze, at.x, at.y) : undefined;
+    if (!maze || !at || !tile || this.generating) return;
+    openExplore(this, {
+      centre: tile,
+      maze: { revision: maze.revision, seed: maze.seed, width: maze.width, height: maze.height, cell: at },
+    });
   }
 
   private onSeedKeydown(event: KeyboardEvent) {
@@ -236,8 +285,11 @@ export class MazeView extends LitElement {
           aria-label="Maze, seed ${maze.seed}"
           @mouseover=${this.onMapHover}
           @mouseleave=${() => (this.hover = undefined)}
+          @click=${this.onMapClick}
+          @dblclick=${this.onMapDoubleClick}
         >${this.renderRows(maze)}</div>
         <span id="readout" class="readout">${this.readout(maze)}</span>
+        ${this.renderSelectedLine(maze)}
       </div>
       ${this.renderMeasures(maze)}
     </div>`;
@@ -248,8 +300,11 @@ export class MazeView extends LitElement {
     for (let y = 0; y < maze.height; y++) {
       const cells = [];
       for (let x = 0; x < maze.width; x++) {
-        const centre = maze.centre.x === x && maze.centre.y === y;
-        cells.push(this.renderCell(this.tileAt(maze, x, y), x, y, centre));
+        const marks = [
+          maze.centre.x === x && maze.centre.y === y ? "centre" : "",
+          this.selected?.x === x && this.selected?.y === y ? "selected" : "",
+        ].join(" ");
+        cells.push(this.renderCell(this.tileAt(maze, x, y), x, y, marks));
       }
       rows.push(html`<span class="row">${cells}</span>`);
     }
@@ -262,8 +317,8 @@ export class MazeView extends LitElement {
     return index === null || index === undefined ? undefined : this.tiles?.[index];
   }
 
-  private renderCell(tile: TileView | undefined, x: number, y: number, centre: boolean) {
-    const mark = centre ? "centre" : "";
+  /** `mark` is the cell's outline classes: `centre`, `selected`, or both. */
+  private renderCell(tile: TileView | undefined, x: number, y: number, mark: string) {
     if (!tile) {
       // Blank means "not generated yet" (DR-0017 rule 6).
       return html`<span class="cell ${mark}" data-x=${x} data-y=${y} aria-label="Not generated">  </span>`;
@@ -280,6 +335,22 @@ export class MazeView extends LitElement {
     const { x, y } = this.hover;
     const tile = this.tileAt(maze, x, y);
     return hoverText(tile ? tileLabel(tile) : "Not generated", x, y);
+  }
+
+  /**
+   * DR-0033 point 2: "Selected: ═ Room wall, wall S · col 14, row 2
+   * [Why is this here?]", or a prompt and a disabled button.
+   */
+  private renderSelectedLine(maze: GeneratedMaze) {
+    const at = this.selected;
+    const tile = at && this.tileAt(maze, at.x, at.y);
+    let text = "Click a cell, then ask why it's there.";
+    if (at && tile) text = `Selected: ${tileLook(tile.id, tile.orientation).glyph} ${hoverText(tileLabel(tile), at.x, at.y)}`;
+    else if (at) text = `Selected: col ${at.x}, row ${at.y}. ${NOT_PLACED}`;
+    return html`<span class="selected-line">
+      <span id="selected">${text}</span>
+      <button id="why" ?disabled=${!tile || this.generating} @click=${() => this.openWhy()}>Why is this here?</button>
+    </span>`;
   }
 
   private renderMeasures(maze: GeneratedMaze) {

@@ -4,7 +4,8 @@ import { COMMANDS } from "../ipc.ts";
 import { TOOL_ERROR_EVENT } from "../tool-error.ts";
 import "./explore-view.ts";
 import { TRAIL_SHOWN, type ExploreView } from "./explore-view.ts";
-import { CORNER_NE, CORNER_SW, DOOR_E, DOOR_W, ROOM, STRAIGHT, TILES, fixtureBackend } from "./fixture.ts";
+import { CORNER_NE, CORNER_SW, DOOR_E, DOOR_W, HEDGE, ROOM, STRAIGHT, TILES, fixtureBackend } from "./fixture.ts";
+import { BACK_TO_MAZE_EVENT } from "./open-explore.ts";
 import type { Direction } from "../bindings/Direction.ts";
 import type { TileView } from "../bindings/TileView.ts";
 
@@ -314,5 +315,113 @@ describe("explore-view", () => {
     el.refresh();
     await vi.waitFor(() => expect(errors).toEqual(["data/tile-sets/core.toml: missing [bases]"]));
     expect(armGlyphs(el, "east")).toEqual(["┐", "┘", "─", "╢"]);
+  });
+});
+
+describe("explore-view, opened from a maze cell (DR-0033)", () => {
+  const MAZE = { revision: 1, seed: 48213, width: 24, height: 16, cell: { x: 14, y: 2 } };
+  const band = (el: Element) => root(el).querySelector("why-band");
+  const bandRoot = (el: Element) => band(el)!.shadowRoot!;
+  const factor = (el: Element, candidate: string, d: Direction) =>
+    bandRoot(el).querySelector<HTMLElement>(`tbody tr[data-tile="${candidate}"] td.factor[data-direction="${d}"]`)!;
+
+  async function opened() {
+    const ipc = fixtureBackend();
+    const el = await mount();
+    el.open({ centre: CORNER_SW, maze: MAZE });
+    await vi.waitFor(() => expect(bandRoot(el).querySelector("#why-heading")).not.toBeNull());
+    await vi.waitFor(() => expect(centreGlyph(el)).toBe("┐"));
+    return { ipc, el };
+  }
+
+  test("replays the cell, shows the band above the compass, with nothing selected in the arms", async () => {
+    const { ipc, el } = await opened();
+    expect(ipc.calls.find((c) => c.cmd === COMMANDS.traceCell)?.request).toEqual(MAZE);
+    expect(squash(bandRoot(el).querySelector("#why-heading")!.textContent)).toBe(
+      "Why ┐ is here · seed 48213 · col 14, row 2 · drawn 41st of 384",
+    );
+    expect(root(el).querySelector(".row.selected")).toBeNull();
+    expect(panelText(el)).toContain("Select a cell");
+    expect(trailGlyphs(el)).toEqual(["┐"]);
+  });
+
+  test("[Go] away hides the band, and [< Back] brings it back", async () => {
+    const { el } = await opened();
+    await go(el, "west", STRAIGHT);
+    expect(band(el)).toBeNull();
+    back(el).click();
+    await vi.waitFor(() => expect(centreGlyph(el)).toBe("┐"));
+    expect(bandRoot(el).querySelector("#why-heading")).not.toBeNull();
+  });
+
+  test("a factor opens DR-0025's panel on its pair, and it and an arm row clear each other", async () => {
+    const { el } = await opened();
+    factor(el, "corridor_straight#1", "west").click();
+    await vi.waitFor(() => expect(factor(el, "corridor_straight#1", "west").classList).toContain("selected"));
+    // Candidate ─ as row tile, the counted ─ to its west as the neighbour.
+    expect(panelText(el)).toContain("of ─'s west neighbours");
+    expect(panelText(el)).toContain("× Long straights are rarer than turns 0.5");
+
+    row(el, "north", HEDGE).click();
+    await vi.waitFor(() => expect(row(el, "north", HEDGE).classList).toContain("selected"));
+    expect(bandRoot(el).querySelector("td.factor.selected")).toBeNull();
+    expect(panelText(el)).toContain("of ┐'s north neighbours");
+
+    factor(el, "corridor_corner#2", "north").click();
+    await vi.waitFor(() => expect(root(el).querySelector(".row.selected")).toBeNull());
+    expect(panelText(el)).toContain("of ┐'s north neighbours");
+    expect(factor(el, "corridor_corner#2", "north").classList).toContain("selected");
+  });
+
+  test("each arm marks the tile the maze has on that side", async () => {
+    const { el } = await opened();
+    const marked = (d: Direction) => [...arm(el, d).querySelectorAll(".row")].filter((r) => r.querySelector(".in-maze"));
+    expect(marked("north").map((r) => r.getAttribute("data-tile"))).toEqual(["hedge#0"]);
+    expect(marked("west").map((r) => r.getAttribute("data-tile"))).toEqual(["corridor_straight#1"]);
+    expect(marked("south").map((r) => r.getAttribute("data-tile"))).toEqual(["corridor_corner#0"]);
+    expect(marked("east")).toEqual([]);
+  });
+
+  test("< Back to maze at the first stop asks for the Maze tab", async () => {
+    const { el } = await opened();
+    expect(squash(back(el).textContent)).toBe("< Back to maze");
+    expect(back(el).disabled).toBe(false);
+    let asked = 0;
+    el.addEventListener(BACK_TO_MAZE_EVENT, () => asked++);
+    back(el).click();
+    expect(asked).toBe(1);
+
+    await go(el, "west", STRAIGHT);
+    expect(squash(back(el).textContent)).toBe("< Back");
+  });
+
+  test("a maze from a tile set reloaded since is never traced: the band says so", async () => {
+    const ipc = fixtureBackend();
+    const el = await mount();
+    ipc.revision = 2;
+    el.open({ centre: CORNER_SW, maze: MAZE });
+    await vi.waitFor(() =>
+      expect(squash(bandRoot(el).textContent)).toBe("The tile set was reloaded. Pick the cell again in the Maze tab."),
+    );
+  });
+
+  test("a reload clears the band's trace with the same note, and keeps the arms", async () => {
+    const { ipc, el } = await opened();
+    factor(el, "corridor_corner#2", "west").click();
+    ipc.revision = 2;
+    el.refresh();
+    await vi.waitFor(() =>
+      expect(squash(bandRoot(el).textContent)).toBe("The tile set was reloaded. Pick the cell again in the Maze tab."),
+    );
+    expect(centreGlyph(el)).toBe("┐");
+    expect(panelText(el)).toContain("Select a cell");
+  });
+
+  test("opening without a maze cell shows no band", async () => {
+    const { el } = await opened();
+    el.open({ centre: CORNER_SW });
+    await vi.waitFor(() => expect(band(el)).toBeNull());
+    expect(squash(back(el).textContent)).toBe("< Back");
+    expect(back(el).disabled).toBe(true);
   });
 });

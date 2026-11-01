@@ -165,6 +165,31 @@ describe("maze-tool-app", () => {
     await vi.waitFor(() => expect(asked()).toBe(before + 1));
   });
 
+  test("Why is this here? in the Maze tab opens Explore on the cell, and Back to maze returns to it", async () => {
+    fixtureBackend();
+    const el = mount();
+    await el.updateComplete;
+    tab(el, "maze").click();
+    const maze = el.shadowRoot!.querySelector("maze-view")!;
+    await maze.updateComplete;
+    maze.shadowRoot!.querySelector<HTMLButtonElement>("#generate")!.click();
+    const cell = () => maze.shadowRoot!.querySelector<HTMLElement>('.cell[data-x="1"][data-y="0"]');
+    await vi.waitFor(() => expect(cell()).not.toBeNull());
+    cell()!.click();
+    await vi.waitFor(() => expect(maze.shadowRoot!.querySelector<HTMLButtonElement>("#why")!.disabled).toBe(false));
+    maze.shadowRoot!.querySelector<HTMLButtonElement>("#why")!.click();
+
+    await vi.waitFor(() => expect(tab(el, "explore").getAttribute("aria-selected")).toBe("true"));
+    const explore = el.shadowRoot!.querySelector("explore-view")!;
+    await vi.waitFor(() => expect(explore.shadowRoot!.querySelector(".centre .glyph")?.textContent).toBe("┐"));
+    const heading = () => explore.shadowRoot!.querySelector("why-band")?.shadowRoot!.querySelector("#why-heading");
+    await vi.waitFor(() => expect(heading()?.textContent).toContain("col 1, row 0"));
+
+    explore.shadowRoot!.querySelector<HTMLButtonElement>("#back")!.click();
+    await vi.waitFor(() => expect(tab(el, "maze").getAttribute("aria-selected")).toBe("true"));
+    expect(cell()!.classList).toContain("selected");
+  });
+
   test("a tile set that can't load at all shows the error in the banner", async () => {
     mockIPC((cmd) => {
       if (cmd === COMMANDS.coreVersion) return "9.9.9";

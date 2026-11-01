@@ -7,8 +7,21 @@ import { DIRECTIONS, OPPOSITE, cellTitle, formatShare, headerTitle, shadeStep, s
 import { tileLabel, tileLook } from "../table/tile-glyphs.ts";
 import type { Explained } from "../table/table-explanation.ts";
 import "../table/table-explanation.ts";
-import { loadExplore, sameTile, type ArmNeighbour, type Centre, type ExploreData, type TileRef } from "./explore-data.ts";
-import type { ExploreTarget } from "./open-explore.ts";
+import {
+  loadExplore,
+  loadWhy,
+  sameTile,
+  type ArmNeighbour,
+  type Centre,
+  type ExploreData,
+  type MazeCell,
+  type TileRef,
+  type Why,
+} from "./explore-data.ts";
+import { BACK_TO_MAZE_EVENT, type ExploreTarget } from "./open-explore.ts";
+import type { FactorKey } from "./why-band.ts";
+import "./why-band.ts";
+import { NOT_PLACED, RELOADED } from "./why-text.ts";
 import type { Direction } from "../bindings/Direction.ts";
 import type { TileView } from "../bindings/TileView.ts";
 
@@ -23,6 +36,15 @@ interface Selected {
 interface Stop {
   centre: TileRef;
   selected?: Selected;
+  /** On the first stop only, when the trail began at a maze cell (DR-0033 point 7). */
+  maze?: MazeCell;
+}
+
+/** The "Why it's here" band: the cell it's about, and its trace or a note in its place. */
+interface Band {
+  maze: MazeCell;
+  why?: Why;
+  note?: string;
 }
 
 /** Past centres shown before the trail is cut at its oldest end with "…" (DR-0026 point 9). */
@@ -49,11 +71,16 @@ export class ExploreView extends LitElement {
   /** The name of a centre the loaded tile set doesn't have (point 1). */
   @state() private missing?: string;
   @state() private busy = false;
+  /** Set while the trail began at a maze cell; shown at the first stop only (DR-0033 point 9). */
+  @state() private band?: Band;
+  /** A factor selected in the band. It and an arm selection clear each other (point 13). */
+  @state() private factor?: FactorKey;
 
   @query("#centre") private picker?: HTMLSelectElement;
 
   /** Ignores a response that arrives after a newer request was sent. */
   private requestSerial = 0;
+  private whySerial = 0;
 
   static styles = [
     themeStyles,
@@ -167,6 +194,13 @@ export class ExploreView extends LitElement {
       .zeros-toggle { margin-top: 0.3rem; padding: 0.1rem 0.5rem; color: var(--muted); }
       .zeros { border-top: 1px dashed var(--divider); margin-top: 0.3rem; padding-top: 0.3rem; }
 
+      .main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 1rem; }
+      .in-maze {
+        font-size: 11px;
+        padding: 0 0.3rem;
+        border: 1px solid var(--text);
+        border-radius: 3px;
+      }
       table-explanation {
         flex: 0 0 20rem;
         border: 1px solid var(--frame);
@@ -190,19 +224,54 @@ export class ExploreView extends LitElement {
 
   /**
    * The one entry point (DR-0026 point 10): centre on `target.centre` and,
-   * if given, select that neighbour so the panel explains the pair. Starts a
-   * new trail.
+   * if given, select that neighbour so the panel explains the pair. With
+   * `target.maze`, the trail's first stop also shows why the maze has that
+   * tile there (DR-0033 point 7). Starts a new trail.
    */
   open(target: ExploreTarget): void {
-    const { centre, select } = target;
-    this.trail = [{ centre: ref(centre), selected: select && { direction: select.direction, neighbour: ref(select.neighbour) } }];
+    const { centre, select, maze } = target;
+    this.trail = [
+      { centre: ref(centre), selected: select && { direction: select.direction, neighbour: ref(select.neighbour) }, maze },
+    ];
     this.openZeros = new Set();
+    this.factor = undefined;
+    this.band = maze && { maze, note: `Replaying seed ${maze.seed}…` };
+    ++this.whySerial;
+    if (maze) void this.loadBand(maze);
     void this.load();
   }
 
-  /** Refetches after the app reloads the tile set. Centre, trail and selection stay (point 1). */
+  /**
+   * Refetches after the app reloads the tile set. Centre, trail and selection
+   * stay (point 1). The band's trace was of the maze before the reload, so it
+   * gives way to DR-0033 point 20's note.
+   */
   refresh(): void {
+    if (this.band) {
+      ++this.whySerial;
+      this.band = { maze: this.band.maze, note: RELOADED };
+      this.factor = undefined;
+    }
     void this.load();
+  }
+
+  /** The band shows at the trail's first stop, when it began at a maze cell. */
+  private get bandShown(): Band | undefined {
+    return this.trail.length === 1 && this.trail[0].maze ? this.band : undefined;
+  }
+
+  /** Asks Rust to replay the maze and report how the cell was drawn (DR-0034 rules 4 to 7). */
+  private async loadBand(maze: MazeCell): Promise<void> {
+    const serial = this.whySerial;
+    try {
+      const result = await loadWhy(maze, this.data);
+      if (serial !== this.whySerial) return;
+      this.band = "why" in result ? { maze, why: result.why } : { maze, note: "stale" in result ? RELOADED : NOT_PLACED };
+    } catch (e) {
+      if (serial !== this.whySerial) return;
+      this.band = { maze, note: "Couldn't replay this cell; the error is shown above." };
+      reportToolError(this, errorText(e));
+    }
   }
 
   private get stop(): Stop | undefined {
@@ -248,11 +317,19 @@ export class ExploreView extends LitElement {
     }
   }
 
-  /** Replaces the current stop's selection; earlier stops keep theirs. */
+  /** Replaces the current stop's selection; earlier stops keep theirs. Clears a selected factor. */
   private select(direction: Direction, neighbour: TileRef) {
     const stop = this.stop;
     if (!stop) return;
     this.trail = [...this.trail.slice(0, -1), { ...stop, selected: { direction, neighbour: ref(neighbour) } }];
+    this.factor = undefined;
+  }
+
+  /** DR-0033 point 13: a factor's pair goes to the panel, and the arm selection is cleared. */
+  private onFactorSelect(event: CustomEvent<FactorKey>) {
+    this.factor = event.detail;
+    const stop = this.stop;
+    if (stop?.selected) this.trail = [...this.trail.slice(0, -1), { ...stop, selected: undefined }];
   }
 
   /**
@@ -268,15 +345,21 @@ export class ExploreView extends LitElement {
       { centre: ref(neighbour), selected: { direction: OPPOSITE[direction], neighbour: stop.centre, from: true } },
     ];
     this.openZeros = new Set();
+    this.factor = undefined;
     void this.load();
   }
 
-  /** Point 9: back to the previous centre and what was selected there. */
+  /**
+   * Point 9: back to the previous centre and what was selected there. At the
+   * first stop of a trail that began at a maze cell, back to the Maze tab
+   * (DR-0033 point 8), which still shows the maze and the selected cell.
+   */
   private back() {
-    if (this.trail.length < 2) return;
-    this.trail = this.trail.slice(0, -1);
-    this.openZeros = new Set();
-    void this.load();
+    if (this.trail.length < 2) {
+      if (this.trail[0]?.maze) this.dispatchEvent(new CustomEvent(BACK_TO_MAZE_EVENT, { bubbles: true, composed: true }));
+      return;
+    }
+    this.backTo(this.trail.length - 2);
   }
 
   /** Point 9: clicking a past centre goes there and drops later ones. */
@@ -284,6 +367,7 @@ export class ExploreView extends LitElement {
     if (index >= this.trail.length - 1) return;
     this.trail = this.trail.slice(0, index + 1);
     this.openZeros = new Set();
+    this.factor = undefined;
     void this.load();
   }
 
@@ -319,8 +403,13 @@ export class ExploreView extends LitElement {
     const tiles = this.data?.tiles ?? [];
     const stop = this.stop;
     return html`<div class="bar">
-      <button id="back" title="Back (Alt+Left)" ?disabled=${this.trail.length < 2} @click=${() => this.back()}>
-        &lt; Back
+      <button
+        id="back"
+        title="Back (Alt+Left)"
+        ?disabled=${this.trail.length < 2 && !this.trail[0]?.maze}
+        @click=${() => this.back()}
+      >
+        ${this.trail.length < 2 && this.trail[0]?.maze ? "< Back to maze" : "< Back"}
       </button>
       ${this.trail.length > 0 ? this.renderTrail() : nothing}
       <label
@@ -369,11 +458,22 @@ export class ExploreView extends LitElement {
     const centre = this.shown;
     if (!centre) return this.busy ? html`<p class="hint">Loading…</p>` : nothing;
     const selected = this.stop.selected;
+    const band = this.bandShown;
     return html`<div class="body">
-      <div class="compass ${this.busy ? "busy" : ""}">
-        ${DIRECTIONS.map((d) => this.renderArm(centre, d, selected))} ${this.renderCentre(centre.tile)}
+      <div class="main">
+        ${band
+          ? html`<why-band
+              .why=${band.why}
+              note=${band.note ?? ""}
+              .selected=${this.factor}
+              @factor-select=${this.onFactorSelect}
+            ></why-band>`
+          : nothing}
+        <div class="compass ${this.busy ? "busy" : ""}">
+          ${DIRECTIONS.map((d) => this.renderArm(centre, d, selected))} ${this.renderCentre(centre.tile)}
+        </div>
       </div>
-      ${this.renderPanel(centre, selected)}
+      ${band?.why && this.factor ? this.renderFactorPanel(band.why, this.factor) : this.renderPanel(centre, selected)}
     </div>`;
   }
 
@@ -417,6 +517,9 @@ export class ExploreView extends LitElement {
     const { tile, entry } = n;
     const label = tileLabel(tile);
     const isSelected = !!selected && sameTile(selected.neighbour, tile);
+    // DR-0033 point 14: the tile the maze has on this side, while the band shows.
+    const inMaze = this.bandShown?.why?.neighbours.find((m) => m.direction === direction)?.tile;
+    const isInMaze = !!inMaze && sameTile(inMaze, tile);
     const canGo = entry.probability > 0;
     const classes = [
       "share",
@@ -437,7 +540,9 @@ export class ExploreView extends LitElement {
     >
       ${renderGlyph(tile, label)}
       <span class="name"
-        >${label}${isSelected && selected?.from ? html` <span class="from">from</span>` : nothing}
+        >${label}${isSelected && selected?.from ? html` <span class="from">from</span>` : nothing}${isInMaze
+          ? html` <span class="in-maze">in maze</span>`
+          : nothing}
         <span class="faces">faces with ${sideName(entry.facing.column)}</span></span
       >
       <span class=${classes}>${formatShare(entry.probability)}</span>
@@ -454,6 +559,19 @@ export class ExploreView extends LitElement {
           </button>`
         : html`<span></span>`}
     </li>`;
+  }
+
+  /**
+   * DR-0033 point 13: DR-0025's panel, unchanged, for a factor's pair: the
+   * candidate as row tile, the counted neighbour as column, the direction
+   * from the cell to the neighbour.
+   */
+  private renderFactorPanel(why: Why, key: FactorKey) {
+    const candidate = why.candidates.find((c) => sameTile(c.tile, key.candidate));
+    const factor = candidate?.factors.find((f) => f.direction === key.direction);
+    const explained: Explained | undefined = candidate &&
+      factor && { entry: factor.entry, rowTile: candidate.tile, columnTile: factor.neighbour, exceptions: why.exceptions };
+    return html`<table-explanation .explained=${explained} direction=${key.direction}></table-explanation>`;
   }
 
   /** DR-0025's panel, unchanged, with the centre as row tile and the arm's direction. */

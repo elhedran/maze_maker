@@ -8,6 +8,7 @@ import type { GeneratedMaze } from "../bindings/GeneratedMaze.ts";
 import type { TableView } from "../bindings/TableView.ts";
 import type { TileView } from "../bindings/TileView.ts";
 import type { ToolError } from "../bindings/ToolError.ts";
+import { OPEN_EXPLORE_EVENT, type ExploreTarget } from "../explore/open-explore.ts";
 
 // Five tiles in table order: ─ ┐ (corridor), ═ ╔ (room), ░ (hedge).
 const tile = (id: string, name: string, kind: TileView["kind"], orientation: number): TileView => ({
@@ -313,6 +314,89 @@ describe("maze-view", () => {
     // The next Generate is an ordinary one again.
     $(el, "#generate").click();
     await vi.waitFor(() => expect($(el, "#status").textContent).toBe("Seed 99 · 3×2 · restarted 2 times"));
+  });
+
+  describe("Why is this here? (DR-0033)", () => {
+    const cell = (el: Element, x: number, y: number) => $(el, `.cell[data-x="${x}"][data-y="${y}"]`);
+    const why = (el: Element) => $<HTMLButtonElement>(el, "#why");
+
+    async function generatedWith(seed: string) {
+      const ipc = backend();
+      const el = await mount();
+      typeSeed(el, seed);
+      $(el, "#generate").click();
+      await generated(el);
+      return { ipc, el };
+    }
+
+    function listen(el: Element) {
+      const asked: ExploreTarget[] = [];
+      el.addEventListener(OPEN_EXPLORE_EVENT, (e) => asked.push((e as CustomEvent<ExploreTarget>).detail));
+      return asked;
+    }
+
+    test("with nothing selected, the Selected line prompts and the button is disabled", async () => {
+      const { el } = await generatedWith("48213");
+      expect($(el, "#selected").textContent).toBe("Click a cell, then ask why it's there.");
+      expect(why(el).disabled).toBe(true);
+    });
+
+    test("a click selects a cell with the selection outline and names it on the Selected line", async () => {
+      const { el } = await generatedWith("48213");
+      cell(el, 1, 0).click();
+      await vi.waitFor(() => expect(cell(el, 1, 0).classList).toContain("selected"));
+      expect($(el, "#selected").textContent).toBe("Selected: ┐ Corridor corner, open S and W · col 1, row 0");
+      expect(why(el).disabled).toBe(false);
+      expect(root(el).querySelectorAll(".cell.selected")).toHaveLength(1);
+
+      // The centre can be selected too; both marks are on it.
+      cell(el, 1, 1).click();
+      await vi.waitFor(() => expect(cell(el, 1, 1).classList).toContain("selected"));
+      expect(cell(el, 1, 1).classList).toContain("centre");
+    });
+
+    test("[Why is this here?] opens the explore view on the cell's tile, with the maze cell", async () => {
+      const { el } = await generatedWith("48213");
+      const asked = listen(el);
+      cell(el, 1, 0).click();
+      await vi.waitFor(() => expect(why(el).disabled).toBe(false));
+      why(el).click();
+      expect(asked).toHaveLength(1);
+      expect(asked[0]).toMatchObject({
+        centre: { id: "corridor_corner", orientation: 2 },
+        maze: { revision: 1, seed: 48213, width: 3, height: 2, cell: { x: 1, y: 0 } },
+      });
+      expect(asked[0].select).toBeUndefined();
+    });
+
+    test("a double-click selects and opens", async () => {
+      const { el } = await generatedWith("48213");
+      const asked = listen(el);
+      cell(el, 0, 1).dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
+      expect(asked.map((a) => a.maze?.cell)).toEqual([{ x: 0, y: 1 }]);
+      await vi.waitFor(() => expect(cell(el, 0, 1).classList).toContain("selected"));
+    });
+
+    test("Reload's regeneration keeps the same column and row; Generate and Random seed clear it", async () => {
+      const { ipc, el } = await generatedWith("48213");
+      cell(el, 2, 1).click();
+      await vi.waitFor(() => expect(cell(el, 2, 1).classList).toContain("selected"));
+
+      ipc.revision = 2;
+      ipc.next = { cells: [0, 1, 4, 3, 2, 0] };
+      el.regenerateAfterReload();
+      await vi.waitFor(() => expect($(el, "#status").textContent).toContain("regenerated after reload"));
+      expect(cell(el, 2, 1).classList).toContain("selected");
+      expect($(el, "#selected").textContent).toBe("Selected: ─ Corridor straight, E–W · col 2, row 1");
+
+      $(el, "#generate").click();
+      await vi.waitFor(() => expect($(el, "#selected").textContent).toBe("Click a cell, then ask why it's there."));
+
+      cell(el, 0, 0).click();
+      await vi.waitFor(() => expect(why(el).disabled).toBe(false));
+      $(el, "#random-seed").click();
+      await vi.waitFor(() => expect(root(el).querySelector(".cell.selected")).toBeNull());
+    });
   });
 
   test("a reload with no maze shown generates nothing", async () => {

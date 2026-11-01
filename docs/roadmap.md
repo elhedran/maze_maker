@@ -293,7 +293,7 @@ The original definition, kept for reference:
   - dead ends per area;
   - corridor run lengths;
   - room sizes and spacing.
-- **2.6 Beyond the edge:** grow a sample by generating areas next to it, to test where new areas meet old ones. Waits on persistence and on Yew's research into infinite WFC ([DR-0007](/decisions/0007-wave-function-collapse.md)).
+- **2.6 Beyond the edge:** grow a sample by generating areas next to it, to test where new areas meet old ones. Builds on 2.1's generator with seam-first chunks ([DR-0031](/decisions/0031-endless-generation-approach.md)); the measures and definition of done are in [Endless WFC](/plans/endless-wfc-research.md).
 
 ## The game (outline)
 
@@ -358,10 +358,10 @@ Already settled:
 | The WFC approach for 2.1: collapse, how neighbour weights combine, contradiction handling, determinism (seeds), the maze's edge | DR-0007, [DR-0013](/decisions/0013-table-entries-from-tile-sides.md), [DR-0022](/decisions/0022-weight-model.md) | Yew, with Wren on determinism; Yew and one engineer | no, unless Yew judges a part one-way | 2.1 (settled at the start of the build) |
 | Which global properties to measure | [Q-0008](/questions/open/0008-global-maze-properties.md) | Wren, Yew advises on cost; Wren and Marram | no | 2.1 (Wren picks what 2.1 shows, at the start of the build); 2.5 for the full set |
 | Design for the generation view (small, settled during the 2.1 build) and the link from maze to table | design | Damson; Damson and Marram | no | 2.1, 2.2 |
-| Research into infinite WFC | DR-0007 | Yew | no | 2.6 |
-| Persistence | DR-0007 | Yew, with Wren | no; Yew re-checks before the game builds on it | 2.6; the game |
+| Research into infinite WFC | DR-0007 | Yew | no | done ([DR-0031](/decisions/0031-endless-generation-approach.md)); 2.6 tests it |
+| Persistence | DR-0007 | Yew, with Wren | no; Yew re-checks before the game builds on it | the game (generation needs none, DR-0031) |
 | How global properties are enforced | [Q-0008](/questions/open/0008-global-maze-properties.md) | Yew, with Wren | no, unless Yew judges it one-way | the game |
 | How code is shared with the game, in full | DR-0008, [DR-0012](/decisions/0012-code-layout-and-core-crate.md) | Yew; Yew and one engineer | no | the game |
-| Replacing WFC as the generation approach, only if the research finds it can't do endless mazes | [DR-0007](/decisions/0007-wave-function-collapse.md) | Yew | **yes**: it changes the tech stack and throws away the generator built in Phase 2 | 2.6; the game |
+| Replacing WFC as the generation approach, only if 2.6 finds WFC can't do endless mazes after all (the research found it can, DR-0031) | [DR-0007](/decisions/0007-wave-function-collapse.md) | Yew | **yes**: it changes the tech stack and throws away the generator built in Phase 2 | 2.6; the game |
 | Technology for the game beyond Tauri v2, Rust and Lit, if any is needed | [DR-0005](/decisions/0005-tauri-rust-backend-lit-frontend.md) | Yew | **yes**: it changes the tech stack, and the game would be built on it | the game |
 | Anything that costs Ian money or ties down his time, such as a paid service or publishing | [DR-0018](/decisions/0018-one-way-doors-go-to-ian.md) | whoever needs it | **yes**: the cost falls on Ian | none planned |

@@ -1,7 +1,7 @@
 ---
 type: Decision Record
 title: Parallel code work gets its own worktree; shared files stay with the facilitator
-description: Each engineer changing code in parallel works in their own git worktree on a short-lived local branch, which the facilitator rebases and fast-forwards onto main. Docs-only parallel work stays in the main checkout, with separate files per agent and commits by path.
+description: Each engineer changing code in parallel works in their own git worktree on a short-lived branch, which the facilitator rebases and fast-forwards onto main after fetching origin. Docs-only parallel work stays in the main checkout, with separate files per agent and commits by path. Nothing is ever force-pushed; a pushed branch is never rewritten on origin, and is deleted from origin once it lands.
 status: stable
 decision_id: DR-0019
 decision_status: accepted
@@ -9,18 +9,22 @@ decision_kind: process
 major: false
 owners: [facilitator/1]
 approvers: [product-manager/1, engineer-ash/1]
-decided_at: 2026-10-31T19:21:16+01:00
+decided_at: 2026-11-01T15:00:00+01:00
 supersedes: []
-tags: [process, git, sessions, agents, worktrees]
+tags: [process, git, sessions, agents, worktrees, remote]
 generated:
   by: architect/1
-  at: 2026-10-31T19:19:00+01:00
+  at: 2026-11-01T11:00:00+01:00
 verified:
-  - by: engineer-ash/1
-    at: 2026-10-31T19:20:00+01:00
   - by: product-manager/1
-    at: 2026-10-31T19:21:16+01:00
+    at: 2026-11-01T14:50:00+01:00
+    note: "Approves the 2026-11-01 revision. Ian isn't needed: it changes only the team's git practice, not how decisions reach him."
+  - by: engineer-ash/1
+    at: 2026-11-01T14:55:00+01:00
+    note: "Stands in for the architect, who is the author (DR-0018). Approves once the AI guidance's fetch line no longer contradicts rule 8; that fix is made."
 ---
+
+**Revised 2026-11-01** by Yew (architect) after [DR-0032](/decisions/0032-use-the-remote.md) added `origin` on GitHub. This revision adds the "Remote" section (rules 9 to 13), changes landing and clean-up for pushed branches, and takes over "never force-push" and the branch stopgap from DR-0032. The 2026-10-31 approvals (Ash, Marram) are cleared because the substance changed; their concerns stay below. The file name is kept so links still work.
 
 **Revised 2026-10-31** by Yew (architect) after [DR-0021](/decisions/archive/0021-work-lands-on-main.md). The first version, drafted by the facilitator and accepted earlier the same day, kept everyone in one checkout because it read [DR-0009](/decisions/archive/0009-commit-straight-to-main.md) as banning branches. Its approvals are cleared, since the substance changed. The file name is kept so links still work.
 
@@ -31,13 +35,13 @@ On 2026-10-31 several sessions and agents worked in the one checkout at the same
 - The DR-0018 session committed while the scaffold's files sat uncommitted next to its own. It had to leave them out by hand.
 - The facilitator committed the scaffold with `git add -A` while the scaffold session was still checking it. That session then committed its log entry on top. Nothing broke, but `git add -A` would have taken in another agent's unfinished changes if there had been any.
 
-Ian asked whether the agents were using worktrees appropriately. The first version of this record said they couldn't: it took [DR-0009](/decisions/archive/0009-commit-straight-to-main.md) to mean "no branches", and a worktree needs a branch. That reading was wrong. Ian never banned branches; [DR-0021](/decisions/archive/0021-work-lands-on-main.md) corrects it. Work lands on `main`, there is no remote, and local branches and worktrees are allowed. When and how agents use them is left to this record.
+Ian asked whether the agents were using worktrees appropriately. The first version of this record said they couldn't: it took [DR-0009](/decisions/archive/0009-commit-straight-to-main.md) to mean "no branches", and a worktree needs a branch. That reading was wrong. Ian never banned branches; [DR-0021](/decisions/archive/0021-work-lands-on-main.md) corrects it. Work lands on `main`, there was then no remote, and local branches and worktrees are allowed. When and how agents use them is left to this record.
 
 # Decision
 
 ## Who works where
 
-1. **Each engineer changing code in parallel gets their own worktree** on a short-lived local branch. Code means everything outside `docs/` and `design/`: `apps/`, `crates/`, the build files and lockfiles at any level, `README.md`, `.gitignore`, `.claude/` and `CLAUDE.md`. Installing packages and building count as changing code.
+1. **Each engineer changing code in parallel gets their own worktree** on a short-lived branch. Code means everything outside `docs/` and `design/`: `apps/`, `crates/`, the build files and lockfiles at any level, `README.md`, `.gitignore`, `.claude/` and `CLAUDE.md`. Installing packages and building count as changing code.
 2. **Within any one checkout, one agent changes code at a time.** This covers the main checkout and every worktree. A build or test run during someone else's change in the same checkout says nothing reliable about either. An engineer working alone, with nobody else changing code, may work in the main checkout.
 3. **Docs-only parallel work stays in the main checkout**, under rules 6 to 8.
 
@@ -52,56 +56,80 @@ Ian asked whether the agents were using worktrees appropriately. The first versi
 7. **Commit by path.** Never `git add -A`, `git add .` or `git commit -a`. Run `git status` first. Anything not part of this work is left out, and the facilitator finds out whose it is.
 8. **Who commits where.** An engineer in a worktree commits their own work on their own branch, when their brief says to, and never touches `main`. In the main checkout, only the facilitator commits work that ran in parallel. A session working alone may commit its own work to `main`.
 
-## Landing and clean-up
+## Remote
 
-9. **The facilitator lands the work.** It rebases the branch onto `main` in the worktree, the engineer (or the facilitator) reruns the build and tests there, and then it fast-forwards `main` (`git merge --ff-only <branch>` in the main checkout). No merge commits. If the rebase conflicts, the branch goes back to the engineer who owns it.
-10. **Clean-up.** After landing, the facilitator removes the worktree (`git worktree remove`) and deletes the branch (`git branch -d`). Work that is abandoned is removed the same way, with `-D`, once Ian or the facilitator has said it is abandoned. Before telling Ian to clear a session ([DR-0010](/decisions/0010-facilitator-manages-context.md)), the facilitator checks `git worktree list` and `git branch` and says what is still open.
+`origin` is https://github.com/elhedran/maze_maker ([DR-0032](/decisions/0032-use-the-remote.md)). Cloud sessions can push to it, so `origin/main` is a second place where work lands, and local `main` can fall behind without anyone here doing anything.
+
+9. **Never force-push.** Not `main`, not any branch, not with `--force-with-lease`. Never rewrite history that is on `origin`. If a push is rejected, don't force it: stop and tell the facilitator.
+10. **Who pushes what.**
+    - `main`: whoever lands work on it, straight after landing (rule 11).
+    - A work branch (`<engineer>/<slice>`): the facilitator, or the engineer who owns it when their brief says to. Push one only when someone else needs it: a cloud session starts from it, or it must survive a lost local session. Otherwise it stays local.
+    - A cloud session pushes only its own branch, and `main` only when it lands work under rule 11 with Ian's OK.
+    - One branch, one writer. Nobody commits to or pushes a branch they don't own.
+11. **Landing.** The facilitator (or a session working alone, for its own work) lands like this:
+    1. `git fetch origin`, then fast-forward local `main` to `origin/main` (`git merge --ff-only origin/main` in the main checkout). If that fails, local `main` has commits `origin` doesn't: stop and sort that out first.
+    2. Rebase the branch onto `main` in its worktree. If it conflicts, the branch goes back to the engineer who owns it.
+    3. The engineer (or the facilitator) reruns the build and tests there.
+    4. Fast-forward `main` to the branch (`git merge --ff-only <branch>`) and push it at once (`git push origin main`). No merge commits.
+    5. **If the push is rejected**, `origin/main` moved during steps 2 to 4. An engineer or cloud session stops and tells the facilitator. The facilitator fetches, rebases local `main`'s unpushed commits onto `origin/main` (they were never pushed, so nothing on `origin` is rewritten), reruns the build and tests if code changed on either side, and pushes again. On a conflict, the facilitator resets local `main` to `origin/main` and the work goes back to its owner.
+12. **Pushed branches are never rewritten on `origin`.** Rebasing a pushed branch locally is fine (rule 11.2 does it), but the rebased branch is not pushed back under the same name; its commits reach `origin` through `main` when it lands. If a pushed branch has to be brought up to date before landing (say a cloud session needs current `main` under it), the owner rebases it locally and pushes it under a new name with a suffix (`ash/1.4-maze-2`), and the facilitator deletes the old name from `origin`. Don't merge `main` into a branch: the merge commit would land on `main` with it.
+13. **Clean-up.** After landing and pushing `main`, the facilitator removes the worktree (`git worktree remove`), deletes the branch locally (`git branch -d`), and, if it was pushed, deletes it from `origin` (`git push origin --delete <branch>`). A cloud session's branch is deleted the same way once its work has landed. Abandoned work is removed the same way, with `-D`, once Ian or the facilitator has said it is abandoned. Before telling Ian to clear a session ([DR-0010](/decisions/0010-facilitator-manages-context.md)), the facilitator runs `git fetch --prune`, checks `git worktree list`, `git branch` and `git branch -r`, and says what is still open, locally and on `origin`.
 
 ## Measuring the cost once
 
-11. The first time a worktree is used, the engineer measures how long its first full build takes (`npm install`, the Rust build and the Tauri app build, from a fresh worktree) and how much disk it uses, and reports the numbers. The facilitator records them in `docs/log.md` and adds them to this record. From then on, the facilitator uses them to decide, per brief, whether a short code step is worth a worktree or should simply wait its turn under rule 2.
+14. The first time a worktree is used, the engineer measures how long its first full build takes (`npm install`, the Rust build and the Tauri app build, from a fresh worktree) and how much disk it uses, and reports the numbers. The facilitator records them in `docs/log.md` and adds them to this record. From then on, the facilitator uses them to decide, per brief, whether a short code step is worth a worktree or should simply wait its turn under rule 2.
 
-**Measured 2026-11-01, on slice 1.1** (the first use, rule 11):
+**Measured 2026-11-01, on slice 1.1** (the first use, rule 14):
 - Rowan's Rust worktree: first `cargo build --workspace` took 1m 40s, and the first `cargo test --workspace` 3.9s. The folder was 4.0 GB, almost all of it `target/`.
 - Ash's frontend worktree: `npm install` 29.3s, `npm test` 3.0s and `npm run build` 1.9s.
 - One thing to know: a session that runs in its own worktree can only edit files inside it. The engineers' worktrees went inside the facilitator's worktree (`<its root>/.worktrees/`, which is git-ignored too), not at the repository root.
 
 # Alternatives considered
 
-- **One checkout for everyone, code work serialized** (the first version of this record). Safe, but it makes the second engineer wait, and it rested on a ban that never existed. It remains the fallback: when a worktree isn't worth its build cost (rule 11), code work waits its turn in the main checkout.
+- **One checkout for everyone, code work serialized** (the first version of this record). Safe, but it makes the second engineer wait, and it rested on a ban that never existed. It remains the fallback: when a worktree isn't worth its build cost (rule 14), code work waits its turn in the main checkout.
 - **Worktrees outside the repo folder** (for example a sibling `maze_maker-worktrees/`). Needs no `.gitignore` entry, but the agents' file tools and permissions are scoped to the repo folder, so every worktree would need extra permission grants, and those settings are Ian's. A git-ignored folder inside the repo avoids that, and search tools that respect `.gitignore` don't see duplicate code.
 - **A worktree for every agent, docs included.** Full isolation, but docs work is small, rarely builds, and already stays apart through separate files and facilitator-owned shared files. It would add landing steps for no gain.
 - **A shared `CARGO_TARGET_DIR` across worktrees** to save build time. Builds on different branches would contend for the same lock and keep invalidating each other's output.
-- **Merge commits instead of rebase and fast-forward.** Keeps the branch shape, but `main` stays linear and easy to read, and with short-lived local branches nothing is lost by rebasing.
+- **Merge commits instead of rebase and fast-forward.** Keeps the branch shape, but `main` stays linear and easy to read, and with short-lived branches nothing is lost by rebasing.
+- **`--force-with-lease` on branches with one writer**, to update a pushed branch after a rebase. Safe in the narrow case, but it turns "never force-push" into a rule with an exception, and an agent that misjudges the exception loses someone's work. A new branch name costs one extra delete (rule 12) and can't lose anything.
+- **Merge `main` into pushed branches** instead of rebasing them. Rewrites nothing, but the merge commits reach `main` with the branch, and `main` stops being linear.
+- **Anyone fetches and retries on a rejected push.** Marram's proposal on DR-0032. Faster, but a rejected push is exactly when two sessions' work meets, and that should go through one pair of hands. The facilitator does it (rule 11.5).
 
 # Consequences
 
 - Two engineers can change and build code at the same time, each in their own worktree.
+- Local `main` and `origin/main` stay level: fetched before every landing, pushed straight after. A cloud session starting from GitHub starts from current work.
+- `origin` holds only branches someone needs, and loses them when they land. After `git fetch --prune`, `git branch -r` should show `main` and the work in flight, nothing else.
 - The facilitator gains work: creating worktrees, landing, and cleaning up. It is a few commands each time, but it must not be skipped, or stale branches and folders pile up.
-- Each worktree costs a full first build and its own disk. Rule 11 puts a number on that.
+- Each worktree costs a full first build and its own disk. Rule 14 puts a number on that.
 - The facilitator still names files in every parallel brief, and still owns the shared files and record numbers.
-- **Revisit** when any of these happens: landing (rebase conflicts or reruns) regularly costs more than the parallel work saved; parallel work collides despite these rules (work lost, mixed into the wrong commit, or a build broken by someone else's half-finished change); the measured build cost makes worktrees rarely worth it; or Ian adds a remote ([DR-0021](/decisions/archive/0021-work-lands-on-main.md) is revisited then anyway).
-- Two-way door: dropping or changing these rules costs a record and a `.gitignore` line. Since [DR-0021](/decisions/archive/0021-work-lands-on-main.md), using worktrees is the team's call and doesn't need Ian.
+- **Revisit** when any of these happens: landing (rebase conflicts or reruns) regularly costs more than the parallel work saved; parallel work collides despite these rules (work lost, mixed into the wrong commit, or a build broken by someone else's half-finished change); the measured build cost makes worktrees rarely worth it; rejected pushes become routine; or a pushed branch needs two writers. The earlier trigger, "Ian adds a remote", fired on 2026-11-01 and is answered by this revision.
+- Two-way door: dropping or changing these rules costs a record and a `.gitignore` line. Since [DR-0021](/decisions/archive/0021-work-lands-on-main.md), using worktrees is the team's call, and [DR-0032](/decisions/0032-use-the-remote.md) left pushing branches to this record. This revision changes only the team's git practice, not how decisions reach Ian or `CLAUDE.md`, so it doesn't need him.
 
 # Concerns raised
+
+- **Ash (engineer) and Marram (product manager), on review of the 2026-11-01 revision:** the AI guidance told everyone to fast-forward `main` before work. That contradicts rule 8, and git refuses it from a worktree while `main` is checked out in the main checkout. Fixed before acceptance: only the main checkout fast-forwards `main`, and a worktree only fetches. The facilitator (`facilitator/1`) made the edit, in the wording both reviewers asked for.
+- **Yew (architect), on the 2026-11-01 revision:** I authored it, so I don't approve it. As before, an engineer approves in the architect's place, alongside Marram.
+- **Yew (architect), on the 2026-11-01 revision:** rule 11.5 keeps DR-0032's "stop and tell the facilitator" for engineers and cloud sessions; only the facilitator fetches and retries. Marram's fetch-and-retry for everyone is under Alternatives. If rejected pushes become routine, revisit.
+- **Yew (architect), on the 2026-11-01 revision:** a cloud session gets no brief from the facilitator. Until that changes, Ian's prompt to a cloud session should say which branch it owns and whether it may land on `main`; otherwise rules 10 to 12 rely on it reading this record.
 
 - **Yew (architect):** these rules live in briefs and in this record. `CLAUDE.md` and the engineers' agent files now point here ([DR-0021](/decisions/archive/0021-work-lands-on-main.md)), but an agent still only gets the specifics (its worktree, its branch, its files, whether it may touch a lockfile, when to commit) from its brief. The facilitator must put them in every parallel brief.
 - **Yew (architect), on the revision:** I authored this revision, so I don't approve it. Process records need the product manager and the architect; following the precedent of [DR-0012](/decisions/0012-code-layout-and-core-crate.md), where the architect authored and an engineer approved in the architect's place, Ash approves alongside Marram. Ash raised the worktree concerns this revision answers, so he is best placed to check them.
 - **Yew (architect), on the revision:** the plan should still slice work so that the two engineers' steps touch different files where it can. Worktrees stop two builds trampling each other; they don't stop two branches editing the same file, and that cost shows up at the rebase.
 - **Yew (architect), on review of the first version:** tightened the definition of code (everything outside `docs/` and `design/`, and builds count) and made shared files default to the facilitator, which also hands out record numbers. Both carry over.
-- **Ash (engineer), on [DR-0021](/decisions/archive/0021-work-lands-on-main.md):** each worktree gets its own `target/` and `node_modules/`, so the first build is full and takes disk; measure once before deciding when a worktree is worth it, and say where worktrees live and who removes them. Answered by rules 4, 5, 10 and 11: `.worktrees/`, git-ignored; the facilitator creates and removes them; the first use is measured.
-- **Ash (engineer), on review of the revision:** my DR-0021 concerns are answered. Where worktrees live, who removes them and measuring the first build are rules 4, 5, 10 and 11, and `.gitignore` already has the `.worktrees/` line. The window where the rules disagree closes if this record is accepted and committed with DR-0021, as DR-0021 says. The `.gitignore` line must be committed before the first worktree is created, or `.worktrees/` shows up as untracked in `git status`. I approve. These points are for the briefs, or for a later edit to the AI guidance:
+- **Ash (engineer), on [DR-0021](/decisions/archive/0021-work-lands-on-main.md):** each worktree gets its own `target/` and `node_modules/`, so the first build is full and takes disk; measure once before deciding when a worktree is worth it, and say where worktrees live and who removes them. Answered by rules 4, 5, 13 and 14: `.worktrees/`, git-ignored; the facilitator creates and removes them; the first use is measured.
+- **Ash (engineer), on review of the revision:** my DR-0021 concerns are answered. Where worktrees live, who removes them and measuring the first build are rules 4, 5, 13 and 14, and `.gitignore` already has the `.worktrees/` line. The window where the rules disagree closes if this record is accepted and committed with DR-0021, as DR-0021 says. The `.gitignore` line must be committed before the first worktree is created, or `.worktrees/` shows up as untracked in `git status`. I approve. These points are for the briefs, or for a later edit to the AI guidance:
   - *Tools reach the worktree.* Read, Edit and Write take absolute paths, so they work. I tested ripgrep, which the search tools use, on a throwaway repo laid out the same way. A search from the repo root skips `.worktrees/`, which is what we want. A search given the worktree's path, or run from inside it, finds its files. So an engineer has to pass the worktree path to every search, or they will search `main` without noticing.
   - *The shell starts in the main checkout.* Agent shells reset their working directory between calls, so a bare `cargo build` or `npm test` runs in the main checkout, which breaks rule 2. Every command needs to name the worktree path. The brief should give that path as an absolute path and say this.
   - *Only one dev server at a time.* `apps/tool/vite.config.ts` pins port 1420 with `strictPort`, because Tauri's `devUrl` expects it, and `.claude/launch.json` starts the frontend from the main checkout. Two worktrees can't run `npm run tauri dev` or `npm run dev` at the same time; the second one fails to start. Builds and tests aren't affected. Until that changes, the brief says which checkout may run the app.
-  - *Name the commands.* "The Tauri app build" in rule 11 could be read as `npm run tauri build`, the release build with installers, which is slow and isn't what a worktree needs. Measure from a fresh worktree: `cargo build --workspace` and `cargo test --workspace` at the worktree root, then `npm install`, `npm test` and `npm run build` in `apps/tool/`. Time each one, and measure the worktree folder's size at the end. Rule 9's rerun after a rebase is the same set, without `npm install` unless `package-lock.json` changed.
+  - *Name the commands.* "The Tauri app build" in rule 14 could be read as `npm run tauri build`, the release build with installers, which is slow and isn't what a worktree needs. Measure from a fresh worktree: `cargo build --workspace` and `cargo test --workspace` at the worktree root, then `npm install`, `npm test` and `npm run build` in `apps/tool/`. Time each one, and measure the worktree folder's size at the end. Rule 11.3's rerun after a rebase is the same set, without `npm install` unless `package-lock.json` changed.
 - **Marram (product manager), on the first version:** serializing code work didn't hurt Phase 1's sequencing, since 1.1, 1.2, 1.3 and 1.5 are sequential and what gates them is mostly docs work; Marram slices so one code step is in flight where possible, and keeps the other engineer on reviews and checking demos. That still holds; worktrees now cover the case where two code steps can usefully overlap.
 - **Marram (product manager), on the first version:** `README.md` counts as code, and every demo's run steps live there. Demo steps are written by whoever holds the code at the time, in their own checkout, not by a parallel docs agent.
 - **Marram (product manager), on review of the revision:** I approve. It works for slicing Phase 1. These points are for the plan and the briefs, not blockers:
   - *Worktrees are the exception in Phase 1, not the default.* 1.1 is the critical path and 1.2 builds on 1.1's view request, so most of Phase 1 is still one code step at a time in the main checkout. The likely overlaps are 1.2 with 1.3 or 1.5 once 1.1 has landed, and those share the view request, which is exactly Yew's same-file cost at the rebase. I'll slice them so each touches different files where possible, and when they can't, the second one waits rather than racing to the rebase.
   - *`README.md` is one writer at a time, like the lockfiles.* Every slice adds its demo steps to `README.md`, so two in-flight branches would both edit it and conflict at the rebase. The brief says which branch holds `README.md`; the other writes its demo steps into its report, and the facilitator or the holder adds them after landing.
-  - *A demo counts once it has landed.* With one dev server at a time (Ash), and Ian running demos from the main checkout, a slice's demo is shown from `main` after rule 9's landing and rerun, never from a worktree. A slice isn't done while its branch is still open. This matches the roadmap: "each demo comes with a commit on `main`".
-  - *Measure on real work.* Rule 11's measurement happens on the first slice that actually gets a worktree, not as a separate chore before it. It shouldn't delay a slice.
+  - *A demo counts once it has landed.* With one dev server at a time (Ash), and Ian running demos from the main checkout, a slice's demo is shown from `main` after rule 11's landing and rerun, never from a worktree. A slice isn't done while its branch is still open. This matches the roadmap: "each demo comes with a commit on `main`".
+  - *Measure on real work.* Rule 14's measurement happens on the first slice that actually gets a worktree, not as a separate chore before it. It shouldn't delay a slice.
 
 # AI guidance
 
@@ -111,13 +139,18 @@ Ian asked whether the agents were using worktrees appropriately. The first versi
 - Don't add, remove or upgrade dependencies unless your brief says your branch holds the lockfiles.
 - Leave `docs/log.md`, the `index.md` files and `docs/roadmap.md` to the facilitator unless your brief gives one to you, and use the record or question number your brief gives you.
 - In a worktree, commit on your own branch when your brief says to. Never commit to, merge into or rebase `main`.
+- Before starting work: in the main checkout (the facilitator, or a session working alone), `git fetch origin` and fast-forward `main` from `origin/main`. In a worktree, only `git fetch origin`; the facilitator keeps `main` level and creates your worktree from it.
+- Never force-push anything, with or without `--force-with-lease`. If a push is rejected, stop and tell the facilitator.
+- Push only `main` straight after you land on it, or your own branch when your brief says to. Never commit on or push a branch you don't own.
+- Don't push a rebased branch back under the same name; rule 12 says what to do instead.
 - Never `git add -A`, `git add .` or `git commit -a`. Add by path.
 - If `git status` shows changes you didn't make, leave them alone and say so.
 - On your first worktree, time the first full build and note the disk it uses, and report both.
 
 # Links
 
-- [DR-0021](/decisions/archive/0021-work-lands-on-main.md) work lands on main; branches and worktrees allowed
+- [DR-0032](/decisions/0032-use-the-remote.md) use the GitHub remote and keep it up to date
+- [DR-0021](/decisions/archive/0021-work-lands-on-main.md) work lands on main; branches and worktrees allowed (superseded by DR-0032)
 - [DR-0009](/decisions/archive/0009-commit-straight-to-main.md) commit straight to main (superseded)
 - [DR-0010](/decisions/0010-facilitator-manages-context.md) facilitator manages context
 - [DR-0012](/decisions/0012-code-layout-and-core-crate.md) precedent for an engineer approving in the architect's place

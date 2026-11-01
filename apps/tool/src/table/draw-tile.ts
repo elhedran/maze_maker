@@ -102,6 +102,31 @@ export const glyphStyles = css`
   .tint-lower-right { background-size: 50% 50%; background-position: right bottom; }
 `;
 
+/**
+ * DR-0025 points 7 and 8: a share's shade step (`step-1` to `step-5`) and
+ * the exception mark, shared by the table's cells and the explore view's
+ * rows so they look exactly alike. The marked element needs
+ * `position: relative`.
+ */
+export const shadeStyles = css`
+  .step-1 { background: var(--shade-1); }
+  .step-2 { background: var(--shade-2); }
+  .step-3 { background: var(--shade-3); }
+  .step-4 { background: var(--shade-4); color: var(--shade-text-light); }
+  .step-5 { background: var(--shade-5); color: var(--shade-text-light); }
+  /* Exception mark: a small corner triangle. */
+  .exception::after,
+  .mark::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-top: 7px solid var(--muted);
+    border-right: 7px solid transparent;
+  }
+  .mark { position: relative; display: inline-block; width: 1rem; height: 1rem; border: 1px solid var(--frame); }
+`;
+
 export function renderGlyph(tile: TileView, label: string) {
   const look = tileLook(tile.id, tile.orientation);
   const tint = look.tint === "none" ? "" : `tint-${look.tint}`;

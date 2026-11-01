@@ -4,21 +4,27 @@ import { coreVersion, errorText, reloadTileSet, tableView, tilesOnlyRequest } fr
 import { formatLoadTime } from "./table/format.ts";
 import { themeStyles } from "./table/draw-tile.ts";
 import { TOOL_ERROR_EVENT } from "./tool-error.ts";
+import { OPEN_EXPLORE_EVENT, type ExploreTarget } from "./explore/open-explore.ts";
 import "./table/adjacency-table.ts";
+import "./explore/explore-view.ts";
 import "./maze/maze-view.ts";
 import type { AdjacencyTable } from "./table/adjacency-table.ts";
+import type { ExploreView } from "./explore/explore-view.ts";
 import type { MazeView } from "./maze/maze-view.ts";
 
-type Tab = "table" | "maze";
+type Tab = "table" | "explore" | "maze";
 
+// Explore sits next to Table because it reads the same table (DR-0026 point 1).
 const TABS: { id: Tab; label: string }[] = [
   { id: "table", label: "Table" },
+  { id: "explore", label: "Explore" },
   { id: "maze", label: "Maze" },
 ];
 
 /**
  * The tool's root component: the title and core version, the tile set bar
- * both views share, and the Table and Maze tabs (DR-0029 points 1 and 2).
+ * the views share, and the Table, Explore and Maze tabs (DR-0029 points 1
+ * and 2, DR-0026 point 1).
  */
 @customElement("maze-tool-app")
 export class MazeToolApp extends LitElement {
@@ -31,6 +37,7 @@ export class MazeToolApp extends LitElement {
   @state() private tab: Tab = "table";
 
   @query("adjacency-table") private table?: AdjacencyTable;
+  @query("explore-view") private explore?: ExploreView;
   @query("maze-view") private mazeView?: MazeView;
 
   static styles = [
@@ -78,6 +85,7 @@ export class MazeToolApp extends LitElement {
   connectedCallback(): void {
     super.connectedCallback();
     this.addEventListener(TOOL_ERROR_EVENT, this.onToolError);
+    this.addEventListener(OPEN_EXPLORE_EVENT, this.onOpenExplore);
     coreVersion()
       .then((version) => (this.coreVersion = version))
       .catch((e: unknown) => (this.coreError = errorText(e)));
@@ -89,11 +97,18 @@ export class MazeToolApp extends LitElement {
 
   disconnectedCallback(): void {
     this.removeEventListener(TOOL_ERROR_EVENT, this.onToolError);
+    this.removeEventListener(OPEN_EXPLORE_EVENT, this.onOpenExplore);
     super.disconnectedCallback();
   }
 
   private onToolError = (event: Event) => {
     this.error = (event as CustomEvent<string>).detail;
+  };
+
+  /** DR-0026 point 10: any view can open the explore view on a tile. */
+  private onOpenExplore = (event: Event) => {
+    this.tab = "explore";
+    this.explore?.open((event as CustomEvent<ExploreTarget>).detail);
   };
 
   /**
@@ -114,6 +129,7 @@ export class MazeToolApp extends LitElement {
       this.reloading = false;
     }
     this.table?.refresh();
+    this.explore?.refresh();
     this.mazeView?.regenerateAfterReload();
   }
 
@@ -139,9 +155,12 @@ export class MazeToolApp extends LitElement {
           </button>`,
         )}
       </div>
-      <!-- Both views stay mounted and only hide, so each keeps its state. -->
+      <!-- The views stay mounted and only hide, so each keeps its state. -->
       <div role="tabpanel" id="panel-table" aria-labelledby="tab-table" ?hidden=${this.tab !== "table"}>
         <adjacency-table></adjacency-table>
+      </div>
+      <div role="tabpanel" id="panel-explore" aria-labelledby="tab-explore" ?hidden=${this.tab !== "explore"}>
+        <explore-view></explore-view>
       </div>
       <div role="tabpanel" id="panel-maze" aria-labelledby="tab-maze" ?hidden=${this.tab !== "maze"}>
         <maze-view></maze-view>

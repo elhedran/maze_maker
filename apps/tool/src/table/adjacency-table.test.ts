@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import { clearMocks, mockIPC } from "@tauri-apps/api/mocks";
 import { COMMANDS } from "../ipc.ts";
 import { TOOL_ERROR_EVENT } from "../tool-error.ts";
+import { OPEN_EXPLORE_EVENT, type ExploreTarget } from "../explore/open-explore.ts";
 import "./adjacency-table.ts";
 import type { AdjacencyTable } from "./adjacency-table.ts";
 import type { Direction } from "../bindings/Direction.ts";
@@ -265,6 +266,26 @@ describe("adjacency-table", () => {
     expect(squash(panelText(el))).toContain(
       "Passage meets Floor, wall at N end. A passage only meets a passage or a door.",
     );
+  });
+
+  test("Explore this tile asks to explore the row tile with the pair selected", async () => {
+    backend();
+    const el = await mount();
+    expect(root(el).querySelector("#explore-this")).toBeNull();
+    const asked: ExploreTarget[] = [];
+    el.addEventListener(OPEN_EXPLORE_EVENT, (e) => asked.push((e as CustomEvent<ExploreTarget>).detail));
+
+    root(el).querySelector<HTMLButtonElement>('button[data-direction="north"]')!.click();
+    await vi.waitFor(() => expect(squash(root(el).textContent ?? "")).toContain("neighbour to the NORTH"));
+    cell(el, 0, 1).click();
+    await vi.waitFor(() => expect(root(el).querySelector("#explore-this")).not.toBeNull());
+    root(el).querySelector<HTMLButtonElement>("#explore-this")!.click();
+
+    expect(asked).toHaveLength(1);
+    expect(asked[0]).toMatchObject({
+      centre: { id: "corridor_straight", orientation: 1 },
+      select: { direction: "north", neighbour: { id: "corridor_corner", orientation: 2 } },
+    });
   });
 
   test("the selection stays on the same tiles across a direction switch", async () => {

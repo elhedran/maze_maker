@@ -7,6 +7,7 @@ import type { GenerateRequest } from "./bindings/GenerateRequest.ts";
 import type { TableView } from "./bindings/TableView.ts";
 import type { TileView } from "./bindings/TileView.ts";
 import type { ToolError } from "./bindings/ToolError.ts";
+import { fixtureBackend } from "./explore/fixture.ts";
 
 // mockIPC fakes the Tauri backend, so these tests go through the real
 // `invoke` call and check the command name the component asks for.
@@ -62,8 +63,11 @@ describe("maze-tool-app", () => {
     backend();
     const el = mount();
     await vi.waitFor(() => expect(text(el)).toContain("data/tile-sets/core.toml"));
+    const labels = [...el.shadowRoot!.querySelectorAll('[role="tab"]')].map((t) => t.textContent?.trim());
+    expect(labels).toEqual(["Table", "Explore", "Maze"]);
     expect(tab(el, "table").getAttribute("aria-selected")).toBe("true");
     expect(panel(el, "table").hidden).toBe(false);
+    expect(panel(el, "explore").hidden).toBe(true);
     expect(panel(el, "maze").hidden).toBe(true);
     expect(el.shadowRoot!.querySelector("#reload")).not.toBeNull();
   });
@@ -125,6 +129,40 @@ describe("maze-tool-app", () => {
     );
     expect(ipc.tableRequests).toBeGreaterThan(tableRequestsBefore);
     expect(text(el)).toContain("loaded");
+  });
+
+  test("Explore this tile in the table opens the Explore tab on that pair", async () => {
+    fixtureBackend();
+    const el = mount();
+    await el.updateComplete;
+    const table = el.shadowRoot!.querySelector("adjacency-table")!;
+    // Row ─, column ╢: the first step of DR-0026's demo walk.
+    const td = () => table.shadowRoot!.querySelector<HTMLElement>('td[data-row="0"][data-column="6"]');
+    await vi.waitFor(() => expect(td()).not.toBeNull());
+    td()!.click();
+    await vi.waitFor(() => expect(table.shadowRoot!.querySelector("#explore-this")).not.toBeNull());
+    table.shadowRoot!.querySelector<HTMLButtonElement>("#explore-this")!.click();
+
+    await vi.waitFor(() => expect(tab(el, "explore").getAttribute("aria-selected")).toBe("true"));
+    expect(panel(el, "explore").hidden).toBe(false);
+    const explore = el.shadowRoot!.querySelector("explore-view")!;
+    await vi.waitFor(() => expect(explore.shadowRoot!.querySelector(".centre .glyph")?.textContent).toBe("─"));
+    const selected = explore.shadowRoot!.querySelector('section.arm.east .row.selected .glyph');
+    expect(selected?.textContent).toBe("╢");
+  });
+
+  test("a good reload refetches the explore view on its centre", async () => {
+    const ipc = fixtureBackend();
+    const el = mount();
+    await el.updateComplete;
+    const explore = el.shadowRoot!.querySelector("explore-view")!;
+    explore.open({ centre: { id: "hedge", orientation: 0 } });
+    await vi.waitFor(() => expect(explore.shadowRoot!.querySelector(".centre .glyph")?.textContent).toBe("░"));
+    const asked = () => ipc.calls.filter((c) => c.cmd === COMMANDS.exploreTile).length;
+    const before = asked();
+
+    el.shadowRoot!.querySelector<HTMLButtonElement>("#reload")!.click();
+    await vi.waitFor(() => expect(asked()).toBe(before + 1));
   });
 
   test("a tile set that can't load at all shows the error in the banner", async () => {

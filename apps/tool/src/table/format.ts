@@ -1,9 +1,12 @@
 // Formatting for the table view (DR-0025). The numbers come from Rust; this
 // only turns them into text and shade steps, never recalculates them.
 
+import { tileLabel, tileLook } from "./tile-glyphs.ts";
 import type { Direction } from "../bindings/Direction.ts";
+import type { EntryView } from "../bindings/EntryView.ts";
 import type { Facing } from "../bindings/Facing.ts";
 import type { SideKind } from "../bindings/SideKind.ts";
+import type { TileView } from "../bindings/TileView.ts";
 
 export const DIRECTIONS: Direction[] = ["north", "east", "south", "west"];
 
@@ -46,6 +49,30 @@ export function shadeStep(probability: number): 0 | 1 | 2 | 3 | 4 | 5 {
 }
 
 export const SHADE_LEGEND = ["0–5", "5–10", "10–20", "20–40", "40+"];
+
+export const OPPOSITE: Record<Direction, Direction> = {
+  north: "south",
+  east: "west",
+  south: "north",
+  west: "east",
+};
+
+/** Header hover and screen-reader label: "Corridor corner, open N and E · weight 3.0". */
+export function headerTitle(tile: TileView): string {
+  return `${tileLabel(tile)} · weight ${formatNumber(tile.weight)}`;
+}
+
+/**
+ * A pair's tooltip, the same in the table and the explore view (DR-0025
+ * point 9, DR-0026 point 5):
+ * "─ Corridor straight, E–W, then ┐ Corridor corner, open S and W to its east: 15.0%".
+ */
+export function cellTitle(rowTile: TileView, columnTile: TileView, direction: Direction, entry?: EntryView): string {
+  const a = `${tileLook(rowTile.id, rowTile.orientation).glyph} ${tileLabel(rowTile)}`;
+  const b = `${tileLook(columnTile.id, columnTile.orientation).glyph} ${tileLabel(columnTile)}`;
+  const share = entry && entry.probability > 0 ? `${formatShare(entry.probability)}%` : "can't happen";
+  return `${a}, then ${b} to its ${direction}: ${share}`;
+}
 
 /** DR-0015's side names: "Passage", "Floor, wall at N end". */
 export function sideName(side: SideKind): string {

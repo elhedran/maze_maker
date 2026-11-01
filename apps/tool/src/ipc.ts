@@ -9,13 +9,27 @@ import type { TableViewRequest } from "./bindings/TableViewRequest.ts";
 import type { ToolError } from "./bindings/ToolError.ts";
 import type { GenerateRequest } from "./bindings/GenerateRequest.ts";
 import type { GeneratedMaze } from "./bindings/GeneratedMaze.ts";
+// DR-0034's types, stubbed until Rowan's bindings land.
+import type { CellTrace, ExploreRequest, ExploreView, TraceCellRequest } from "./explore/contract-types.ts";
 
 export const COMMANDS = {
   coreVersion: "core_version",
   tableView: "table_view",
   reloadTileSet: "reload_tile_set",
   generateMaze: "generate_maze",
+  exploreTile: "explore_tile",
+  traceCell: "trace_cell",
 } as const;
+
+/** One tile's four arms, sorted, with their 0s split off (DR-0034 rules 1 to 3). */
+export function exploreTile(request: ExploreRequest): Promise<ExploreView> {
+  return invoke<ExploreView>(COMMANDS.exploreTile, { request });
+}
+
+/** Replays a maze's seed and reports how one cell was drawn (DR-0034 rules 4 to 7). */
+export function traceCell(request: TraceCellRequest): Promise<CellTrace> {
+  return invoke<CellTrace>(COMMANDS.traceCell, { request });
+}
 
 /** One sample maze from the loaded tile set (DR-0028). */
 export function generateMaze(request: GenerateRequest): Promise<GeneratedMaze> {

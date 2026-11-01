@@ -2,17 +2,18 @@ import { LitElement, css, html, nothing, type PropertyValues } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { errorText, tableView, wholeTableRequest } from "../ipc.ts";
 import { reportToolError } from "../tool-error.ts";
+import { openExplore } from "../explore/open-explore.ts";
 import {
   DIRECTIONS,
   DIRECTION_KEYS,
   DIRECTION_LABEL,
   SHADE_LEGEND,
-  formatNumber,
+  cellTitle,
   formatShare,
+  headerTitle,
   shadeStep,
 } from "./format.ts";
-import { glyphStyles, renderGlyph, themeStyles } from "./draw-tile.ts";
-import { tileLabel, tileLook } from "./tile-glyphs.ts";
+import { glyphStyles, renderGlyph, shadeStyles, themeStyles } from "./draw-tile.ts";
 import type { Explained } from "./table-explanation.ts";
 import "./table-explanation.ts";
 import { KIND_LABEL, applyFilterEdit, noFilter, type FilterEdit, type Filters } from "./filter-bar.ts";
@@ -87,6 +88,7 @@ export class AdjacencyTable extends LitElement {
   static styles = [
     themeStyles,
     glyphStyles,
+    shadeStyles,
     css`
       :host {
         display: flex;
@@ -140,22 +142,6 @@ export class AdjacencyTable extends LitElement {
         cursor: pointer;
         color: var(--shade-text-dark);
       }
-      td.step-1 { background: var(--shade-1); }
-      td.step-2 { background: var(--shade-2); }
-      td.step-3 { background: var(--shade-3); }
-      td.step-4 { background: var(--shade-4); color: var(--shade-text-light); }
-      td.step-5 { background: var(--shade-5); color: var(--shade-text-light); }
-      /* Exception mark: a small corner triangle (DR-0025 point 8). */
-      td.exception::after,
-      .mark::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        border-top: 7px solid var(--muted);
-        border-right: 7px solid transparent;
-      }
-      .mark { position: relative; display: inline-block; width: 1rem; height: 1rem; border: 1px solid var(--frame); }
       td.selected { outline: 3px solid var(--selection); outline-offset: -2px; }
       .group-start-col { border-left: 3px solid var(--divider); }
       .group-start-row > * { border-top: 3px solid var(--divider); }
@@ -416,7 +402,7 @@ export class AdjacencyTable extends LitElement {
           </tbody>
         </table>
       </div>
-      <table-explanation .explained=${this.explained(v, selected)} direction=${this.viewDirection}></table-explanation>
+      ${this.renderPanel(v, selected)}
     </div>`;
   }
 
@@ -448,6 +434,24 @@ export class AdjacencyTable extends LitElement {
     </td>`;
   }
 
+  /**
+   * DR-0025's panel, with "Explore this tile" (its point 13): the explore
+   * view opens on the row tile with this pair selected (DR-0026 point 10).
+   */
+  private renderPanel(v: TableView, selected?: { row: number; column: number }) {
+    const explained = this.explained(v, selected);
+    const explore = () => {
+      if (!explained) return;
+      openExplore(this, {
+        centre: explained.rowTile,
+        select: { direction: this.viewDirection, neighbour: explained.columnTile },
+      });
+    };
+    return html`<table-explanation .explained=${explained} direction=${this.viewDirection}>
+      ${explained ? html`<button id="explore-this" @click=${explore}>Explore this tile</button>` : nothing}
+    </table-explanation>`;
+  }
+
   private explained(v: TableView, at?: { row: number; column: number }): Explained | undefined {
     if (!at) return undefined;
     const entry = this.entryAt(at.row, at.column);
@@ -459,19 +463,6 @@ export class AdjacencyTable extends LitElement {
       exceptions: v.exceptions,
     };
   }
-}
-
-/** Header hover and screen-reader label: "Corridor corner, open N and E · weight 3.0". */
-function headerTitle(tile: TileView): string {
-  return `${tileLabel(tile)} · weight ${formatNumber(tile.weight)}`;
-}
-
-/** "─ Corridor straight, E–W, then ┐ Corridor corner, open S and W to its east: 15.0%". */
-function cellTitle(rowTile: TileView, columnTile: TileView, direction: Direction, entry?: EntryView): string {
-  const a = `${tileLook(rowTile.id, rowTile.orientation).glyph} ${tileLabel(rowTile)}`;
-  const b = `${tileLook(columnTile.id, columnTile.orientation).glyph} ${tileLabel(columnTile)}`;
-  const share = entry && entry.probability > 0 ? `${formatShare(entry.probability)}%` : "can't happen";
-  return `${a}, then ${b} to its ${direction}: ${share}`;
 }
 
 function swatchStyle(step: number): string {

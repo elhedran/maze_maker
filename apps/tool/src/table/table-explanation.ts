@@ -1,6 +1,6 @@
 import { LitElement, css, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import { clashLine, formatNumber, formatShare, sideName } from "./format.ts";
+import { OPPOSITE, clashLine, formatNumber, formatShare, sideName } from "./format.ts";
 import { glyphStyles, renderGlyph, themeStyles } from "./draw-tile.ts";
 import { tileLabel, tileLook } from "./tile-glyphs.ts";
 import type { Direction } from "../bindings/Direction.ts";
@@ -58,10 +58,20 @@ export class TableExplanation extends LitElement {
       .op { display: inline-block; width: 1.2em; color: var(--muted); }
       .hint { color: var(--muted); }
       .rule { margin-left: 1.2em; color: var(--muted); font-family: var(--mono); font-size: 12px; }
+      ::slotted(*) { margin-top: 0.9rem; }
     `,
   ];
 
+  /**
+   * The panel, then a slot for the host's action on the selected pair:
+   * "Explore this tile" in the table, "Explore ┐" in the explore view
+   * (DR-0025 point 13, DR-0026). The panel itself is the same in both.
+   */
   render() {
+    return html`${this.renderExplanation()}<slot class="actions"></slot>`;
+  }
+
+  private renderExplanation() {
     const x = this.explained;
     if (!x) return html`<p class="hint">Select a cell to see where its number comes from.</p>`;
     const { entry, rowTile, columnTile } = x;
@@ -124,13 +134,6 @@ export class TableExplanation extends LitElement {
       </ol>`;
   }
 }
-
-const OPPOSITE: Record<Direction, Direction> = {
-  north: "south",
-  east: "west",
-  south: "north",
-  west: "east",
-};
 
 declare global {
   interface HTMLElementTagNameMap {

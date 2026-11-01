@@ -2,15 +2,16 @@
 type: Decision Record
 title: Work lands on main; local branches and worktrees are allowed
 description: Work is committed to main and there is no remote yet; local branches and worktrees may be used, as long as the work lands on main. Corrects DR-0009, which wrongly recorded a ban on branches.
-status: stable
+status: deprecated
 decision_id: DR-0021
-decision_status: accepted
+decision_status: superseded
 decision_kind: process
 major: false
 owners: [human:ian]
 approvers: [architect/1, engineer-ash/1, human:ian]
 decided_at: 2026-10-31T19:18:00+01:00
 supersedes: [/decisions/archive/0009-commit-straight-to-main.md]
+superseded_by: [/decisions/0032-use-the-remote.md]
 tags: [process, git, worktrees]
 generated:
   by: facilitator/1
@@ -80,6 +81,7 @@ This triggers this record's "revisit when Ian adds a remote". Ian pushed `main` 
 
 # Links
 
+- Superseded by [DR-0032](/decisions/0032-use-the-remote.md)
 - Supersedes [DR-0009](/decisions/archive/0009-commit-straight-to-main.md)
 - [DR-0019](/decisions/0019-parallel-work-in-one-checkout.md) parallel work
 - [DR-0018](/decisions/0018-one-way-doors-go-to-ian.md) what goes to Ian

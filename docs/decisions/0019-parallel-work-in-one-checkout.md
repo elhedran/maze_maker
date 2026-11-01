@@ -22,7 +22,7 @@ verified:
     at: 2026-10-31T19:21:16+01:00
 ---
 
-**Revised 2026-10-31** by Yew (architect) after [DR-0021](/decisions/0021-work-lands-on-main.md). The first version, drafted by the facilitator and accepted earlier the same day, kept everyone in one checkout because it read [DR-0009](/decisions/archive/0009-commit-straight-to-main.md) as banning branches. Its approvals are cleared, since the substance changed. The file name is kept so links still work.
+**Revised 2026-10-31** by Yew (architect) after [DR-0021](/decisions/archive/0021-work-lands-on-main.md). The first version, drafted by the facilitator and accepted earlier the same day, kept everyone in one checkout because it read [DR-0009](/decisions/archive/0009-commit-straight-to-main.md) as banning branches. Its approvals are cleared, since the substance changed. The file name is kept so links still work.
 
 # Context
 
@@ -31,7 +31,7 @@ On 2026-10-31 several sessions and agents worked in the one checkout at the same
 - The DR-0018 session committed while the scaffold's files sat uncommitted next to its own. It had to leave them out by hand.
 - The facilitator committed the scaffold with `git add -A` while the scaffold session was still checking it. That session then committed its log entry on top. Nothing broke, but `git add -A` would have taken in another agent's unfinished changes if there had been any.
 
-Ian asked whether the agents were using worktrees appropriately. The first version of this record said they couldn't: it took [DR-0009](/decisions/archive/0009-commit-straight-to-main.md) to mean "no branches", and a worktree needs a branch. That reading was wrong. Ian never banned branches; [DR-0021](/decisions/0021-work-lands-on-main.md) corrects it. Work lands on `main`, there is no remote, and local branches and worktrees are allowed. When and how agents use them is left to this record.
+Ian asked whether the agents were using worktrees appropriately. The first version of this record said they couldn't: it took [DR-0009](/decisions/archive/0009-commit-straight-to-main.md) to mean "no branches", and a worktree needs a branch. That reading was wrong. Ian never banned branches; [DR-0021](/decisions/archive/0021-work-lands-on-main.md) corrects it. Work lands on `main`, there is no remote, and local branches and worktrees are allowed. When and how agents use them is left to this record.
 
 # Decision
 
@@ -80,16 +80,16 @@ Ian asked whether the agents were using worktrees appropriately. The first versi
 - The facilitator gains work: creating worktrees, landing, and cleaning up. It is a few commands each time, but it must not be skipped, or stale branches and folders pile up.
 - Each worktree costs a full first build and its own disk. Rule 11 puts a number on that.
 - The facilitator still names files in every parallel brief, and still owns the shared files and record numbers.
-- **Revisit** when any of these happens: landing (rebase conflicts or reruns) regularly costs more than the parallel work saved; parallel work collides despite these rules (work lost, mixed into the wrong commit, or a build broken by someone else's half-finished change); the measured build cost makes worktrees rarely worth it; or Ian adds a remote ([DR-0021](/decisions/0021-work-lands-on-main.md) is revisited then anyway).
-- Two-way door: dropping or changing these rules costs a record and a `.gitignore` line. Since [DR-0021](/decisions/0021-work-lands-on-main.md), using worktrees is the team's call and doesn't need Ian.
+- **Revisit** when any of these happens: landing (rebase conflicts or reruns) regularly costs more than the parallel work saved; parallel work collides despite these rules (work lost, mixed into the wrong commit, or a build broken by someone else's half-finished change); the measured build cost makes worktrees rarely worth it; or Ian adds a remote ([DR-0021](/decisions/archive/0021-work-lands-on-main.md) is revisited then anyway).
+- Two-way door: dropping or changing these rules costs a record and a `.gitignore` line. Since [DR-0021](/decisions/archive/0021-work-lands-on-main.md), using worktrees is the team's call and doesn't need Ian.
 
 # Concerns raised
 
-- **Yew (architect):** these rules live in briefs and in this record. `CLAUDE.md` and the engineers' agent files now point here ([DR-0021](/decisions/0021-work-lands-on-main.md)), but an agent still only gets the specifics (its worktree, its branch, its files, whether it may touch a lockfile, when to commit) from its brief. The facilitator must put them in every parallel brief.
+- **Yew (architect):** these rules live in briefs and in this record. `CLAUDE.md` and the engineers' agent files now point here ([DR-0021](/decisions/archive/0021-work-lands-on-main.md)), but an agent still only gets the specifics (its worktree, its branch, its files, whether it may touch a lockfile, when to commit) from its brief. The facilitator must put them in every parallel brief.
 - **Yew (architect), on the revision:** I authored this revision, so I don't approve it. Process records need the product manager and the architect; following the precedent of [DR-0012](/decisions/0012-code-layout-and-core-crate.md), where the architect authored and an engineer approved in the architect's place, Ash approves alongside Marram. Ash raised the worktree concerns this revision answers, so he is best placed to check them.
 - **Yew (architect), on the revision:** the plan should still slice work so that the two engineers' steps touch different files where it can. Worktrees stop two builds trampling each other; they don't stop two branches editing the same file, and that cost shows up at the rebase.
 - **Yew (architect), on review of the first version:** tightened the definition of code (everything outside `docs/` and `design/`, and builds count) and made shared files default to the facilitator, which also hands out record numbers. Both carry over.
-- **Ash (engineer), on [DR-0021](/decisions/0021-work-lands-on-main.md):** each worktree gets its own `target/` and `node_modules/`, so the first build is full and takes disk; measure once before deciding when a worktree is worth it, and say where worktrees live and who removes them. Answered by rules 4, 5, 10 and 11: `.worktrees/`, git-ignored; the facilitator creates and removes them; the first use is measured.
+- **Ash (engineer), on [DR-0021](/decisions/archive/0021-work-lands-on-main.md):** each worktree gets its own `target/` and `node_modules/`, so the first build is full and takes disk; measure once before deciding when a worktree is worth it, and say where worktrees live and who removes them. Answered by rules 4, 5, 10 and 11: `.worktrees/`, git-ignored; the facilitator creates and removes them; the first use is measured.
 - **Ash (engineer), on review of the revision:** my DR-0021 concerns are answered. Where worktrees live, who removes them and measuring the first build are rules 4, 5, 10 and 11, and `.gitignore` already has the `.worktrees/` line. The window where the rules disagree closes if this record is accepted and committed with DR-0021, as DR-0021 says. The `.gitignore` line must be committed before the first worktree is created, or `.worktrees/` shows up as untracked in `git status`. I approve. These points are for the briefs, or for a later edit to the AI guidance:
   - *Tools reach the worktree.* Read, Edit and Write take absolute paths, so they work. I tested ripgrep, which the search tools use, on a throwaway repo laid out the same way. A search from the repo root skips `.worktrees/`, which is what we want. A search given the worktree's path, or run from inside it, finds its files. So an engineer has to pass the worktree path to every search, or they will search `main` without noticing.
   - *The shell starts in the main checkout.* Agent shells reset their working directory between calls, so a bare `cargo build` or `npm test` runs in the main checkout, which breaks rule 2. Every command needs to name the worktree path. The brief should give that path as an absolute path and say this.
@@ -117,7 +117,7 @@ Ian asked whether the agents were using worktrees appropriately. The first versi
 
 # Links
 
-- [DR-0021](/decisions/0021-work-lands-on-main.md) work lands on main; branches and worktrees allowed
+- [DR-0021](/decisions/archive/0021-work-lands-on-main.md) work lands on main; branches and worktrees allowed
 - [DR-0009](/decisions/archive/0009-commit-straight-to-main.md) commit straight to main (superseded)
 - [DR-0010](/decisions/0010-facilitator-manages-context.md) facilitator manages context
 - [DR-0012](/decisions/0012-code-layout-and-core-crate.md) precedent for an engineer approving in the architect's place

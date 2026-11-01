@@ -2,6 +2,8 @@
 
 ## 2026-11-01
 
+- **Decision** DR-0032 accepted (Ian's decision, verbatim: "lets make a firm decisions to use that remote and keep it up to date"; drafted by the facilitator; approved by Yew and Marram with changes, then Ian). `origin` on GitHub is the remote. `main` is pushed every time anything lands, and local `main` is fast-forwarded from `origin` before work starts. Never force-push. Other branches are pushed only for cloud sessions, by the facilitator. DR-0021 is superseded and moved to the archive. `CLAUDE.md` and the engineers' agent files are updated. Yew revises DR-0019 for pushed branches and cloud sessions.
+
 - **Update** Ian added the remote `origin` (https://github.com/elhedran/maze_maker) and pushed `main`. `CLAUDE.md`'s Git section and DR-0021 record it. Agents still don't push until a record replaces DR-0021; the team was told.
 
 - **Update** Slice 1.3 is on `main` (fast-forward to e520d07) after Ian's OK, verbatim: "Yes, land 1.3". Tests pass on `main`. Roadmap 1.3 status updated.

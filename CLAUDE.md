@@ -81,11 +81,11 @@ Anything waiting on a decision is a file in `docs/questions/open/`, moved to `do
 - Plans for major work go in `docs/plans/`.
 - The roadmap is `docs/roadmap.md`, owned by Marram and approved by Ian.
 
-## Git (DR-0021, DR-0019)
+## Git (DR-0032, DR-0019)
 
 Work lands on `main`. Local branches and worktrees are fine; DR-0019 says when agents use them.
 
-The remote is `origin`, https://github.com/elhedran/maze_maker, added by Ian on 2026-11-01. Agents don't push. How the team uses the remote is still to be decided, in a record that will replace DR-0021.
+The remote is `origin`, https://github.com/elhedran/maze_maker. Keep it up to date: fast-forward `main` from `origin` before starting work, and push `main` straight after anything lands on it, docs included. Never force-push; if a push is rejected, stop and tell the facilitator. Other branches are pushed only when a cloud session needs one, and only by the facilitator.
 
 ## Toolchain
 

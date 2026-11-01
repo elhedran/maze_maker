@@ -85,7 +85,7 @@ From `apps/tool/`, run `npm run tauri dev`. There are three tabs now: **Table**,
 2. **A corridor corner's most likely east neighbour.** In **Explore**, pick `└ Corridor corner, open N and E` in **Centre**. Each side of the tile lists what can go there, highest share first, with the side kinds that meet shown on the shared edge. The top row of **EAST** is the answer. Click it for the panel.
 3. **From a corridor into a room and back out, through doorways.** Pick `─ Corridor straight, E–W`. In **EAST**, press **Go** on `╢ Room doorway, door W`: the passage meets the door. Then go east to `· Open room`, then to `╟ Room doorway, door E`, and back out to `─`. After each step the tile you came from is selected and marked "from", so the panel shows the edge you just crossed. **< Back** (or Alt+Left) goes back one step. Click any glyph in the trail to jump back to it.
 
-"+ N can't go here" at the foot of each side opens the 0s. **Explore this tile** in the table's panel opens the same view on the selected pair. After **Reload tile set**, the band says the tile set was reloaded: pick the cell again in the Maze tab.
+"+ N can't go here" at the foot of each side opens the 0s. **Explore this tile** in the table's panel opens the same view on the selected pair. After **Reload tile set**, the band replays the same cell of the regenerated maze (from 2.3).
 
 ## Demo: slice 2.6, walk a growing world and replay it
 

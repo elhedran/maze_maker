@@ -224,6 +224,24 @@ impl<'r> Wave<'r> {
         }
     }
 
+    /// As `new`, but each cell starts from `mask[cell * size + variant]`,
+    /// still without zero-weight tiles: a chunk's border labels, pinned
+    /// spine and fallback tiles (DR-0031 rule 3). `run` fails on an empty
+    /// cell and propagates every cell first, so the masks spread with no
+    /// other change. Panics if `mask` doesn't fit the grid.
+    fn with_mask(rules: &'r Rules, width: usize, height: usize, mask: &[bool]) -> Wave<'r> {
+        let mut wave = Wave::new(rules, width, height);
+        assert_eq!(mask.len(), wave.possible.len(), "mask doesn't fit the grid");
+        for (p, &m) in wave.possible.iter_mut().zip(mask) {
+            *p &= m;
+        }
+        for (cell, count) in wave.count.iter_mut().enumerate() {
+            let row = &wave.possible[cell * rules.size..(cell + 1) * rules.size];
+            *count = row.iter().filter(|&&p| p).count();
+        }
+        wave
+    }
+
     fn is_possible(&self, cell: usize, v: usize) -> bool {
         self.possible[cell * self.rules.size + v]
     }
@@ -424,6 +442,39 @@ pub fn generate_observed(
             });
         }
         attempt += 1;
+    }
+}
+
+/// Single WFC runs that start from per-cell candidate masks, for the chunk
+/// generator (DR-0031 rule 3). It reads the table once, so a chunk's many
+/// runs share that work; the restarts and seeds are the caller's.
+pub struct Solver {
+    rules: Rules,
+}
+
+impl Solver {
+    /// `table` must be calculated from `set`.
+    pub fn new(set: &TileSet, table: &Table) -> Solver {
+        Solver {
+            rules: Rules::new(set, table),
+        }
+    }
+
+    /// One attempt over `width` × `height` cells seeded with `seed`, each
+    /// cell starting from the variants `mask[cell * variants + variant]`
+    /// allows (never a zero-weight tile). Every cell's variant, row-major,
+    /// or `None` on a contradiction. Panics if `mask` doesn't have
+    /// `width × height × variants` entries.
+    pub fn run(&self, width: usize, height: usize, mask: &[bool], seed: u64) -> Option<Vec<usize>> {
+        let mut rng = SplitMix64::new(seed);
+        let mut wave = Wave::with_mask(&self.rules, width, height, mask);
+        wave.run(&mut rng).ok()?;
+        let cells = wave.collapsed.into_iter();
+        Some(
+            cells
+                .map(|c| c.expect("a finished run collapses every cell"))
+                .collect(),
+        )
     }
 }
 

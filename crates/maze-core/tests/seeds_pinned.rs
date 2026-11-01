@@ -33,12 +33,13 @@ fn two_one_seeds_give_the_mazes_they_gave_on_main() {
     let table = Table::calculate(&set);
     // (seed, width, height, restarts, fingerprint). Seed 56 at 64 × 64 is
     // the first that restarts, so the restart path is pinned too.
+    let (w, h) = (DEFAULT_WIDTH, DEFAULT_HEIGHT);
     let pinned: [(u32, usize, usize, u32, u64); 6] = [
-        (0, DEFAULT_WIDTH, DEFAULT_HEIGHT, 0, 0x1b04_8e15_7d42_d308),
-        (1, DEFAULT_WIDTH, DEFAULT_HEIGHT, 0, 0xa30d_31c9_b4e5_6de7),
-        (42, DEFAULT_WIDTH, DEFAULT_HEIGHT, 0, 0x62c3_fdbe_5ea3_148f),
-        (2026, DEFAULT_WIDTH, DEFAULT_HEIGHT, 0, 0xcc59_bfaf_c82d_45df),
-        (u32::MAX, DEFAULT_WIDTH, DEFAULT_HEIGHT, 0, 0x05d8_01c8_4287_eafc),
+        (0, w, h, 0, 0x1b04_8e15_7d42_d308),
+        (1, w, h, 0, 0xa30d_31c9_b4e5_6de7),
+        (42, w, h, 0, 0x62c3_fdbe_5ea3_148f),
+        (2026, w, h, 0, 0xcc59_bfaf_c82d_45df),
+        (u32::MAX, w, h, 0, 0x05d8_01c8_4287_eafc),
         (56, MAX_SIZE, MAX_SIZE, 1, 0x457c_724f_3769_c3f2),
     ];
     for (seed, width, height, restarts, print) in pinned {

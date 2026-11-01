@@ -2,9 +2,9 @@
 type: Decision Record
 title: How the tool edits a number and compares the same seed before and after
 description: Any number in the explanation panel that lives in the tile set (base, tile weight, exception, opening pressure) is edited in place with its reach spelled out; a saved change puts the Maze tab into a side-by-side before-and-after of the same seed with unchanged cells faded and both measures under it; opening pressure sits under the seed row; a refused edit stays at the field with the loader's reason; the "why" band refreshes in place after any reload.
-status: draft
+status: stable
 decision_id: DR-0037
-decision_status: proposed
+decision_status: accepted
 decision_kind: design
 major: false
 owners: [ux-designer/1]
@@ -18,6 +18,9 @@ verified:
   - by: product-manager/1
     at: 2026-11-01T09:05:00Z
     note: "Approved, inside 2.3's scope. Two scope calls under Concerns raised (Marram, on review): no stacked layout for narrow windows in 2.3, and the may-slip list stands as written. Status stays proposed until engineer-ash/1 stands in for the author, Damson (DR-0018), as on DR-0033."
+  - by: engineer-ash/1
+    at: 2026-11-01T09:07:50Z
+    note: "Stands in for the author, Damson (DR-0018). Approves: buildable as written on DR-0038's commands, with two small additions to DR-0038's contract that the views need, under Concerns raised (Ash, on build)."
 ---
 
 # Context
@@ -155,6 +158,11 @@ MAZE TAB, after a save
   - **No stacked layout in 2.3.** The tool's window is 1024px; build side by side only. If review by eye finds it doesn't fit, stacking is a follow-up, not part of the build. Damson's concern above stands for review.
   - **The may-slip list stands, and slipping is the default under time pressure.** Build the must-haves first, then demo; the may-slip items go into the 2.3 status as follow-ups rather than holding the slice. Point 18 ships only if point 17 slips, as written.
   - **The entry count from Rust in Damson's third concern stays out of 2.3** unless review shows Ian is surprised by a change's reach.
+
+- **Ash (`engineer-ash/1`), on build, 2026-11-01:** buildable. Two things the views need that DR-0038's contract doesn't yet carry, raised with Yew and Rowan as additions to DR-0038 rather than changes here:
+  - **The loaded opening pressure.** Point 14 shows it and prefills the editor with it, and point 15 hides the column at 1. Nothing the frontend receives carries it today. Proposed: `TableView.openingPressure` (1 when the key is absent).
+  - **The base's key.** A base edit names a `[bases]` key (`passage_door`), but the panel only has the two side kinds, and turning sides into a key would copy `side.rs`'s pairing rules into TypeScript. Proposed: `EntryView.basePair`, the key, or `null` for a pair that can't meet.
+  - The tile weight's reach line ("in all four orientations") counts the tile's orientations in the tile list the view already holds. That's counting rows, not working out a number, so it stays in TypeScript.
 
 # Why it's a two-way door
 

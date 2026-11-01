@@ -4,7 +4,6 @@
 import type { GameView, ViewCell } from "./ipc.ts";
 import { tileLook, type Tint } from "./tile-glyphs.ts";
 import { eastFiller } from "./east-filler.ts";
-import { walkableSides } from "./walkable-sides.ts";
 
 export interface ScreenCell {
   /** World position, for labels and tests. */
@@ -49,7 +48,7 @@ export function layoutGrid(view: GameView): ScreenCell[][] {
   return rows;
 }
 
-// Row and column steps for N, E, S, W, matching walkableSides' order.
+// Row and column steps for N, E, S, W, matching ViewCell.open's order.
 const STEPS: [number, number][] = [
   [-1, 0],
   [0, 1],
@@ -86,7 +85,7 @@ function markSealed(rows: ScreenCell[][]): void {
           const next = rows[nr][nc];
           if (next.cell) {
             // The neighbour's side facing back towards this pocket cell.
-            if (walkableSides(next.cell.tile, next.cell.orientation)[(d + 2) % 4]) open = true;
+            if (next.cell.open[(d + 2) % 4]) open = true;
           } else if (!seen[nr][nc]) {
             seen[nr][nc] = true;
             stack.push([nr, nc]);

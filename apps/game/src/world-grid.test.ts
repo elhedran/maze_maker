@@ -1,15 +1,8 @@
 import { describe, expect, test } from "vitest";
 import { cellLabel, layoutGrid, tileName } from "./world-grid.ts";
-import type { GameView, TileKind, ViewCell } from "./ipc.ts";
+import type { GameView, ViewCell } from "./ipc.ts";
+import { cell } from "./test-cells.ts";
 
-const cell = (x: number, y: number, tile: string, orientation: number, kind: TileKind, visited = false): ViewCell => ({
-  x,
-  y,
-  tile,
-  orientation,
-  kind,
-  visited,
-});
 
 // Radius 1 around (10, -4): a corridor running E–W through the player,
 // hedge to the north, nothing grown to the south.

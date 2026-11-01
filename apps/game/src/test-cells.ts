@@ -1,12 +1,14 @@
-// Which sides of a stored cell are walkable (anything but hedge, DR-0036),
-// for drawing sealed unknown pockets as hedge (Wren's G1, g1-fun-review).
+// Test data only: builds ViewCells as Rust would send them, for tests that
+// write a view by hand. The real `open` sides come from Rust, from the
+// loaded tile set (ViewCell.open); nothing outside tests imports this.
 //
 // The sides at orientation 0 are copied from data/tile-sets/core.toml at
 // cac4b35, N, E, S, W, true where the side isn't hedge. Orientation k turns
 // the tile k quarter turns clockwise, so the side facing direction d is the
-// base side (d − k) mod 4 (DR-0014, DR-0024). If the tile set's sides
-// change, change this too; better still, Rowan's ViewCell can carry
-// `open: [bool; 4]` and this file goes.
+// base side (d - k) mod 4 (DR-0014, DR-0024). They only need to be
+// plausible for the tests, not to track the tile set.
+
+import type { TileKind, ViewCell } from "./ipc.ts";
 
 /** N, E, S, W. */
 export type Sides = [boolean, boolean, boolean, boolean];
@@ -24,13 +26,22 @@ const BASE: Record<string, Sides> = {
   hedge: [false, false, false, false],
 };
 
-/**
- * The walkable sides of (tile, orientation). An unknown tile counts as
- * open on every side, so a pocket next to it stays haze: the safe mistake.
- */
-export function walkableSides(tile: string, orientation: number): Sides {
+/** The walkable sides of (tile, orientation); an unknown tile is open all round. */
+function walkableSides(tile: string, orientation: number): Sides {
   const base = BASE[tile];
   if (!base) return [true, true, true, true];
   const k = ((orientation % 4) + 4) % 4;
   return [0, 1, 2, 3].map((d) => base[(d - k + 4) % 4]) as Sides;
+}
+
+/** A ViewCell as Rust would send it, with `open` from the table above. */
+export function cell(
+  x: number,
+  y: number,
+  tile: string,
+  orientation: number,
+  kind: TileKind,
+  visited = false,
+): ViewCell {
+  return { x, y, tile, orientation, kind, open: walkableSides(tile, orientation), visited };
 }

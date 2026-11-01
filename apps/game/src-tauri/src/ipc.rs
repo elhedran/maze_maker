@@ -67,11 +67,15 @@ pub struct Pos {
 pub struct ViewCell {
     pub x: i32,
     pub y: i32,
-    /// The tile's id in the tile set, e.g. `corridor_bend`.
+    /// The tile's id in the tile set, e.g. `corridor_corner`.
     pub tile: String,
     /// Clockwise quarter turns from the tile's rotation 0, 0 to 3.
     pub orientation: u32,
     pub kind: TileKind,
+    /// N, E, S, W in this orientation: true where the side is walkable,
+    /// that is not hedge (DR-0036). From the loaded tile set, so the
+    /// frontend never copies tile data.
+    pub open: [bool; 4],
     /// The player has stood on this cell.
     pub visited: bool,
 }
@@ -199,12 +203,13 @@ mod bindings {
                 tile: "corridor_bend".into(),
                 orientation: 3,
                 kind: TileKind::Corridor,
+                open: [true, true, false, false],
                 visited: true,
             }],
         };
         assert_eq!(
             serde_json::to_string(&view).unwrap(),
-            r#"{"player":{"x":-1,"y":2},"moved":true,"radius":6,"cells":[{"x":-1,"y":2,"tile":"corridor_bend","orientation":3,"kind":"corridor","visited":true}]}"#
+            r#"{"player":{"x":-1,"y":2},"moved":true,"radius":6,"cells":[{"x":-1,"y":2,"tile":"corridor_bend","orientation":3,"kind":"corridor","open":[true,true,false,false],"visited":true}]}"#
         );
         let d: Direction = serde_json::from_str(r#""west""#).unwrap();
         assert_eq!(d, Direction::West);

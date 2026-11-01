@@ -6,13 +6,19 @@ import type { TileKind } from "./TileKind";
  */
 export type ViewCell = { x: number, y: number, 
 /**
- * The tile's id in the tile set, e.g. `corridor_bend`.
+ * The tile's id in the tile set, e.g. `corridor_corner`.
  */
 tile: string, 
 /**
  * Clockwise quarter turns from the tile's rotation 0, 0 to 3.
  */
 orientation: number, kind: TileKind, 
+/**
+ * N, E, S, W in this orientation: true where the side is walkable,
+ * that is not hedge (DR-0036). From the loaded tile set, so the
+ * frontend never copies tile data.
+ */
+open: [boolean, boolean, boolean, boolean], 
 /**
  * The player has stood on this cell.
  */

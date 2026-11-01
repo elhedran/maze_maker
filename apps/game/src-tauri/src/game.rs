@@ -9,7 +9,7 @@
 
 use crate::ipc::{self, GameError, GameView, ViewCell};
 use maze_core::world::{self, Pos, Settings, World};
-use maze_core::{Direction, LoadError, Table, TileSet};
+use maze_core::{Direction, LoadError, SideKind, Table, TileSet};
 use std::collections::BTreeSet;
 
 /// How far the player sees, Chebyshev: the view lists stored cells up to
@@ -95,6 +95,7 @@ impl Game {
                     tile: tile.id.clone(),
                     orientation: variant.orientation,
                     kind: tile.kind.into(),
+                    open: variant.sides.map(|side| side != SideKind::Hedge),
                     visited: self.visited.contains(&(x, y)),
                 });
             }
@@ -323,6 +324,22 @@ pub(crate) mod tests {
                 game.visited().contains(&(c.x.into(), c.y.into()))
             );
             assert!(c.orientation < 4);
+            // `open` agrees with the step rule wherever the neighbour is
+            // stored: a step is allowed exactly when both sides are open.
+            let p = (i64::from(c.x), i64::from(c.y));
+            for d in Direction::ALL {
+                let q = world::step(p, d);
+                if let Some(n) = view
+                    .cells
+                    .iter()
+                    .find(|n| (i64::from(n.x), i64::from(n.y)) == q)
+                {
+                    assert_eq!(
+                        game.world().joined(p, d),
+                        c.open[d.index()] && n.open[d.opposite().index()]
+                    );
+                }
+            }
         }
     }
 }

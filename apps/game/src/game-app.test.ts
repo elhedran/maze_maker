@@ -1,18 +1,11 @@
 import { describe, expect, test } from "vitest";
 import { mockIPC, mockWindows } from "@tauri-apps/api/mocks";
-import { COMMANDS, type Direction, type GameView, type TileKind, type ViewCell } from "./ipc.ts";
+import { COMMANDS, type Direction, type GameView } from "./ipc.ts";
 import "./game-app.ts";
 import type { GameApp } from "./game-app.ts";
+import { cell } from "./test-cells.ts";
 
 // Radius 1 around (x, 0): corridor E–W with hedge north, nothing stored south.
-const cell = (x: number, y: number, tile: string, orientation: number, kind: TileKind, visited = false): ViewCell => ({
-  x,
-  y,
-  tile,
-  orientation,
-  kind,
-  visited,
-});
 function viewAt(x: number, moved = true): GameView {
   return {
     player: { x, y: 0 },

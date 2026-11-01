@@ -156,7 +156,7 @@ export class MazeToolApp extends LitElement {
   private afterLoad() {
     this.table?.refresh();
     this.explore?.refresh();
-    this.mazeView?.regenerateAfterReload();
+    this.mazeView?.showChange();
   }
 
   // ---- Slice 2.3: saving a number (DR-0037 points 6 and 7, DR-0038) ----

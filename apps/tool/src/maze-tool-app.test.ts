@@ -253,10 +253,11 @@ function backend(): Backend {
       case COMMANDS.reloadTileSet:
         if (state.reloadFails) throw state.reloadFails;
         return { revision: 1, tileSetPath: "data/tile-sets/core.toml", loadedAt: "2026-10-31T20:20:00+01:00" };
+      case COMMANDS.compareMazes:
       case COMMANDS.generateMaze: {
         const request = (payload as { request: GenerateRequest }).request;
         state.generated.push(request);
-        return {
+        const maze = {
           revision: 1,
           seed: request.seed,
           width: 1,
@@ -267,6 +268,8 @@ function backend(): Backend {
           failed: false,
           measures: [],
         };
+        // No previous load here, so compare has no before and the maze just regenerates.
+        return cmd === COMMANDS.compareMazes ? { before: null, after: maze, changed: [], edits: [] } : maze;
       }
     }
     throw new Error(`unexpected command ${cmd}`);

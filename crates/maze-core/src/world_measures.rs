@@ -25,6 +25,7 @@
 use crate::measures::connected;
 use crate::side::{Direction, SideKind};
 use crate::tile_set::{TileKind, TileSet};
+use crate::walker::Walker;
 use crate::wfc::SplitMix64;
 use crate::world::{Anchor, Pos, World, step};
 use std::collections::{BTreeMap, BTreeSet};
@@ -293,27 +294,26 @@ pub fn grid_cells(cells: &[Option<usize>], width: usize) -> BTreeMap<Pos, usize>
         .collect()
 }
 
-/// `World::random_walk`'s walk, step for step, with each patch grown by
-/// `grow` (so the caller can time it), and `after` told the world after
-/// each step's growth. Gives the same world as `random_walk` when `grow`
-/// calls `grow_at`.
+/// `walker`'s walk of `steps` steps, with each patch grown by `grow` (so
+/// the caller can time it), and `after` told the world after each step's
+/// growth. Gives the same world as `Walker::step` (and so
+/// `World::random_walk`) when `grow` calls `grow_at`. Returns the walker,
+/// for its visited set.
 pub fn walk(
     world: &mut World,
-    from: Pos,
-    seed: u64,
+    mut walker: Walker,
     steps: usize,
     mut grow: impl FnMut(&mut World, Anchor),
     mut after: impl FnMut(&World),
-) {
-    let mut rng = SplitMix64::new(seed);
-    let mut at = from;
+) -> Walker {
     for _ in 0..steps {
-        at = world.random_step(at, &mut rng);
+        let at = walker.advance(world);
         while let Some(anchor) = world.nearest_anchor(at) {
             grow(world, anchor);
         }
         after(world);
     }
+    walker
 }
 
 /// An explorer's walk, standing in for a player who heads for the
@@ -453,8 +453,7 @@ mod tests {
         let mut steps = 0;
         walk(
             &mut b,
-            (0, 0),
-            77,
+            Walker::new((0, 0), 77),
             60,
             |w, anchor| {
                 w.grow_at(anchor);

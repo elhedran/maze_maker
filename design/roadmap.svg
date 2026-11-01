@@ -6,7 +6,7 @@
   Every box also carries a status word and icon. Self-contained: no external fonts, images or scripts.
 -->
 <title id="roadmap-title">Maze Maker roadmap, as of 2026-11-01</title>
-<desc id="roadmap-desc">Maze Maker roadmap as of 2026-11-01. Done: Phase 1, the table and the viewer, closed (1.0 Skeleton, 1.1 First look at the table and 1.3 Filter the table done; 1.2 Explore one tile folded into 2.2; 1.4 Table checks and 1.5 Full tile set v1 dropped). From Phase 2, done: 2.1 First sample maze, 2.2 Why is this here?, 2.3 Tune and compare, and 2.6 Beyond the edge steps 1 (growth from open endpoints), 2 (the measures) and 3 (the World tab, walk and replay). Now, the main track: the game, ahead of the rest of Phase 2 (DR-0042). G.1 Walk a growing world is in progress (DR-0042 to DR-0045, building apps/game/); then G.2 Save and load and G.3 Debug mode, pending. The tool, only on demand: new tool work comes only from issues the game finds. 2.6 step 2b, the walker that avoids backtracking, is parked unless the game wants it; 2.3 follow-ups, 2.4 Watch it collapse and 2.5 Judge many samples are kept for if the game needs them. Later, not planned: a different 3D game, probably in Unity, built on this approach with the maze generator attached in its own thread (Q-0014); zones; rooms with no way in.</desc>
+<desc id="roadmap-desc">Maze Maker roadmap as of 2026-11-01. Done: Phase 1, the table and the viewer, closed (1.0 Skeleton, 1.1 First look at the table and 1.3 Filter the table done; 1.2 Explore one tile folded into 2.2; 1.4 Table checks and 1.5 Full tile set v1 dropped). From Phase 2, done: 2.1 First sample maze, 2.2 Why is this here?, 2.3 Tune and compare, and 2.6 Beyond the edge steps 1 (growth from open endpoints), 2 (the measures) and 3 (the World tab, walk and replay). Now, the main track: the game, ahead of the rest of Phase 2 (DR-0042). G.1 Walk a growing world is in progress (DR-0042 to DR-0045, building apps/game/); then G.2 Save and load and G.3 Debug mode, pending. The tool, only on demand: new tool work comes only from issues the game finds. 2.6 step 2b, the walker that avoids backtracking, is done, on main for the game's scripted walks; 2.3 follow-ups, 2.4 Watch it collapse and 2.5 Judge many samples are kept for if the game needs them. Later, not planned: a different 3D game, probably in Unity, built on this approach with the maze generator attached in its own thread (Q-0014); zones; rooms with no way in.</desc>
 <style>
   text { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; fill: #14181F; }
   .title { font-size: 26px; font-weight: 700; }
@@ -213,11 +213,11 @@
 <text class="phase" x="56" y="697">The tool: only on demand</text>
 <rect class="pill p-line-blue" x="782" y="681" width="102" height="20" rx="10"/><g transform="translate(791 685)"><rect x="2.4" y="2" width="2.7" height="8" fill="#1A4F96"/><rect x="6.9" y="2" width="2.7" height="8" fill="#1A4F96"/></g><text class="pill-t pt-blue" x="808" y="695.5">On demand</text>
 <text class="phase-desc" x="772" y="695" text-anchor="end">New tool work only for issues the game finds</text>
-<!-- 2.6 · 2b Walker that avoids backtracking: Parked -->
+<!-- 2.6 · 2b Walker that avoids backtracking: Done -->
 <g>
-<rect class="box demand" x="56" y="716" width="192" height="116" rx="8"/>
+<rect class="box done" x="56" y="716" width="192" height="116" rx="8"/>
 <text class="num" x="68" y="739">2.6 · 2b</text>
-<rect class="pill p-line-blue" x="157" y="724" width="81" height="20" rx="10"/><g transform="translate(166 728)"><rect x="2.4" y="2" width="2.7" height="8" fill="#1A4F96"/><rect x="6.9" y="2" width="2.7" height="8" fill="#1A4F96"/></g><text class="pill-t pt-blue" x="183" y="738.5">Parked</text>
+<rect class="pill p-green" x="172" y="724" width="66" height="20" rx="10"/><g transform="translate(181 728)"><path d="M2.2 6.4 L5 9.2 L10 3.2" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g><text class="pill-t pt-light" x="198" y="738.5">Done</text>
 <text class="name" x="68" y="760">Walker that avoids</text>
 <text class="name" x="68" y="777">backtracking</text>
 <text class="note" x="68" y="802">Built; lands only if</text>

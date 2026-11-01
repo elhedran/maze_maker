@@ -161,15 +161,18 @@ fn replay_checking(walked: &World, set: &TileSet, table: &Table) -> World {
     world
 }
 
-/// Runs `walks` seeded random walks of `steps` steps on 4 threads, checks
-/// each patch by patch, and returns each walk's log of
-/// (patches, spines, fallbacks).
-fn check_walks(
-    settings: Settings,
-    extra: &str,
-    walks: u32,
-    steps: usize,
-) -> Vec<(usize, usize, usize)> {
+/// What one checked walk grew.
+struct Grown {
+    patches: usize,
+    spines: usize,
+    fallbacks: usize,
+    /// Patches the walk grew, past those `World::new` grew.
+    by_walk: usize,
+}
+
+/// Runs `walks` seeded walks (`World::random_walk`) of `steps` steps on 4
+/// threads, and checks each patch by patch.
+fn check_walks(settings: Settings, extra: &str, walks: u32, steps: usize) -> Vec<Grown> {
     let (set, table) = core_with(extra);
     let threads = 4;
     std::thread::scope(|scope| {
@@ -180,15 +183,17 @@ fn check_walks(
                     let mut out = Vec::new();
                     for seed in (t..walks).step_by(threads as usize) {
                         let mut walked = World::new(set, table, seed, settings).unwrap();
+                        let at_start = walked.log().len();
                         walked.random_walk((0, 0), u64::from(seed) + 1000, steps);
                         let rebuilt = replay_checking(&walked, set, table);
                         assert_eq!(snapshot(&rebuilt), snapshot(&walked), "seed {seed}");
                         let log = walked.log();
-                        out.push((
-                            log.len(),
-                            log.iter().filter(|p| p.spine).count(),
-                            log.iter().filter(|p| p.fallback).count(),
-                        ));
+                        out.push(Grown {
+                            patches: log.len(),
+                            spines: log.iter().filter(|p| p.spine).count(),
+                            fallbacks: log.iter().filter(|p| p.fallback).count(),
+                            by_walk: log.len() - at_start,
+                        });
                     }
                     out
                 })
@@ -205,15 +210,30 @@ fn check_walks(
 /// after every patch: rule 1 holds, stored cells never change, neighbours
 /// are allowed pairs, everything is joined to the origin, and there is an
 /// outward endpoint. Each patch also replays as logged.
+///
+/// And (2.6 step 2b) every walk grows the world: the plain random walk
+/// could stand inside the first patch for good (seed 1), which would leave
+/// the guarantees above checked on almost nothing.
 #[test]
 fn a_hundred_walks_keep_every_guarantee_after_every_patch() {
     let stats = check_walks(Settings::default(), "", 100, 1000);
-    let patches: usize = stats.iter().map(|s| s.0).sum();
-    let spines: usize = stats.iter().map(|s| s.1).sum();
-    let fallbacks: usize = stats.iter().map(|s| s.2).sum();
-    println!("100 walks: {patches} patches, {spines} spines, {fallbacks} fallbacks");
+    let patches: usize = stats.iter().map(|s| s.patches).sum();
+    let spines: usize = stats.iter().map(|s| s.spines).sum();
+    let fallbacks: usize = stats.iter().map(|s| s.fallbacks).sum();
+    let least = stats.iter().map(|s| s.by_walk).min().unwrap_or(0);
+    println!(
+        "100 walks: {patches} patches, {spines} spines, {fallbacks} fallbacks; \
+         the least a walk grew: {least}"
+    );
     assert_eq!(stats.len(), 100);
+    assert!(least >= MIN_GROWTH, "a walk grew only {least} patches");
 }
+
+/// The fewest patches a 1,000-step walk must grow past `World::new`'s.
+/// Over these 100 walks the walker's least is 5; the plain random walk's
+/// (revisit weight 1) was 1, and over 40 steps it grew nothing on 12 of
+/// them. This catches a walker that stalls, not a slow one.
+const MIN_GROWTH: usize = 3;
 
 #[test]
 fn a_forced_spine_keeps_every_guarantee() {
@@ -222,7 +242,10 @@ fn a_forced_spine_keeps_every_guarantee() {
         ..Settings::default()
     };
     let stats = check_walks(settings, "", 12, 300);
-    assert!(stats.iter().any(|s| s.1 > 0), "no spine was ever pinned");
+    assert!(
+        stats.iter().any(|s| s.spines > 0),
+        "no spine was ever pinned"
+    );
 }
 
 #[test]
@@ -233,10 +256,13 @@ fn a_forced_fallback_keeps_every_guarantee() {
     };
     let stats = check_walks(settings, "", 12, 300);
     assert!(
-        stats.iter().all(|s| s.2 == s.0),
+        stats.iter().all(|s| s.fallbacks == s.patches),
         "every patch is a fallback run"
     );
-    assert!(stats.iter().any(|s| s.1 > 0), "no spine was ever pinned");
+    assert!(
+        stats.iter().any(|s| s.spines > 0),
+        "no spine was ever pinned"
+    );
 }
 
 #[test]
@@ -314,7 +340,9 @@ fn one_world_is_pinned() {
     );
     assert_eq!(
         (world.len(), world.log().len(), fingerprint(&world)),
-        (671, 10, 0x2b3a_a791_2aa4_c5d8)
+        // Was (671, 10, 0x2b3a_a791_2aa4_c5d8) with the plain random
+        // walk; 2.6 step 2b's walker avoids its own path and goes further.
+        (1591, 31, 0xb57b_a3e0_c92a_d5c9)
     );
 }
 

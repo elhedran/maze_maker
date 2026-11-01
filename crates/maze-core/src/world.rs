@@ -38,6 +38,7 @@ use crate::measures::connected;
 use crate::side::{Direction, SideKind};
 use crate::table::Table;
 use crate::tile_set::{LoadError, TileSet};
+use crate::walker::Walker;
 use crate::wfc::{MAX_RESTARTS, MAX_SIZE, Solver, SplitMix64, Start};
 use std::collections::{BTreeMap, VecDeque};
 
@@ -493,29 +494,13 @@ impl World {
         }
     }
 
-    /// A seeded random walk of `steps` steps from `from` over joined stored
-    /// cells, growing as it goes. Returns the cells walked, after `from`.
+    /// A seeded walk of `steps` steps from `from` over joined stored cells,
+    /// growing as it goes: a `Walker` at its default revisit weight, so it
+    /// rarely goes back over its own path (2.6 step 2b). Returns the cells
+    /// walked, after `from`.
     pub fn random_walk(&mut self, from: Pos, seed: u64, steps: usize) -> Vec<Pos> {
-        let mut rng = SplitMix64::new(seed);
-        let mut at = from;
-        let mut path = Vec::with_capacity(steps);
-        for _ in 0..steps {
-            let here = self.get(at).expect("the walker stands on a stored cell");
-            let ways: Vec<Pos> = Direction::ALL
-                .into_iter()
-                .filter_map(|d| {
-                    let next = step(at, d);
-                    let there = self.get(next)?;
-                    connected(&self.set, here, d, there).then_some(next)
-                })
-                .collect();
-            if !ways.is_empty() {
-                at = ways[rng.below(ways.len())];
-            }
-            path.push(at);
-            self.grow_around(at);
-        }
-        path
+        let mut walker = Walker::new(from, seed);
+        (0..steps).map(|_| walker.step(self)).collect()
     }
 
     /// Grows one patch at `anchor` and stores it. Panics if `anchor` isn't
@@ -808,27 +793,35 @@ impl World {
     }
 
     // 2.6 step 2's hooks for the measures (`world_measures.rs` and
-    // `examples/measures.rs`), kept together here.
+    // `examples/measures.rs`) and step 2b's walker (`walker.rs`), kept
+    // together here.
 
-    /// One step of `random_walk`, the same draw from the same `rng`: a
-    /// joined stored neighbour of `at`, or `at` itself if it has none.
-    /// Panics if `at` isn't stored. Lets the measures time each patch of
-    /// the walk; `world_measures`' tests check it walks as `random_walk`.
+    /// The plain random walk's step (2.6 step 2, before the `Walker`): a
+    /// joined stored neighbour of `at` drawn uniformly from `rng`, or `at`
+    /// itself if it has none. Panics if `at` isn't stored. A `Walker` at
+    /// revisit weight 1 walks exactly as this does (tested in
+    /// `tests/walker.rs`).
     pub fn random_step(&self, at: Pos, rng: &mut SplitMix64) -> Pos {
+        let ways = self.joined_neighbours(at);
+        if ways.is_empty() {
+            at
+        } else {
+            ways[rng.below(ways.len())]
+        }
+    }
+
+    /// The stored neighbours of `at` it is joined to, in N, E, S, W order:
+    /// where a walker on `at` can step. Panics if `at` isn't stored.
+    pub fn joined_neighbours(&self, at: Pos) -> Vec<Pos> {
         let here = self.get(at).expect("the walker stands on a stored cell");
-        let ways: Vec<Pos> = Direction::ALL
+        Direction::ALL
             .into_iter()
             .filter_map(|d| {
                 let next = step(at, d);
                 let there = self.get(next)?;
                 connected(&self.set, here, d, there).then_some(next)
             })
-            .collect();
-        if ways.is_empty() {
-            at
-        } else {
-            ways[rng.below(ways.len())]
-        }
+            .collect()
     }
 
     /// DR-0036 rule 6's check on the world as stored: the same

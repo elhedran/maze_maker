@@ -5,6 +5,7 @@
 //! The reference checks here are written apart from `world.rs`, so a bug
 //! there can't hide in a shared helper.
 
+use maze_core::walker::Walker;
 use maze_core::wfc::SplitMix64;
 use maze_core::world::{Anchor, Endpoint, Pos, Settings, World, step};
 use maze_core::{Direction, SideKind, Table, TileSet};
@@ -87,12 +88,12 @@ fn random_step_walks_as_random_walk_does() {
     for seed in 0..20 {
         let walk_seed = u64::from(seed) * 7 + 3;
         let (stepped, path) = walk_with(&set, &table, seed, walk_seed, 500, &mut |_, _, _| {});
+        // `random_walk` now uses a `Walker`, which avoids walked cells; at
+        // revisit weight 1 the Walker is the plain walk `random_step` takes.
         let mut walked = World::new(&set, &table, seed, Settings::default()).unwrap();
-        assert_eq!(
-            walked.random_walk((0, 0), walk_seed, 500),
-            path,
-            "seed {seed}"
-        );
+        let mut walker = Walker::with_revisit_weight((0, 0), walk_seed, 1.0).unwrap();
+        let walked_path: Vec<_> = (0..500).map(|_| walker.step(&mut walked)).collect();
+        assert_eq!(walked_path, path, "seed {seed}");
         assert_eq!(snapshot(&stepped), snapshot(&walked), "seed {seed}");
         assert_eq!(stepped.log(), walked.log(), "seed {seed}");
     }

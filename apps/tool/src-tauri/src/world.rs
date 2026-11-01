@@ -16,7 +16,7 @@ use crate::ipc::{
 };
 use crate::state::ToolState;
 use crate::view::{self, Loaded};
-use maze_core::wfc::SplitMix64;
+use maze_core::walker::Walker;
 use maze_core::world::{Anchor, Pos, Settings, World, step};
 use maze_core::{Table, TileSet};
 use std::collections::BTreeSet;
@@ -115,8 +115,9 @@ struct Session {
     world: World,
     player: Pos,
     steps: u32,
-    /// The seeded walk's seed and stream, carried on while the seed stays.
-    walk: Option<(u32, SplitMix64)>,
+    /// The seeded walk's seed and walker, carried on while the seed stays
+    /// and the player hasn't moved by keys since.
+    walk: Option<(u32, Walker)>,
     /// One per growth log entry.
     notes: Vec<PatchNotes>,
     replay: Option<Replay>,
@@ -373,17 +374,24 @@ impl WorldState {
                 }
             }
             Walk::Random { seed, steps } => {
-                let mut rng = match session.walk.take() {
-                    Some((s, rng)) if s == seed => rng,
-                    _ => SplitMix64::new(u64::from(seed)),
+                // A Walker at the default revisit weight, so the walk
+                // matches core's `World::random_walk` and rarely retraces
+                // itself (Ian's steering). A new seed, or a key step since,
+                // starts a new walker at the player, with a fresh memory of
+                // where it has walked.
+                let mut walker = match session.walk.take() {
+                    Some((s, w)) if s == seed && w.at() == session.player => w,
+                    _ => Walker::new(session.player, u64::from(seed)),
                 };
                 for _ in 0..steps {
-                    session.player = session.world.random_step(session.player, &mut rng);
+                    // `advance` doesn't grow; the session grows, so each
+                    // patch gets its notes.
+                    session.player = walker.advance(&session.world);
                     session.steps += 1;
                     path.push(pos(session.player)?);
                     patches.extend(session.grow_around()?);
                 }
-                session.walk = Some((seed, rng));
+                session.walk = Some((seed, walker));
             }
         }
         session.update(path, patches)

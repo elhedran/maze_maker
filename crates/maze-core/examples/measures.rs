@@ -74,7 +74,8 @@ fn core(pressure: f64) -> (TileSet, Table) {
 enum Walker {
     /// `explore`: jump to a random open endpoint each step.
     Explorer,
-    /// `World::random_walk`'s walk, one step at a time.
+    /// Step 2's plain random walk (a `Walker` at revisit weight 1), one
+    /// step at a time.
     Random,
 }
 
@@ -131,7 +132,12 @@ fn run(a: &Args, c: &Config) -> Run {
         };
         match c.walker {
             Walker::Explorer => explore(&mut world, walk_seed, a.steps, grow, after),
-            Walker::Random => walk(&mut world, (0, 0), walk_seed, a.steps, grow, after),
+            Walker::Random => {
+                // Weight 1: step 2's plain random walk, draw for draw.
+                let walker = maze_core::walker::Walker::with_revisit_weight((0, 0), walk_seed, 1.0)
+                    .expect("1 is in range");
+                walk(&mut world, walker, a.steps, grow, after);
+            }
         }
         out.frontier.push(series);
         for p in world.log() {
@@ -205,7 +211,9 @@ fn main() {
     println!(
         "times are this machine's. Explorer: each step the player jumps to a random open endpoint"
     );
-    println!("and the world grows around it. Random walk: World::random_walk, one cell a step.");
+    println!(
+        "and the world grows around it. Random walk: a Walker at revisit weight 1, one cell a step."
+    );
 
     // 1 and 2: rates and the frontier, swept over opening pressure.
     println!("\n1-2. Patches and the frontier, P = 16");

@@ -265,6 +265,145 @@ pub struct GeneratedMaze {
     pub measures: Vec<Measure>,
 }
 
+/// Names the explore view's centre by identity, as DR-0026 point 10's
+/// entry point does, so it survives a Reload (DR-0034 rule 2).
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+pub struct ExploreRequest {
+    /// The tile type, e.g. `corridor_corner`, as in `TileView.id`.
+    pub tile_id: String,
+    pub orientation: u32,
+}
+
+/// One arm of the explore view: the centre's row of the 1.1 table in one
+/// direction, split and sorted in Rust (DR-0034 rule 3).
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+pub struct ArmView {
+    pub direction: Direction,
+    /// The centre's side on this edge.
+    pub centre_side: SideKind,
+    /// The entries with weight above 0, by probability, highest first;
+    /// ties in table order.
+    pub neighbours: Vec<EntryView>,
+    /// The rest, in table order. Their count is `zeros.length`.
+    pub zeros: Vec<EntryView>,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+pub struct ExploreView {
+    /// The tile set revision used; the same numbering as `TableView`.
+    pub revision: u32,
+    /// Index into `TableView.tiles` at `revision`.
+    pub centre: u32,
+    /// N, E, S, W.
+    pub arms: [ArmView; 4],
+}
+
+/// Asks why a cell of a generated maze holds its tile (DR-0034). The maze
+/// is named by what `generate_maze` was asked, plus the revision it
+/// returned.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+pub struct TraceCellRequest {
+    pub revision: u32,
+    pub seed: u32,
+    pub width: u32,
+    pub height: u32,
+    pub cell: CellPos,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+pub struct CellTrace {
+    pub revision: u32,
+    pub cell: CellPos,
+    /// As `generate_maze` returns them for the same request.
+    pub restarts: u32,
+    pub failed: bool,
+    /// Collapses the shown attempt made: width × height when it succeeded.
+    pub steps: u32,
+    /// `null` only when a failed maze left the cell open.
+    pub collapse: Option<CollapseTrace>,
+}
+
+/// The cell's draw, in the attempt whose grid is shown. Indices (`chosen`,
+/// `tile`, `neighbour`) are into `TableView.tiles` at the trace's revision.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+pub struct CollapseTrace {
+    /// When the cell collapsed in that attempt, from 1.
+    pub step: u32,
+    /// N, E, S, W.
+    pub neighbours: [NeighbourAtDraw; 4],
+    /// Those still possible at the draw, by `share`, highest first; ties
+    /// in table order.
+    pub candidates: Vec<CandidateScore>,
+    /// How many variants weren't possible at the draw, zero-weight tiles
+    /// included.
+    pub ruled_out: u32,
+    /// The sum of the candidates' scores.
+    pub total: f64,
+    /// The tile drawn: the candidate whose `tile` equals this.
+    pub chosen: u32,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+pub enum NeighbourState {
+    /// Collapsed before the draw; it gave each candidate a factor.
+    Counted,
+    /// Collapsed after the draw; it shaped the cell only by which
+    /// candidates propagation left.
+    Later,
+    /// Past the edge of the maze; nothing there counts.
+    Edge,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+pub struct NeighbourAtDraw {
+    pub direction: Direction,
+    pub state: NeighbourState,
+    /// `counted`: its tile at the draw. `later`: its tile in the finished
+    /// grid, or `null` if a failed maze left it open. `edge`: `null`.
+    pub tile: Option<u32>,
+}
+
+/// `score = tileWeight × factors[0].factor × factors[1].factor …`, and
+/// `share = score / total`. Both come from Rust; don't recompute them.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+pub struct CandidateScore {
+    pub tile: u32,
+    pub tile_weight: f64,
+    /// One per counted neighbour, N, E, S, W order.
+    pub factors: Vec<PairFactor>,
+    pub score: f64,
+    pub share: f64,
+}
+
+/// What one counted neighbour gave a candidate:
+/// `factor = base × multiplier × noise`.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+pub struct PairFactor {
+    /// From the cell to the neighbour.
+    pub direction: Direction,
+    pub neighbour: u32,
+    pub base: f64,
+    /// Indices into `TableView.exceptions`, as in `EntryView`.
+    pub exceptions: Vec<u32>,
+    /// The product of the exceptions' multipliers; 1 when there are none.
+    pub multiplier: f64,
+    pub noise: f64,
+    pub factor: f64,
+    /// The 1.1 table's entry for this pair: `direction`, the candidate as
+    /// row, the neighbour as column. The same one `table_view` returns.
+    pub entry: EntryView,
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
 pub enum ToolErrorKind {
@@ -274,8 +413,12 @@ pub enum ToolErrorKind {
     /// No table has loaded yet; `messages` holds the startup load errors.
     NotLoaded,
     /// The request can't be met as asked, e.g. a side filter without
-    /// exactly one direction, or a maze size outside 1 to 64.
+    /// exactly one direction, a maze size outside 1 to 64, or a cell
+    /// outside the maze.
     BadRequest,
+    /// The request names a tile set revision other than the loaded one:
+    /// the maze came from a tile set reloaded since, so regenerate it.
+    Stale,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, TS)]
@@ -329,6 +472,16 @@ mod bindings {
         render::<CellPos>(&cfg, &mut out);
         render::<Measure>(&cfg, &mut out);
         render::<GeneratedMaze>(&cfg, &mut out);
+        render::<ExploreRequest>(&cfg, &mut out);
+        render::<ArmView>(&cfg, &mut out);
+        render::<ExploreView>(&cfg, &mut out);
+        render::<TraceCellRequest>(&cfg, &mut out);
+        render::<CellTrace>(&cfg, &mut out);
+        render::<CollapseTrace>(&cfg, &mut out);
+        render::<NeighbourState>(&cfg, &mut out);
+        render::<NeighbourAtDraw>(&cfg, &mut out);
+        render::<CandidateScore>(&cfg, &mut out);
+        render::<PairFactor>(&cfg, &mut out);
         render::<ToolErrorKind>(&cfg, &mut out);
         render::<ToolError>(&cfg, &mut out);
         out

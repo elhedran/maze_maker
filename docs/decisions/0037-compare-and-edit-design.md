@@ -164,6 +164,24 @@ MAZE TAB, after a save
   - **The base's key.** A base edit names a `[bases]` key (`passage_door`), but the panel only has the two side kinds, and turning sides into a key would copy `side.rs`'s pairing rules into TypeScript. Proposed: `EntryView.basePair`, the key, or `null` for a pair that can't meet.
   - The tile weight's reach line ("in all four orientations") counts the tile's orientations in the tile list the view already holds. That's counting rows, not working out a number, so it stays in TypeScript.
 
+- **Damson (`ux-designer/1`), review of the build, 2026-11-01:** **pass with follow-ups**, and one README fix before Ian's demo. I reviewed from the code on `claude/slice-2-3-tune-compare` (`edit/`, `table-explanation.ts`, `maze-view.ts`, `compare-text.ts`, `why-band.ts`, `explore-view.ts`'s refresh, `maze-tool-app.ts`'s 2.3 block), its tests, and README's 2.3 section. There's no display, so the layout points below are for checking by eye.
+  - **Built as designed.** Points 1, 3 to 17 are built, including two may-slip items: the shared hover outline across both mazes and "Nothing changed for this seed.". Some details I checked: the editor prefills Rust's exact value; the reach lines are in words; Save is enabled only for a different number; a refusal stays at the field in red with `role="alert"`, typing clears it, and nothing reloads; the saved line survives the refetch of the same pair; no tab switches by itself; the band refreshes in place and keeps the factor. In compare, the labels use words, unchanged cells fade at 0.4 in both mazes, the measures sit in a before → after table, only the after maze selects, and the centre shows on both. The pressure column shows "× 0.5" or a muted "1", and the formula line carries the pressure clause. No sums are worked out in TypeScript.
+  - **Deviations I accept.** Esc closes the editor rather than restoring the old value. The effect is the same, because the line still shows the old number. When the tile changes after a reload and Ian has already walked on from the first stop, the build keeps his trail and only replaces the first stop, instead of starting a new trail. That's better for him than point 17 as written.
+  - **Must fix before the demo (README, demo step 2).** Wren set `opening_pressure = 0.5`, so the line now reads "0.5", not "1.0 (off)". If Ian types `0.5` and presses Enter, Save stays disabled and nothing happens. Change step 2 to: "it reads 0.5, Wren's setting. Type `1` and press Enter to see the maze without it, then `0.5` again to see it back." Also say the × pressure column is hidden at 1.
+  - **Follow-ups (2.3 status), besides Ash's three cuts:**
+    - (a) After Save or Cancel, focus is lost with the closed editor. It should return to the number's button.
+    - (b) Saving the pressure from the Maze tab with no maze shown gives no confirmation beyond the new value. A saved line like point 7's would help.
+    - (c) `RELOADED` in `why-text.ts` still has the old wording. It's only reachable if no revision is known, so it's harmless.
+  - **By eye on Windows, at 1024×768:**
+    1. **Two mazes side by side.** By my arithmetic they fit: 48ch at 16px in Cascadia Mono is about 452px each, so about 920px with the gap. That leaves roughly 940 to 960px after the 1.5rem padding and a vertical scrollbar, which will appear because the compare is taller than 768. That's only 20 to 40px to spare. Check there's no horizontal scroll. If there is, it's Marram's stacked-layout follow-up.
+    2. Box-drawing lines stay aligned at 16px in both mazes.
+    3. At 40%, the faded cells are still readable, and the changed cells clearly stand out, including hedge backgrounds.
+    4. A selected cell that didn't change is faded too, so its magenta outline drops to 40%. Check it's still visible. If not, a follow-up: don't fade the selected cell.
+    5. The twin outline shows in the other maze on hover.
+    6. In the Explore tab, the band with three or four counted neighbours plus × pressure fits beside the 20rem panel without clipping.
+    7. The editor fits inside the 20rem panel, including an exception's reach line with its rule.
+    8. My second concern still stands. Watch whether Ian reads "faded" in compare as the band's "came later".
+
 # Why it's a two-way door
 
 It's views and controls in the tool. The file format and the edit record are DR-0038's; nothing else builds on this layout.

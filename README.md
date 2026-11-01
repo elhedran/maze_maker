@@ -86,3 +86,23 @@ From `apps/tool/`, run `npm run tauri dev`. There are three tabs now: **Table**,
 3. **From a corridor into a room and back out, through doorways.** Pick `─ Corridor straight, E–W`. In **EAST**, press **Go** on `╢ Room doorway, door W`: the passage meets the door. Then go east to `· Open room`, then to `╟ Room doorway, door E`, and back out to `─`. After each step the tile you came from is selected and marked "from", so the panel shows the edge you just crossed. **< Back** (or Alt+Left) goes back one step. Click any glyph in the trail to jump back to it.
 
 "+ N can't go here" at the foot of each side opens the 0s. **Explore this tile** in the table's panel opens the same view on the selected pair. After **Reload tile set**, the band says the tile set was reloaded: pick the cell again in the Maze tab.
+
+## Demo: slice 2.6, walk a growing world and replay it
+
+In PowerShell, from the repo root:
+
+```powershell
+cd apps\tool
+npm run tauri dev
+```
+
+Pick the **World** tab, the last one ([DR-0039](docs/decisions/0039-world-view-design.md)). Click the map before using keys, so it has focus.
+
+1. **A new world.** Press **New world**. The origin patch appears around the player, the inverted cell at the dotted origin, then the growth around it, one patch per tick.
+2. **Watch it grow ahead of the walker.** Leave **Frontier (F)** and **Last patch (L)** on and press **Play**. The walker takes **Steps** steps (200 by default). Arrows mark outward open endpoints, pointing away from the stored world; ○ marks the others. New patches arrive at the arrows, with a dashed outline round the last one and older patches dimmed. **Speed** sets the pace; the view follows the walker.
+3. **Walk it yourself.** Press **Pause**, click the map, and walk with the **arrow keys** toward an arrow: a patch grows there. Into a hedge, nothing moves and the line under the map says "Hedge to the north". **Shift+arrows** pan the map; **C** or **Centre on player** follows the player again.
+4. **Read a patch.** Turn on **Patch debug (D)** and press **Step** a few times. The panel on the right gives the last patch's anchor and direction, its window, attempts ("1 = clean run"), spine and fallback, and the cells it stored. Turn **Stored (S)** off to see unsettled cells as solid hedge, as a player would.
+5. **Replay.** Press **Replay walk**, then **Play** on the timeline. The map clears and the world grows back from the growth log, "Replay · patch k of n". At the end the status line gives Rust's answer: "same world as walked: yes (… cells match)". **Back to walk** returns to the walked world.
+6. **Optional: same seeds, same world.** Note the **World seed** and **Walk seed**, press **New world** with the same world seed, and **Play**: the same world grows.
+
+After **Reload tile set**, the world keeps the tile set it was grown with and the status line says so; **New world** uses the reloaded one. Keys with the map focused: arrows walk, Shift+arrows pan, C centres, Space plays or pauses, `.` steps, S F L D toggle the overlays.

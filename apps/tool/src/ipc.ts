@@ -9,8 +9,10 @@ import type { TableViewRequest } from "./bindings/TableViewRequest.ts";
 import type { ToolError } from "./bindings/ToolError.ts";
 import type { GenerateRequest } from "./bindings/GenerateRequest.ts";
 import type { GeneratedMaze } from "./bindings/GeneratedMaze.ts";
-// DR-0034's types, stubbed until Rowan's bindings land.
-import type { CellTrace, ExploreRequest, ExploreView, TraceCellRequest } from "./explore/contract-types.ts";
+import type { CellTrace } from "./bindings/CellTrace.ts";
+import type { ExploreRequest } from "./bindings/ExploreRequest.ts";
+import type { ExploreView } from "./bindings/ExploreView.ts";
+import type { TraceCellRequest } from "./bindings/TraceCellRequest.ts";
 
 export const COMMANDS = {
   coreVersion: "core_version",

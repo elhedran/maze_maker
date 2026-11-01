@@ -15,7 +15,11 @@ import type { EntryView } from "../bindings/EntryView.ts";
 import type { ExceptionView } from "../bindings/ExceptionView.ts";
 import type { SideKind } from "../bindings/SideKind.ts";
 import type { TileView } from "../bindings/TileView.ts";
-import type { CellTrace, ExploreView, NeighbourState, ToolErrorKind, TraceCellRequest } from "./contract-types.ts";
+import type { CellTrace } from "../bindings/CellTrace.ts";
+import type { ExploreView } from "../bindings/ExploreView.ts";
+import type { NeighbourState } from "../bindings/NeighbourState.ts";
+import type { ToolErrorKind } from "../bindings/ToolErrorKind.ts";
+import type { TraceCellRequest } from "../bindings/TraceCellRequest.ts";
 
 /** A (tile type, orientation): how the tool names a tile across requests and reloads (DR-0017). */
 export interface TileRef {

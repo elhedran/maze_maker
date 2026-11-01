@@ -2,7 +2,7 @@
 // it is tested without a DOM. Numbers come from Rust; this only formats them.
 
 import { formatNumber, formatShare } from "../table/format.ts";
-import type { NeighbourState } from "./contract-types.ts";
+import type { NeighbourState } from "../bindings/NeighbourState.ts";
 
 /** 1st, 2nd, 3rd, 4th, 11th, 12th, 13th, 21st, 41st. */
 export function ordinal(n: number): string {

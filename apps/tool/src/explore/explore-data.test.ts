@@ -15,7 +15,8 @@ import {
   fixtureExplore,
   fixtureTableView,
 } from "./fixture.ts";
-import type { CellTrace, ExploreView } from "./contract-types.ts";
+import type { CellTrace } from "../bindings/CellTrace.ts";
+import type { ExploreView } from "../bindings/ExploreView.ts";
 import type { TableViewRequest } from "../bindings/TableViewRequest.ts";
 
 afterEach(() => clearMocks());

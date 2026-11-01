@@ -3,7 +3,7 @@ import "./why-band.ts";
 import { FACTOR_SELECT_EVENT, type FactorKey, type WhyBand } from "./why-band.ts";
 import { whyFrom, type Why } from "./explore-data.ts";
 import { TILES, fixtureTrace } from "./fixture.ts";
-import type { CellTrace } from "./contract-types.ts";
+import type { CellTrace } from "../bindings/CellTrace.ts";
 
 const CELL = { revision: 1, seed: 48213, width: 24, height: 16, cell: { x: 14, y: 2 } };
 const LIST = { revision: 1, tiles: TILES, exceptions: [] };

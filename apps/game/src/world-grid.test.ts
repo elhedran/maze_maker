@@ -75,3 +75,69 @@ describe("labels", () => {
     expect(tileName("corridor_t_intersection")).toBe("Corridor t intersection");
   });
 });
+
+describe("sealed unknown pockets (Wren's G1)", () => {
+  // A radius-2 view (5 × 5) around (0, 0), drawn as rows north to south:
+  //   ┌─┬─┐      row -2
+  //   │ ? │      row -1: (0,-1) unknown, walled in by hedge sides
+  //   ├─@─┤      row  0
+  //   │ ? │ ?    row  1: (0,1) unknown, hedge all round; (2,1) unknown on the edge
+  //   └─┴─? ?    row  2: (2,2) unknown on the edge
+  const C = (x: number, y: number, tile: string, o: number) => cell(x, y, tile, o, "corridor");
+  const sealedView = (cells: ViewCell[]): GameView => ({ player: { x: 0, y: 0 }, moved: true, radius: 2, cells });
+  const FRAME: ViewCell[] = [
+    C(-2, -2, "corridor_corner", 1), // ┌
+    C(-1, -2, "corridor_straight", 1), // ─
+    C(0, -2, "corridor_t_intersection", 2), // ┬ opens S onto (0,-1)
+    C(1, -2, "corridor_straight", 1),
+    C(2, -2, "corridor_corner", 2), // ┐
+    C(-2, -1, "corridor_straight", 0), // │
+    C(-1, -1, "corridor_straight", 0), // │ closed E
+    C(1, -1, "corridor_straight", 0), // │ closed W
+    C(2, -1, "corridor_straight", 0),
+    C(-2, 0, "corridor_t_intersection", 1), // ├
+    C(-1, 0, "corridor_straight", 1), // ─ closed N
+    C(0, 0, "corridor_straight", 1), // player, ─ closed N and S
+    C(1, 0, "corridor_straight", 1),
+    C(2, 0, "corridor_t_intersection", 3), // ┤
+    C(-2, 1, "corridor_straight", 0),
+    C(-1, 1, "corridor_straight", 0), // │ closed E
+    C(1, 1, "corridor_straight", 0), // │ closed W
+    C(-2, 2, "corridor_corner", 0), // └
+    C(-1, 2, "corridor_straight", 1), // ─ closed N
+    C(0, 2, "corridor_straight", 1), // ─ closed N
+    C(1, 2, "corridor_straight", 1),
+  ];
+  const at = (rows: ReturnType<typeof layoutGrid>, x: number, y: number) => rows.flat().find((c) => c.x === x && c.y === y)!;
+
+  test("an inner pocket that a stored cell opens onto stays haze", () => {
+    const rows = layoutGrid(sealedView(FRAME));
+    // ┬ at (0,-2) shows a passage south into (0,-1).
+    expect(at(rows, 0, -1)).toMatchObject({ sealed: false, glyph: " " });
+  });
+
+  test("an inner pocket that every neighbour faces with hedge is drawn as hedge", () => {
+    const closed = FRAME.map((c) => (c.x === 0 && c.y === -2 ? C(0, -2, "corridor_straight", 1) : c));
+    const rows = layoutGrid(sealedView(closed));
+    const pocket = at(rows, 0, -1);
+    expect(pocket).toMatchObject({ sealed: true, glyph: "░", filler: "░" });
+    expect(cellLabel(pocket)).toBe("Hedge");
+  });
+
+  test("a pocket that touches the view's edge stays haze, even with hedge all round inside", () => {
+    // Close the two cells that opened onto the east pocket: ┤ becomes ┘, ─ becomes ┘.
+    const edged = FRAME.map((c) =>
+      (c.x === 2 && c.y === 0) || (c.x === 1 && c.y === 2) ? C(c.x, c.y, "corridor_corner", 3) : c,
+    );
+    const rows = layoutGrid(sealedView(edged));
+    for (const [x, y] of [
+      [2, 1],
+      [2, 2],
+    ]) {
+      expect(at(rows, x, y)).toMatchObject({ sealed: false, glyph: " " });
+    }
+    expect(cellLabel(at(rows, 2, 1))).toBe("Not yet known");
+    // (0,1) is its own pocket, hedge on all four sides and inside: sealed.
+    expect(at(rows, 0, 1).sealed).toBe(true);
+  });
+});

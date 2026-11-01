@@ -243,7 +243,7 @@ export class GameApp extends LitElement {
   private renderCell(c: ScreenCell) {
     const classes = [
       "cell",
-      c.cell?.kind ?? "unknown",
+      c.cell?.kind ?? (c.sealed ? "hedge sealed" : "unknown"),
       c.tint === "none" ? "" : `tint-${c.tint}`,
       c.cell?.visited ? "visited" : "",
       c.player ? "player" : "",

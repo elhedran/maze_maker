@@ -2,6 +2,7 @@
 
 ## 2026-11-01
 
+- **Update** Slice 2.2 is on `main` after Ian's demo and OK, verbatim: "I looked at the 2.2 demo, its approved and can land on main". It landed by fast-forwarding `main` to the session branch, which also carries this session's docs: DR-0033 to DR-0036, the roadmap, Q-0008 and `design/roadmap.svg`. Damson's review of the built view is a follow-up. The 2.6 work stays on `rowan/2.6-chunks`.
 - **Decision** DR-0035 accepted (Ian's decision; approved by Ian and Rowan). DR-0036 proposed (written by Yew; Rowan approves, with a concern on rules 4 and 6 that the build narrows; Ash's approval is still to come). DR-0031 is marked superseded, and moves to the archive once DR-0036 is accepted.
 - **Update** 2.6, DR-0036 step 1, built by Rowan as `a813a73` on `rowan/2.6-chunks` and pushed: a paged sparse world of palette indices, growth at the nearest anchor within r, patches, the keep flood, the outward check, the spine and fallback, opening pressure (default 1), and a growth log with replay. P = 16, r = 8, R = 3. 108 maze-core and 26 tool tests pass, and clippy is clean; 100 walks of 1,000 steps are checked after every patch. About 1 ms a patch in release. Its `wfc.rs` changes reach into `collapse`, so it will need rebasing onto 2.2 (2.6 adapts).
 - **Decision** DR-0035 approved by Ian, verbatim: "I approve DR-0035". No proposal struck. The world is stored, growth follows the player's path, and the store is an in-memory sparse table. A one-way door. It waits on one engineer (Rowan) before it is accepted.

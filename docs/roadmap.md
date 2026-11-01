@@ -83,7 +83,7 @@ Updated 2026-11-01 by Marram, when Ian asked to start 2.6 (see 2.6 below), and a
 
 - **Done:** Phase 1 is closed. 1.1, 1.3 and 2.1 (the first sample maze) are on `main`. 1.2's design is settled ([DR-0026](/decisions/0026-explore-one-tile-design.md)) and gets built in 2.2. [Q-0008](/questions/open/0008-global-maze-properties.md)'s first part is settled by [DR-0030](/decisions/0030-measures-for-2-1.md); the rest stays open for 2.5 and the game.
 - **Now, two tracks in parallel** (Marram's call; Ian, 2026-11-01: "Happy to use tokens faster if we can doo more work concurrently"):
-  - **Tool track: 2.2**, its design gates and then the build.
+  - **Tool track: 2.2 is done and on `main`** (Ian approved its demo on 2026-11-01).
   - **Engine track: 2.6 step 1**, the chunk generator in `maze-core`, with no window. It pauses at its next green point, after Ian's steering, keeping the per-cell starting masks and the completeness check.
 - **Next:**
   - engine track: waits on Yew's record replacing [DR-0031](/decisions/0031-endless-generation-approach.md) (expected DR-0036), which gives 2.6 its new shape; the facilitator briefs what follows once Yew has ruled;
@@ -345,7 +345,12 @@ The original definition, kept for reference:
   - **The demo:** the facilitator has run all three demo tasks in the real Tauri window. The steps are in the README, and the slice is on `main` with a line in `/log.md`.
   - The technical half is DR-0034's build plan and tests ([DR-0034](/decisions/0034-data-contract-for-why-is-this-here.md)).
 - **Waits on:** DR-0033 (Damson's link design; Damson and Marram) and DR-0034 (Yew's data contract, which is also 2.2's plan; Yew and one engineer). Both are two-way doors, settled at the start of the build. The explore view's design is settled (DR-0026).
-- **Status:** in progress (2026-11-01). The build has started while the gates are approved.
+- **Status:** done (2026-11-01), on `main`. Ian (`human:ian`), verbatim: "I looked at the 2.2 demo, its approved and can land on main".
+  - Built by Rowan (Rust: observer hook, trace, `explore_tile`, `trace_cell`, bindings) and Ash (Explore tab, maze link, band, README), joined with no conflicts. 98 Rust and 124 Vitest tests pass; clippy and the build are clean. DR-0033 and DR-0034 are accepted.
+  - Two Done-when points were met differently, because this ran in a cloud session with no window: Ian ran the demo in the Tauri window himself, and the facilitator didn't. Damson's review of the built view against DR-0026 and DR-0033 hasn't happened yet, and is a follow-up, with Ash's layout calls listed in DR-0033's Concerns raised.
+  - Slipped, as follow-ups: keyboard on the map, refreshing the band in place after Reload (it clears with a note), "after reload; was ═", DR-0026 point 11. The ruled-out list waits for 2.4 (Marram).
+  - Also landed with it: Damson's three follow-ups (the tile set path shows the file name; the flatter shade legend; the corner sentence names a single tile type).
+  - History, before landing:
   - **Gates, approvals pending:**
     - [DR-0033](/decisions/0033-why-is-this-here-design.md): Marram approved it, with the ruled-out list out of 2.2; Ash's approval, standing in for Damson, is pending.
     - [DR-0034](/decisions/0034-data-contract-for-why-is-this-here.md): approvals pending. It gained four small additions, A1 to A4, so that it serves DR-0033: each of the four neighbours marked counted, came later or edge; candidates sorted in Rust; a ruled-out count; and each factor carrying its table entry.

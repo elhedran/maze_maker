@@ -193,13 +193,19 @@ fn zeros_outside_the_fallback_tiles_still_load() {
 
 #[test]
 fn opening_pressure_must_be_above_0_and_at_most_1() {
+    // Any value core.toml has is taken out first: no key means 1.
+    let bare: String = CORE
+        .lines()
+        .filter(|l| !l.trim_start().starts_with("opening_pressure"))
+        .map(|l| format!("{l}\n"))
+        .collect();
     let with = |v: &str| {
-        CORE.replace(
+        bare.replace(
             "name = \"core\"\n",
             &format!("name = \"core\"\nopening_pressure = {v}\n"),
         )
     };
-    assert_eq!(TileSet::from_toml(CORE).unwrap().opening_pressure, 1.0);
+    assert_eq!(TileSet::from_toml(&bare).unwrap().opening_pressure, 1.0);
     assert_eq!(
         TileSet::from_toml(&with("0.25")).unwrap().opening_pressure,
         0.25
@@ -208,7 +214,16 @@ fn opening_pressure_must_be_above_0_and_at_most_1() {
         TileSet::from_toml(&with("1.0")).unwrap().opening_pressure,
         1.0
     );
-    for bad in ["0.0", "-0.0", "-0.5", "1.0000001", "1.5", "inf", "-inf", "nan"] {
+    for bad in [
+        "0.0",
+        "-0.0",
+        "-0.5",
+        "1.0000001",
+        "1.5",
+        "inf",
+        "-inf",
+        "nan",
+    ] {
         let all = messages(&errors(&with(bad)));
         assert_eq!(all.len(), 1, "{bad}: {all:#?}");
         assert!(all[0].starts_with("opening_pressure is "), "{}", all[0]);

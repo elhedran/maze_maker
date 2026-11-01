@@ -29,14 +29,14 @@ fn damping(multiplier: f64) -> String {
     )
 }
 
-/// `core.toml` with `opening_pressure` (if not 1) and the damping
-/// exception (if any).
+/// `core.toml` with any `opening_pressure` it has replaced by `pressure`
+/// (no key at 1), and the damping exception (if any).
 fn variant(pressure: f64, damp: Option<f64>) -> (TileSet, Table) {
-    assert!(
-        !CORE.contains("opening_pressure"),
-        "core.toml has a pressure now"
-    );
-    let mut text = CORE.to_string();
+    let mut text: String = CORE
+        .lines()
+        .filter(|l| !l.trim_start().starts_with("opening_pressure"))
+        .map(|l| format!("{l}\n"))
+        .collect();
     if pressure != 1.0 {
         text = text.replace(
             "name = \"core\"\n",

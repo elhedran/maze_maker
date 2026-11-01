@@ -48,6 +48,8 @@ Ian (`human:ian`), 2026-11-01, verbatim:
 
 1. **The frontier rule.** A stored cell meets an unsettled cell only with hedge, passage or door, never floor. So a stored room is always complete, and every open endpoint is a passage end or a door. Rules 3 and 4 keep this rule, and a test checks it after every patch. Everything else rests on it, and old saves will too.
 2. **When growth runs.** While some anchor lies within the player's radius r, grow a patch at the nearest one. Distance is Chebyshev, ties go in (y, x) order, and r is a setting that must be more than the player can see. Repeat until no anchor is within r. Each patch stores at least its anchor, so this ends. Only open endpoints grow, so a cell that is never reached stays unsettled and is drawn as solid hedge. A new world starts with one patch anchored at the origin, whose cell is masked to tiles with a walkable side, and the player spawns there.
+
+   *Clarified 2026-11-01 by Yew (`architect/1`): "drawn as solid hedge" means it behaves as solid hedge, so it can't be walked into or seen through as floor. How an unsettled cell looks is each view's call (the game: [DR-0045](/decisions/0045-game-screen-for-g1.md); the tool's World tab: its own design).*
 3. **A patch** is one run of [DR-0028](/decisions/0028-wfc-approach-for-2-1.md)'s WFC over a P × P window. P is 16 to start (a setting). The window lies beyond the anchor in its endpoint's direction, centred on the anchor across that direction. Starting masks:
    - stored cells in the window are pinned to their tile. They count as settled, in support and in the score, and so do stored cells just outside the window;
    - an edge cell whose outside neighbour is unsettled may only show hedge, passage or door on that side;

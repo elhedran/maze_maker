@@ -13,6 +13,7 @@ import type { CellTrace } from "./bindings/CellTrace.ts";
 import type { ExploreRequest } from "./bindings/ExploreRequest.ts";
 import type { ExploreView } from "./bindings/ExploreView.ts";
 import type { TraceCellRequest } from "./bindings/TraceCellRequest.ts";
+import type { CompareRequest, CompareResult, EditRequest, EditResult } from "./pending-bindings.ts";
 
 export const COMMANDS = {
   coreVersion: "core_version",
@@ -21,7 +22,23 @@ export const COMMANDS = {
   generateMaze: "generate_maze",
   exploreTile: "explore_tile",
   traceCell: "trace_cell",
+  editNumbers: "edit_numbers",
+  compareMazes: "compare_mazes",
 } as const;
+
+/**
+ * Saves numbers into the tile set file, then reloads it (DR-0038 rules 2
+ * and 3). Rejects with `refused` (the loader's reasons) or `stale`, and then
+ * nothing on disk has changed.
+ */
+export function editNumbers(request: EditRequest): Promise<EditResult> {
+  return invoke<EditResult>(COMMANDS.editNumbers, { request });
+}
+
+/** The same seed on the previous load and the current one, with the changed cells (DR-0038 rules 7 to 9). */
+export function compareMazes(request: CompareRequest): Promise<CompareResult> {
+  return invoke<CompareResult>(COMMANDS.compareMazes, { request });
+}
 
 /** One tile's four arms, sorted, with their 0s split off (DR-0034 rules 1 to 3). */
 export function exploreTile(request: ExploreRequest): Promise<ExploreView> {

@@ -14,7 +14,10 @@ tags: [infinite-world, growth, start, determinism, game, slice-2-6]
 generated:
   by: architect/1
   at: 2026-11-01T13:10:00Z
-verified: []
+verified:
+  - by: engineer-rowan/1
+    at: 2026-11-01T12:47:52Z
+    note: "Approves as worded; built on r48-start. Checked point 2's claim: in the origin patch nothing else is stored, so a kept cell's walkable side towards an unsettled cell can only face out of the window (it faces discarded cells with hedge), which is at least 7 cells out at P = 16. leads_onward floods kept cells only, which is exact for the origin patch, the only one that calls it. Measured: core.toml 100/100 seeds and Wren's v6 40/40 with two ways onward from the origin patch alone, no origin spine; v6's worst seed took 14 runs (restarts included), so the 16 tries have some headroom, not a lot. Pinned world re-pinned on purpose: 745 cells, 15 patches."
 ---
 
 # Context

@@ -422,7 +422,7 @@ fn one_world_is_pinned() {
     );
     assert_eq!(
         (world.len(), world.log().len(), fingerprint(&world)),
-        (253, 9, 0x57b5_920b_f7fe_922a)
+        (260, 9, 0xe937_eff6_7cd6_145a)
     );
 }
 
@@ -459,4 +459,108 @@ fn an_incomplete_tile_set_is_refused() {
         .err()
         .expect("refused");
     assert!(err[0].to_string().contains("DR-0036 rule 7"), "{err:?}");
+}
+
+/// DR-0048 point 2, written apart from `world.rs`: how many sides of the
+/// origin lead onward in `world`. The neighbour across the side is stored
+/// and joined to the origin, and a flood over joined stored cells from
+/// it, never entering the origin, reaches a stored cell showing a walkable
+/// side to an unsettled cell.
+fn ways_onward_from_origin(world: &World) -> usize {
+    let set = world.tile_set();
+    let now = snapshot(world);
+    let side = |p: Pos, d: Direction| set.variants[now[&p]].side(d);
+    let joined = |p: Pos, d: Direction| {
+        let q = step(p, d);
+        (now.contains_key(&q) && walkable(side(p, d)) && walkable(side(q, d.opposite())))
+            .then_some(q)
+    };
+    let open = |p: Pos| {
+        Direction::ALL
+            .into_iter()
+            .any(|d| walkable(side(p, d)) && !now.contains_key(&step(p, d)))
+    };
+    Direction::ALL
+        .into_iter()
+        .filter(|&d| {
+            let Some(first) = joined((0, 0), d) else {
+                return false;
+            };
+            let mut seen = BTreeSet::from([(0, 0), first]);
+            let mut stack = vec![first];
+            while let Some(p) = stack.pop() {
+                if open(p) {
+                    return true;
+                }
+                for e in Direction::ALL {
+                    if let Some(q) = joined(p, e)
+                        && seen.insert(q)
+                    {
+                        stack.push(q);
+                    }
+                }
+            }
+            false
+        })
+        .count()
+}
+
+/// The seeds in `seeds` whose origin patch, alone, leaves the start with
+/// fewer than two ways onward.
+fn starts_without_two_ways(set: &TileSet, table: &Table, seeds: std::ops::Range<u32>) -> Vec<u32> {
+    let origin = Anchor {
+        cell: (0, 0),
+        from: None,
+    };
+    seeds
+        .filter(|&seed| {
+            let world = World::replay(set, table, seed, Settings::default(), &[origin]).unwrap();
+            ways_onward_from_origin(&world) < 2
+        })
+        .collect()
+}
+
+/// DR-0048's test: over 100 seeds, every start has at least two sides that
+/// lead onward, with `core.toml` as it is and at no pressure. A seed that
+/// fails is reported, not loosened: the start check is a strong bias, not
+/// a guarantee (point 4).
+#[test]
+fn every_start_has_two_ways_onward() {
+    let set = TileSet::from_toml(CORE).expect("core.toml loads");
+    let table = Table::calculate(&set);
+    assert_eq!(
+        starts_without_two_ways(&set, &table, 0..100),
+        Vec::<u32>::new()
+    );
+    let (set, table) = core();
+    assert_eq!(
+        starts_without_two_ways(&set, &table, 0..100),
+        Vec::<u32>::new()
+    );
+}
+
+/// DR-0048 point 1: the start tile has two or more walkable sides, in
+/// every stage, including a forced spine or fallback start.
+#[test]
+fn the_start_tile_has_two_walkable_sides_in_every_stage() {
+    let (set, table) = core();
+    for first_stage in [Stage::Checked, Stage::Spine, Stage::Fallback] {
+        let settings = Settings {
+            first_stage,
+            ..Settings::default()
+        };
+        for seed in 0..20 {
+            let world = World::new(&set, &table, seed, settings).unwrap();
+            let v = world.get((0, 0)).expect("the origin is stored");
+            let ways = set.variants[v]
+                .sides
+                .iter()
+                .filter(|&&s| walkable(s))
+                .count();
+            assert!(
+                ways >= 2,
+                "{first_stage:?} seed {seed}: {ways} walkable sides"
+            );
+        }
+    }
 }

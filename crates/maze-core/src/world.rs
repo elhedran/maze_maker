@@ -48,6 +48,9 @@ pub const PATCH_SIZE: usize = 16;
 pub const RADIUS: i64 = 8;
 /// R: tries after the first before a spine is pinned (DR-0036 rule 8).
 pub const CHECK_RETRIES: u32 = 3;
+/// The origin patch's tries after the first, instead of R (DR-0048 point
+/// 3): it must also give the start two ways onward.
+pub const START_RETRIES: u32 = 15;
 /// Cells per side of a page of the sparse table (DR-0035's proposal).
 const PAGE: i64 = 32;
 const EMPTY: u16 = u16::MAX;
@@ -599,8 +602,10 @@ impl World {
             }
         }
         if anchor.from.is_none() {
+            // DR-0048 point 1: two or more walkable sides at the start.
             for (v, variant) in variants.iter().enumerate() {
-                start.mask[a * n + v] &= variant.sides.iter().any(|&side| walkable(side));
+                start.mask[a * n + v] &=
+                    variant.sides.iter().filter(|&&side| walkable(side)).count() >= 2;
             }
         }
 
@@ -638,14 +643,22 @@ impl World {
             };
 
         if self.settings.first_stage == Stage::Checked {
-            'tries: for _ in 0..=self.settings.retries {
+            // DR-0048 point 3: the origin patch gets more tries, and must
+            // also give the start two ways onward.
+            let (retries, start_check) = match anchor.from {
+                None => (START_RETRIES, true),
+                Some(_) => (self.settings.retries, false),
+            };
+            'tries: for _ in 0..=retries {
                 for _ in 0..=MAX_RESTARTS {
                     let Some(tiles) = run(&start) else {
                         continue;
                     };
                     let kept = self.keep(&window, &start.settled, &tiles, a);
                     let flood = self.rim_flood(&window, &kept, &tiles);
-                    if flood.outward {
+                    if flood.outward
+                        && (!start_check || self.leads_onward(&window, &kept, &tiles, a) >= 2)
+                    {
                         return done(tiles, attempt, &[], false, Some(flood));
                     }
                     continue 'tries;
@@ -1094,6 +1107,58 @@ impl World {
             .map(|i| window.pos(i))
             .filter(|&p| self.get(p).is_none())
             .collect()
+    }
+}
+
+// Two ways onward from the start (DR-0048), next to the sealing block.
+
+impl World {
+    /// How many sides of the cell at local `a` lead onward, with the kept
+    /// cells counted as stored (DR-0048 point 2): the neighbour across the
+    /// side is kept and joined to `a`, and a flood from it over kept,
+    /// joined cells, never entering `a`, reaches a kept cell showing a
+    /// walkable side to an unsettled cell (an open endpoint). Two sides
+    /// that reach the same branch (a loop) count as two.
+    fn leads_onward(&self, window: &Window, kept: &[bool], tiles: &[usize], a: usize) -> usize {
+        let new = |p: Pos| window.index(p).filter(|&i| kept[i]).map(|i| tiles[i]);
+        let tile = |p: Pos| self.get(p).or_else(|| new(p));
+        let joined_kept = |i: usize, d: Direction| {
+            window
+                .index(step(window.pos(i), d))
+                .filter(|&j| kept[j] && connected(&self.set, tiles[i], d, tiles[j]))
+        };
+        let endpoint = |i: usize| {
+            let p = window.pos(i);
+            Direction::ALL.into_iter().any(|d| {
+                walkable(self.set.variants[tiles[i]].side(d)) && tile(step(p, d)).is_none()
+            })
+        };
+        Direction::ALL
+            .into_iter()
+            .filter(|&d| {
+                let Some(first) = joined_kept(a, d) else {
+                    return false;
+                };
+                let mut seen = vec![false; kept.len()];
+                seen[a] = true;
+                seen[first] = true;
+                let mut stack = vec![first];
+                while let Some(i) = stack.pop() {
+                    if endpoint(i) {
+                        return true;
+                    }
+                    for e in Direction::ALL {
+                        if let Some(j) = joined_kept(i, e)
+                            && !seen[j]
+                        {
+                            seen[j] = true;
+                            stack.push(j);
+                        }
+                    }
+                }
+                false
+            })
+            .count()
     }
 }
 

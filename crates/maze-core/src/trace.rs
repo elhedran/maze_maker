@@ -66,8 +66,13 @@ pub struct CandidateScore {
     pub tile_weight: f64,
     /// One per counted neighbour, N, E, S, W order.
     pub factors: Vec<PairFactor>,
+    /// The opening-pressure factor (DR-0036 rule 9), passed through from
+    /// the solver: the tile set's `opening_pressure` when this candidate
+    /// opens nothing new and the pressure isn't 1, else 1.
+    pub pressure: f64,
     /// The solver's own score, passed through. It equals `tile_weight`
-    /// times each factor in turn, left to right, bit for bit.
+    /// times each factor in turn, left to right, then `pressure`, bit for
+    /// bit.
     pub score: f64,
     /// `score / total`.
     pub share: f64,
@@ -176,6 +181,7 @@ struct Seen {
     step: usize,
     settled: Vec<(Direction, usize)>,
     scores: Vec<(usize, f64)>,
+    pressure: Vec<f64>,
     total: f64,
     chosen: usize,
 }
@@ -186,6 +192,7 @@ impl Seen {
             step,
             settled: collapse.settled.to_vec(),
             scores: collapse.scores.to_vec(),
+            pressure: collapse.pressure.to_vec(),
             total: collapse.total,
             chosen: collapse.chosen,
         }
@@ -236,7 +243,8 @@ fn collapse_trace(
     let mut candidates: Vec<CandidateScore> = seen
         .scores
         .iter()
-        .map(|&(c, score)| CandidateScore {
+        .zip(&seen.pressure)
+        .map(|(&(c, score), &pressure)| CandidateScore {
             variant: c,
             tile_weight: set.tile_of(&set.variants[c]).weight,
             factors: seen
@@ -244,6 +252,7 @@ fn collapse_trace(
                 .iter()
                 .map(|&(d, n)| pair_factor(set, table, d, c, n))
                 .collect(),
+            pressure,
             score,
             // The solver only draws when `total` is finite and above 0, and
             // every score is then finite and at least 0, so no NaN here.
@@ -366,7 +375,9 @@ mod tests {
                     .collect();
                 for c in &t.candidates {
                     // Exact: the same multiplications in the same order.
-                    let product = c.factors.iter().fold(c.tile_weight, |s, f| s * f.factor);
+                    let product =
+                        c.factors.iter().fold(c.tile_weight, |s, f| s * f.factor) * c.pressure;
+                    assert_eq!(c.pressure, 1.0, "no opening_pressure key, no pressure");
                     assert_eq!(
                         product, c.score,
                         "seed {seed} cell {i} variant {}",
@@ -411,6 +422,67 @@ mod tests {
                 }
             }
         }
+    }
+
+    /// DR-0034's factor test with opening pressure on (roadmap 2.3):
+    /// `weight × factors × pressure` is the solver's score exactly, over 200
+    /// seeds, and the pressure lands exactly on candidates whose walkable
+    /// sides all face counted neighbours; a side past the edge is new.
+    #[test]
+    fn pressure_is_the_last_factor_over_200_seeds() {
+        let text = CORE.replace(
+            "name = \"core\"\n",
+            "name = \"core\"\nopening_pressure = 0.5\n",
+        );
+        let set = TileSet::from_toml(&text).expect("core.toml with pressure loads");
+        let table = Table::calculate(&set);
+        let (w, h) = (DEFAULT_WIDTH, DEFAULT_HEIGHT);
+        let (mut pressed, mut edge_kept_open) = (0usize, 0usize);
+        for seed in 0..200 {
+            let (maze, traces) = all_traces(&set, &table, seed, w, h);
+            assert!(!maze.failed, "seed {seed}");
+            for (i, trace) in traces.iter().enumerate() {
+                let t = trace.as_ref().expect("a full maze traces every cell");
+                for c in &t.candidates {
+                    let product =
+                        c.factors.iter().fold(c.tile_weight, |s, f| s * f.factor) * c.pressure;
+                    assert_eq!(
+                        product, c.score,
+                        "seed {seed} cell {i} variant {}",
+                        c.variant
+                    );
+                    assert_eq!(c.share, c.score / t.total);
+                    // What rule 9 says, worked out again from the trace.
+                    let sides = set.variants[c.variant].sides;
+                    let walks: Vec<Direction> = Direction::ALL
+                        .into_iter()
+                        .filter(|d| sides[d.index()] != crate::side::SideKind::Hedge)
+                        .collect();
+                    let faces_counted = |d: &Direction| {
+                        matches!(t.neighbours[d.index()], NeighbourAtDraw::Counted(_))
+                    };
+                    let closed = !walks.is_empty() && walks.iter().all(faces_counted);
+                    assert_eq!(
+                        c.pressure,
+                        if closed { 0.5 } else { 1.0 },
+                        "seed {seed} cell {i} variant {}",
+                        c.variant
+                    );
+                    pressed += usize::from(closed);
+                    let only_edge_open = !closed
+                        && walks.iter().all(|d| {
+                            faces_counted(d)
+                                || matches!(t.neighbours[d.index()], NeighbourAtDraw::Edge)
+                        });
+                    edge_kept_open += usize::from(only_edge_open);
+                }
+            }
+        }
+        assert!(pressed > 0, "the pressure never applied");
+        assert!(
+            edge_kept_open > 0,
+            "no candidate was kept open by the edge alone"
+        );
     }
 
     /// Counted neighbours came earlier, later ones later, both with the

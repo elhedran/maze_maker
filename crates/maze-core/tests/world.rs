@@ -345,19 +345,3 @@ fn an_incomplete_tile_set_is_refused() {
         .expect("refused");
     assert!(err[0].to_string().contains("DR-0036 rule 7"), "{err:?}");
 }
-
-/// For now opening pressure applies only to world growth, so 2.1's mazes
-/// and their trace (DR-0034) don't change with it; 2.3 brings it into the
-/// tool.
-#[test]
-fn opening_pressure_leaves_generate_alone() {
-    let (plain, plain_table) = core();
-    let (pressed, pressed_table) = core_with("opening_pressure = 0.3\n");
-    for seed in [0, 1, 42] {
-        assert_eq!(
-            maze_core::generate(&plain, &plain_table, seed, 24, 16).unwrap(),
-            maze_core::generate(&pressed, &pressed_table, seed, 24, 16).unwrap(),
-            "seed {seed}"
-        );
-    }
-}

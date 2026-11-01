@@ -112,6 +112,10 @@ pub struct CollapseStep<'a> {
     /// Candidates left after propagation, table order, with the score each
     /// was drawn by.
     pub scores: &'a [(usize, f64)],
+    /// Per entry of `scores`, the opening-pressure factor (DR-0036 rule 9)
+    /// its score was multiplied by, last: the tile set's
+    /// `opening_pressure` for a candidate that opens nothing new, else 1.
+    pub pressure: &'a [f64],
     /// The sum of `scores`, in table order, as the draw used it.
     pub total: f64,
     pub chosen: usize,
@@ -158,9 +162,8 @@ struct Rules {
     supported: Vec<bool>,
     /// `walkable[c * 4 + d]`: `c`'s side facing `d` isn't hedge.
     walkable: Vec<bool>,
-    /// DR-0036 rule 9's factor for a candidate that opens nothing new.
-    /// Always 1 in `generate`: the tool's trace has no pressure factor yet
-    /// (2.3 brings it into the tool).
+    /// DR-0036 rule 9's factor for a candidate that opens nothing new: the
+    /// tile set's `opening_pressure`, 1 when the key is absent.
     pressure: f64,
 }
 
@@ -197,9 +200,7 @@ impl Rules {
             pair,
             supported,
             walkable,
-            // 1 for 2.1's mazes and their trace (DR-0034); only world
-            // growth applies the tile set's value, through `Solver::new`.
-            pressure: 1.0,
+            pressure: set.opening_pressure,
         }
     }
 
@@ -379,28 +380,32 @@ impl<'r> Wave<'r> {
                 None => Some((d, self.outside[cell * 4 + d.index()]?)),
             })
             .collect();
-        let scores: Vec<(usize, f64)> = (0..rules.size)
-            .filter(|&c| self.is_possible(cell, c))
-            .map(|c| {
-                let score = settled.iter().fold(rules.weight[c], |s, &(d, n)| {
-                    s * rules.pair[rules.at(d, c, n)]
-                });
-                // DR-0036 rule 9: a candidate whose walkable sides all face
-                // settled cells opens nothing new. Skipped at 1, so 2.1's
-                // scores stay bit for bit.
-                let walks: Vec<Direction> = Direction::ALL
-                    .into_iter()
-                    .filter(|d| rules.walkable[c * 4 + d.index()])
-                    .collect();
-                let closed =
-                    !walks.is_empty() && walks.iter().all(|w| settled.iter().any(|(d, _)| d == w));
-                if rules.pressure != 1.0 && closed {
-                    (c, score * rules.pressure)
-                } else {
-                    (c, score)
-                }
-            })
-            .collect();
+        let mut scores: Vec<(usize, f64)> = Vec::new();
+        let mut pressure: Vec<f64> = Vec::new();
+        for c in (0..rules.size).filter(|&c| self.is_possible(cell, c)) {
+            let score = settled.iter().fold(rules.weight[c], |s, &(d, n)| {
+                s * rules.pair[rules.at(d, c, n)]
+            });
+            // DR-0036 rule 9: a candidate whose walkable sides all face
+            // settled cells opens nothing new. A side past the grid's edge
+            // with nothing settled beyond it (always, in a fixed-size maze)
+            // isn't in `settled`, so it counts as new. Applied last, so the
+            // trace's `weight × factors × pressure` is this score exactly;
+            // skipped at 1, so 2.1's scores stay bit for bit.
+            let mut walks = Direction::ALL
+                .into_iter()
+                .filter(|d| rules.walkable[c * 4 + d.index()])
+                .peekable();
+            let closed =
+                walks.peek().is_some() && walks.all(|w| settled.iter().any(|&(d, _)| d == w));
+            if rules.pressure != 1.0 && closed {
+                scores.push((c, score * rules.pressure));
+                pressure.push(rules.pressure);
+            } else {
+                scores.push((c, score));
+                pressure.push(1.0);
+            }
+        }
         let total: f64 = scores.iter().map(|&(_, s)| s).sum();
         if !(total > 0.0 && total.is_finite()) {
             return Err(Contradiction);
@@ -432,6 +437,7 @@ impl<'r> Wave<'r> {
             cell,
             settled: &settled,
             scores: &scores,
+            pressure: &pressure,
             total,
             chosen,
         });
@@ -539,9 +545,9 @@ pub struct Solver {
 impl Solver {
     /// `table` must be calculated from `set`.
     pub fn new(set: &TileSet, table: &Table) -> Solver {
-        let mut rules = Rules::new(set, table);
-        rules.pressure = set.opening_pressure;
-        Solver { rules }
+        Solver {
+            rules: Rules::new(set, table),
+        }
     }
 
     /// One attempt over `width` × `height` cells from `start`, seeded with

@@ -27,22 +27,33 @@ fn fingerprint(maze: &Generation) -> u64 {
     h
 }
 
-#[test]
-fn two_one_seeds_give_the_mazes_they_gave_on_main() {
-    let set = TileSet::from_toml(CORE).unwrap_or_else(|e| panic!("core.toml failed: {e:?}"));
+/// (seed, width, height, restarts, fingerprint). Seed 56 at 64 × 64 is the
+/// first that restarts, so the restart path is pinned too.
+const PINNED: [(u32, usize, usize, u32, u64); 6] = [
+    (0, DEFAULT_WIDTH, DEFAULT_HEIGHT, 0, 0x1b04_8e15_7d42_d308),
+    (1, DEFAULT_WIDTH, DEFAULT_HEIGHT, 0, 0xa30d_31c9_b4e5_6de7),
+    (42, DEFAULT_WIDTH, DEFAULT_HEIGHT, 0, 0x62c3_fdbe_5ea3_148f),
+    (
+        2026,
+        DEFAULT_WIDTH,
+        DEFAULT_HEIGHT,
+        0,
+        0xcc59_bfaf_c82d_45df,
+    ),
+    (
+        u32::MAX,
+        DEFAULT_WIDTH,
+        DEFAULT_HEIGHT,
+        0,
+        0x05d8_01c8_4287_eafc,
+    ),
+    (56, MAX_SIZE, MAX_SIZE, 1, 0x457c_724f_3769_c3f2),
+];
+
+fn check_pinned(text: &str) {
+    let set = TileSet::from_toml(text).unwrap_or_else(|e| panic!("core.toml failed: {e:?}"));
     let table = Table::calculate(&set);
-    // (seed, width, height, restarts, fingerprint). Seed 56 at 64 × 64 is
-    // the first that restarts, so the restart path is pinned too.
-    let (w, h) = (DEFAULT_WIDTH, DEFAULT_HEIGHT);
-    let pinned: [(u32, usize, usize, u32, u64); 6] = [
-        (0, w, h, 0, 0x1b04_8e15_7d42_d308),
-        (1, w, h, 0, 0xa30d_31c9_b4e5_6de7),
-        (42, w, h, 0, 0x62c3_fdbe_5ea3_148f),
-        (2026, w, h, 0, 0xcc59_bfaf_c82d_45df),
-        (u32::MAX, w, h, 0, 0x05d8_01c8_4287_eafc),
-        (56, MAX_SIZE, MAX_SIZE, 1, 0x457c_724f_3769_c3f2),
-    ];
-    for (seed, width, height, restarts, print) in pinned {
+    for (seed, width, height, restarts, print) in PINNED {
         let maze = generate(&set, &table, seed, width, height).unwrap();
         assert!(!maze.failed, "seed {seed}");
         assert_eq!(maze.restarts, restarts, "seed {seed}");
@@ -52,4 +63,30 @@ fn two_one_seeds_give_the_mazes_they_gave_on_main() {
             "seed {seed} at {width} × {height} now gives a different maze"
         );
     }
+}
+
+/// `core.toml` with no `opening_pressure` key, whatever value Wren sets in
+/// it (roadmap 2.3): the pins are of 2.1's numbers, before pressure.
+fn core_without_pressure() -> String {
+    CORE.lines()
+        .filter(|l| !l.trim_start().starts_with("opening_pressure"))
+        .map(|l| format!("{l}\n"))
+        .collect()
+}
+
+#[test]
+fn two_one_seeds_give_the_mazes_they_gave_on_main() {
+    check_pinned(&core_without_pressure());
+}
+
+/// Opening pressure at 1 is off (DR-0036 rule 9), so stating it changes
+/// nothing (roadmap 2.3).
+#[test]
+fn opening_pressure_of_1_gives_the_same_mazes() {
+    let text = core_without_pressure().replace(
+        "name = \"core\"\n",
+        "name = \"core\"\nopening_pressure = 1.0\n",
+    );
+    assert!(text.contains("opening_pressure = 1.0"));
+    check_pinned(&text);
 }

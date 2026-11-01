@@ -43,6 +43,8 @@ One file per decision ([DR-0001](/decisions/0001-record-every-decision.md)). Onl
 
 ## Proposed
 
+- [DR-0047 Store sealed regions as hedge](/decisions/0047-store-sealed-hedge.md) - Amends DR-0036: after each patch, every bounded unsettled region no stored cell faces with a walkable side is stored as the Hedge tile, final, with no seed; the patch logs it as `sealed`. A two-way door.
+
 ## Archived
 
 - [DR-0002 Approval and escalation rules](/decisions/archive/0002-approval-and-escalation.md) - Superseded by DR-0018.

@@ -108,7 +108,7 @@ Ian asked whether the agents were using worktrees appropriately. The first versi
 
 # Concerns raised
 
-- **Ash (engineer) and Marram (product manager), on review of the 2026-11-01 revision:** the AI guidance told everyone to fast-forward `main` before work. That contradicts rule 8, and git refuses it from a worktree while `main` is checked out in the main checkout. Fixed before acceptance: only the main checkout fast-forwards `main`, and a worktree only fetches. The facilitator (`facilitator/1`) made the edit, in the wording both reviewers asked for.
+- **Ash (engineer) and Marram (product manager), on review of the 2026-11-01 revision:** the AI guidance told everyone to fast-forward `main` before work. That contradicts rule 8, and git refuses it from a worktree while `main` is checked out in the main checkout. Fixed before acceptance: only the main checkout fast-forwards `main`, and a worktree fetches and branches from or rebases onto `origin/main` (wording aligned with DR-0032's 2026-11-01 clarification). The facilitator (`facilitator/1`) made the edit, in the wording both reviewers asked for.
 - **Yew (architect), on the 2026-11-01 revision:** I authored it, so I don't approve it. As before, an engineer approves in the architect's place, alongside Marram.
 - **Yew (architect), on the 2026-11-01 revision:** rule 11.5 keeps DR-0032's "stop and tell the facilitator" for engineers and cloud sessions; only the facilitator fetches and retries. Marram's fetch-and-retry for everyone is under Alternatives. If rejected pushes become routine, revisit.
 - **Yew (architect), on the 2026-11-01 revision:** a cloud session gets no brief from the facilitator. Until that changes, Ian's prompt to a cloud session should say which branch it owns and whether it may land on `main`; otherwise rules 10 to 12 rely on it reading this record.
@@ -139,7 +139,7 @@ Ian asked whether the agents were using worktrees appropriately. The first versi
 - Don't add, remove or upgrade dependencies unless your brief says your branch holds the lockfiles.
 - Leave `docs/log.md`, the `index.md` files and `docs/roadmap.md` to the facilitator unless your brief gives one to you, and use the record or question number your brief gives you.
 - In a worktree, commit on your own branch when your brief says to. Never commit to, merge into or rebase `main`.
-- Before starting work: in the main checkout (the facilitator, or a session working alone), `git fetch origin` and fast-forward `main` from `origin/main`. In a worktree, only `git fetch origin`; the facilitator keeps `main` level and creates your worktree from it.
+- Before starting work, `git fetch origin`. In the main checkout (the facilitator, or a session working alone), fast-forward `main` to `origin/main`. In a worktree, never touch `main`: branch from or rebase onto `origin/main`. The facilitator creates your worktree from it.
 - Never force-push anything, with or without `--force-with-lease`. If a push is rejected, stop and tell the facilitator.
 - Push only `main` straight after you land on it, or your own branch when your brief says to. Never commit on or push a branch you don't own.
 - Don't push a rebased branch back under the same name; rule 12 says what to do instead.

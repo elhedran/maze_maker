@@ -42,6 +42,10 @@ The facilitator's main job is managing context, for the team and for Ian's sessi
 
   First make sure everything worth keeping is written down and committed, or say what isn't. Then say what the next session should start with.
 
+## Facilitator notes
+
+Ian's standing guidance for the facilitator, moved here from local memory on 2026-11-01 so that cloud sessions have it: [`.claude/facilitator-notes.md`](.claude/facilitator-notes.md). Read it at the start of every facilitator session.
+
 ## Before you change anything
 
 1. Read `docs/decisions/index.md` and the records that apply. Summarize the constraints before starting.
@@ -85,7 +89,7 @@ Anything waiting on a decision is a file in `docs/questions/open/`, moved to `do
 
 Work lands on `main`. Local branches and worktrees are fine; DR-0019 says when agents use them.
 
-The remote is `origin`, https://github.com/elhedran/maze_maker. Keep it up to date: fast-forward `main` from `origin` before starting work, and push `main` straight after anything lands on it, docs included. Never force-push; if a push is rejected, stop and tell the facilitator. Other branches are pushed only when a cloud session needs one, and only by the facilitator.
+The remote is `origin`, https://github.com/elhedran/maze_maker. Keep it up to date: fetch `origin` before starting work (the main checkout fast-forwards `main`; a worktree branches from or rebases onto `origin/main`), and push `main` straight after anything lands on it, docs included. Never force-push; if a push is rejected, stop and tell the facilitator. Other branches are pushed only when a cloud session needs one, and only by the facilitator.
 
 ## Toolchain
 

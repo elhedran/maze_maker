@@ -2,6 +2,10 @@
 
 ## 2026-11-01
 
+- **Update** Ian approved (2026-11-01) the matching fetch-first fix in `CLAUDE.md` and the engineers' agent files: fetch `origin` first; the main checkout fast-forwards `main`; a worktree branches from or rebases onto `origin/main`. He also approved moving the facilitator's standing notes from local memory into `.claude/facilitator-notes.md`, linked from `CLAUDE.md`, so cloud sessions have them.
+
+- **Update** DR-0032 got a dated clarification (2026-11-01) and DR-0019's guidance was aligned with it. Ian's decision is unchanged. "Fast-forward `main` before work" can't be done from a worktree, so now: `git fetch origin`; in the main checkout, fast-forward `main`; in a worktree, never touch `main`, branch from or rebase onto `origin/main`. Wording by Yew (`architect/1`). `CLAUDE.md` (Git section) and the two engineer agent files still have the old wording. Changing them needs Ian (DR-0018), so this waits on a branch, off `main`, until he OKs it.
+
 - **Update** Slice 2.1 is on `main` and pushed, after Ian's OK, verbatim: "Yes, land 2.1". The facilitator rebased it onto `main` (after DR-0019's revision), with only docs changing since the tested build. Roadmap 2.1 status updated.
 
 - **Update** Slice 2.1, the first sample maze, is built and checked on `claude/slice-2-1-2468a5`, waiting for Ian's OK to land. Ian (`human:ian`), verbatim: "just saw a demo of the generated maze - looking good so far."

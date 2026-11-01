@@ -13,6 +13,13 @@ describe("WorldModel", () => {
     expect(model.lastPatch?.index).toBe(1);
   });
 
+  test("sealed cells are stored cells too, drawn as the tile they hold (DR-0047)", () => {
+    const model = new WorldModel();
+    model.addPatch(patch(0, [[0, 0, 1]], 0, [[5, 5, 7]]));
+    expect(model.cellAt(5, 5)).toEqual({ tile: 7, patch: 0 });
+    expect(model.cellAt(0, 0)).toEqual({ tile: 1, patch: 0 });
+  });
+
   test("negative coordinates are their own cells", () => {
     const model = new WorldModel();
     model.addPatch(patch(0, [[-1, -2, 4], [1, 2, 5]]));

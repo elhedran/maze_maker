@@ -126,6 +126,10 @@ pub struct PatchDelta {
     pub spine_cells: Vec<WorldPos>,
     /// Window cells the run filled that the patch didn't keep, row-major.
     pub discarded: Vec<WorldPos>,
+    /// Cells it stored as the seal tile because nothing can ever reach them
+    /// (DR-0047), in (y, x) order; never in `cells`, and may lie outside
+    /// the window. Stored like `cells`, so the view draws them the same way.
+    pub sealed: Vec<StoredCell>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, TS)]

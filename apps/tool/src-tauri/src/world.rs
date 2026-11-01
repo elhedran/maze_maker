@@ -158,19 +158,19 @@ fn delta(world: &World, index: usize, notes: &PatchNotes) -> Result<PatchDelta, 
     let patch = &world.log()[index];
     let size = i64::try_from(world.settings().patch_size).expect("patch size is at most 64");
     let (wx, wy) = patch.window;
-    let cells = patch
-        .stored
-        .iter()
-        .map(|&p| {
-            let at = pos(p)?;
-            let tile = world.get(p).expect("a logged cell is stored");
-            Ok(StoredCell {
-                x: at.x,
-                y: at.y,
-                tile: count(tile),
+    let stored_cells = |ps: &[Pos]| {
+        ps.iter()
+            .map(|&p| {
+                let at = pos(p)?;
+                let tile = world.get(p).expect("a logged cell is stored");
+                Ok(StoredCell {
+                    x: at.x,
+                    y: at.y,
+                    tile: count(tile),
+                })
             })
-        })
-        .collect::<Result<_, ToolError>>()?;
+            .collect::<Result<Vec<_>, ToolError>>()
+    };
     let positions = |ps: &[Pos]| ps.iter().map(|&p| pos(p)).collect::<Result<Vec<_>, _>>();
     Ok(PatchDelta {
         index: count(index),
@@ -181,9 +181,10 @@ fn delta(world: &World, index: usize, notes: &PatchNotes) -> Result<PatchDelta, 
         attempts: patch.attempts,
         spine: patch.spine,
         fallback: patch.fallback,
-        cells,
+        cells: stored_cells(&patch.stored)?,
         spine_cells: positions(&patch.spine_cells)?,
         discarded: positions(&notes.discarded)?,
+        sealed: stored_cells(&patch.sealed)?,
     })
 }
 
@@ -555,7 +556,7 @@ mod tests {
     fn rebuilt<'a>(deltas: impl IntoIterator<Item = &'a PatchDelta>) -> BTreeMap<(i32, i32), u32> {
         let mut out = BTreeMap::new();
         for d in deltas {
-            for c in &d.cells {
+            for c in d.cells.iter().chain(&d.sealed) {
                 assert!(out.insert((c.x, c.y), c.tile).is_none(), "stored twice");
             }
         }

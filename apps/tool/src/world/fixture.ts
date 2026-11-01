@@ -23,8 +23,13 @@ export const TILES: TileView[] = [
   tile("hedge", "Hedge", "hedge", 0, ["hedge", "hedge", "hedge", "hedge"]),
 ];
 
-/** A patch with these [x, y, tile] cells; the rest of its fields are plain defaults. */
-export function patch(index: number, cells: [number, number, number][], step = 0): PatchDelta {
+/** A patch with these [x, y, tile] cells (and sealed cells); the rest of its fields are plain defaults. */
+export function patch(
+  index: number,
+  cells: [number, number, number][],
+  step = 0,
+  sealed: [number, number, number][] = [],
+): PatchDelta {
   return {
     index,
     step,
@@ -37,5 +42,6 @@ export function patch(index: number, cells: [number, number, number][], step = 0
     cells: cells.map(([x, y, t]) => ({ x, y, tile: t })),
     spineCells: [],
     discarded: [],
+    sealed: sealed.map(([x, y, t]) => ({ x, y, tile: t })),
   };
 }

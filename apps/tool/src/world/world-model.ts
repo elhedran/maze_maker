@@ -25,10 +25,12 @@ export class WorldModel {
   private endpointsByAnchor = new Map<string, Endpoint>();
   player?: WorldPos;
 
-  /** Adds one patch's stored cells, in growth order. */
+  /** Adds one patch's stored cells, in growth order, with the cells it sealed as hedge (DR-0047). */
   addPatch(patch: PatchDelta): void {
     this.patches.push(patch);
-    for (const cell of patch.cells) this.cells.set(cellKey(cell.x, cell.y), { tile: cell.tile, patch: patch.index });
+    for (const cell of [...patch.cells, ...patch.sealed]) {
+      this.cells.set(cellKey(cell.x, cell.y), { tile: cell.tile, patch: patch.index });
+    }
   }
 
   setFrontier(frontier: Endpoint[]): void {

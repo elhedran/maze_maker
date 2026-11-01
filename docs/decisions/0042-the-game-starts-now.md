@@ -22,6 +22,9 @@ verified:
   - by: product-manager/1
     at: 2026-11-01T10:22:42Z
     note: "Approves as product approver, items 2 to 5 included. A two-way door: the game can pause again and nothing in the tool is thrown away. Sequencing is Marram's call (DR-0018), and a third track now is the right one. G.1 is sliced in the roadmap. Concerns 1 to 3 below."
+  - by: architect/1
+    at: 2026-11-01T10:24:01Z
+    note: "Approves as process approver. Items 2 to 5 fit DR-0008 and DR-0012; item 5's rule for core additions is made concrete in DR-0043 point 3 (a new play.rs module; no change to core's public behaviour without raising it)."
 ---
 
 # Context

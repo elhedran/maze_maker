@@ -491,7 +491,7 @@ Sliced by Marram on 2026-11-01, as the smallest thing that is the game: one wind
   - Ian starts the game with the one command in the README. A window opens with the player on the start tile, the world around them drawn in [DR-0017](/decisions/0017-tile-glyphs-and-colours.md)'s glyphs and colours, and the seed shown.
   - Ian walks at least 20 steps away from the start with the keyboard, heading east wherever the passages allow. When a wall is in the way the player doesn't move, and the screen makes that clear. New world appears ahead as he goes.
   - Ian walks back the same way to the start, and every tile he passed is as it was.
-  - Ian closes the game, starts it again with the same seed, and sees the same start.
+  - Ian closes the game, starts it again with the seed from the status line (the README says how to pass it at launch), and sees the same start.
 - **What's in it:**
   - `apps/game/`, a Tauri v2 app with a Lit frontend, sharing `maze-core` as DR-0043 says.
   - Three commands, as the engineers' stub has them: `start_game(seed)`, and `step(direction)` returning the player's position, whether they moved, and the stored cells within a radius. Growth, storage and whether a step is blocked are all in Rust ([DR-0005](/decisions/0005-tauri-rust-backend-lit-frontend.md)); the frontend only draws.

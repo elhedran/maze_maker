@@ -1,11 +1,12 @@
 /// <reference types="vite/client" />
 // The frontend's half of the IPC contract (DR-0023): every command name in
-// COMMANDS is one the Rust side registers, and the commands that take a
+// COMMANDS (and the World tab's WORLD_COMMANDS) is one the Rust side registers, and the commands that take a
 // request get it under the argument name Rust declares, `request`.
 
 import { afterEach, describe, expect, test } from "vitest";
 import { clearMocks, mockIPC } from "@tauri-apps/api/mocks";
 import { COMMANDS, compareMazes, editNumbers } from "./ipc.ts";
+import { WORLD_COMMANDS } from "./world/world-ipc.ts";
 
 // lib.rs as text, through Vite's ?raw import, so no Node types are needed.
 import LIB_RS from "../src-tauri/src/lib.rs?raw";
@@ -17,8 +18,13 @@ describe("ipc contract", () => {
     const lib = LIB_RS;
     const handler = lib.match(/generate_handler!\[([^\]]*)\]/);
     expect(handler).not.toBeNull();
-    const registered = handler![1].split(",").map((s) => s.trim()).filter((s) => s !== "");
-    expect([...Object.values(COMMANDS)].sort()).toEqual(registered.sort());
+    // The World tab's commands live in world.rs, registered as `world::name`.
+    const registered = handler![1]
+      .split(",")
+      .map((s) => s.trim().replace(/^world::/, ""))
+      .filter((s) => s !== "");
+    const known = [...Object.values(COMMANDS), ...Object.values(WORLD_COMMANDS)];
+    expect(known.sort()).toEqual(registered.sort());
   });
 
   test("edit_numbers and compare_mazes take their request as `request`", async () => {

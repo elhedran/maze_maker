@@ -36,6 +36,9 @@ One file per decision ([DR-0001](/decisions/0001-record-every-decision.md)). Onl
 
 ## Proposed
 
+- [DR-0033 How a maze cell opens the explore view and shows why its tile is there](/decisions/0033-why-is-this-here-design.md) - Click selects a maze cell and "Why is this here?" (or double-click) opens the Explore tab on its tile through DR-0026 point 10, with a band that replays the cell's draw: which neighbours were settled, each candidate's weight times its pair factors, its chance, and the one drawn.
+- [DR-0034 The data contract for "Why is this here?"](/decisions/0034-data-contract-for-why-is-this-here.md) - An explore_tile command built from the same entry code as table_view, with arms sorted and 0s split off in Rust; a trace_cell command that replays the seed through the one WFC code path with an optional observer and rejects a stale revision; also slice 2.2's technical plan.
+
 
 ## Archived
 

@@ -88,10 +88,11 @@ export type ArmView = { direction: Direction, centreSide: SideKind, neighbours: 
 
 export type TraceCellRequest = { revision: number, seed: number, width: number, height: number, cell: CellPos, };
 export type CellTrace = { revision: number, cell: CellPos, restarts: number, failed: boolean, steps: number, collapse: CollapseTrace | null, };
-export type CollapseTrace = { step: number, settled: Array<SettledNeighbour>, candidates: Array<CandidateScore>, total: number, chosen: number, };
-export type SettledNeighbour = { direction: Direction, tile: number, };
+export type CollapseTrace = { step: number, neighbours: [NeighbourAtDraw, NeighbourAtDraw, NeighbourAtDraw, NeighbourAtDraw], candidates: Array<CandidateScore>, ruledOut: number, total: number, chosen: number, };
+export type NeighbourAtDraw = { direction: Direction, state: NeighbourState, tile: number | null, };
+export type NeighbourState = "counted" | "later" | "edge";
 export type CandidateScore = { tile: number, tileWeight: number, factors: Array<PairFactor>, score: number, share: number, };
-export type PairFactor = { direction: Direction, neighbour: number, base: number, exceptions: Array<number>, multiplier: number, noise: number, factor: number, };
+export type PairFactor = { direction: Direction, neighbour: number, base: number, exceptions: Array<number>, multiplier: number, noise: number, factor: number, entry: EntryView, };
 ```
 
 What the fields mean:
@@ -99,8 +100,14 @@ What the fields mean:
 - **Indices:** `centre`, `tile`, `neighbour` and `chosen` are indices into `TableView.tiles` at `revision`. `exceptions` are indices into `TableView.exceptions`, as in `EntryView`.
 - **The attempt:** `restarts` and `failed` are what `generate_maze` returns for the same request. `steps` is how many collapses the shown attempt made: width × height when it succeeded.
 - **When:** `step` is the order in which the cell collapsed in that attempt, starting at 1.
-- **Settled neighbours:** `settled` lists the neighbours already collapsed at that moment, N, E, S, W. Unsettled and off-grid neighbours are left out, because they shaped the cell only through propagation, by deciding which candidates were left (DR-0028 rule 3).
-- **Candidates:** `candidates` are those left after propagation, sorted as in rule 6. Each candidate's `factors` follow `settled`'s order. `factor = base × multiplier × noise`, `multiplier` is the product of the exceptions' multipliers (1 when there are none), `score = tileWeight × Π factor` and `share = score / total`. A lone candidate has share 1.
+- **Neighbours:** `neighbours` always has four entries, in N, E, S, W order.
+  - `counted`: already collapsed at the draw, with `tile` being its tile at that moment.
+  - `later`: collapsed after the draw, with `tile` being its tile in the finished grid, or `null` if a failed maze left it open.
+  - `edge`: past the edge, with `tile` `null`.
+
+  Only counted neighbours have factors. Later ones shaped the cell only through propagation, by deciding which candidates were left (DR-0028 rule 3).
+- **Candidates:** `candidates` are those left after propagation, sorted in Rust as in rule 6. `ruledOut` is how many variants weren't possible at the draw, zero-weight tiles included. Each candidate's `factors` follow the counted neighbours, in N, E, S, W order. `factor = base × multiplier × noise`, `multiplier` is the product of the exceptions' multipliers (1 when there are none), `score = tileWeight × Π factor` and `share = score / total`. A lone candidate has share 1. The drawn candidate is the one whose `tile` equals `chosen`.
+- **Entry:** `entry` is the 1.1 table's `EntryView` for that pair, the same one `table_view` returns.
 
 The frontend formats these numbers and never multiplies or divides them. When a revision differs from the one it holds, it refetches `table_view`, as it already does for mazes.
 
@@ -122,6 +129,13 @@ The frontend formats these numbers and never multiplies or divides them. When a 
 # Concerns raised
 
 - **Yew (`architect/1`), the author:** in practice `stale` only comes from a race, because Reload regenerates the shown seed ([DR-0029](/decisions/0029-generation-view-design.md)). A separate kind still lets the view regenerate or say so, instead of showing a trace of a different maze. The wording is Damson's, in DR-0033.
+- **Reconciled with DR-0033 (Damson, `ux-designer/1`), through the facilitator:** four additions so the contract serves DR-0033's band.
+  1. `settled` became `neighbours`: four entries, each counted, later or edge.
+  2. Rust sorts the candidates.
+  3. `ruledOut` gives the count. The ruled-out list may slip in DR-0033, so only the count is in the contract.
+  4. `PairFactor.entry` carries the factor's `EntryView`, so DR-0025's panel opens on it unchanged.
+
+  Yew agrees with all four. DR-0033's "drawn flag" is `tile === chosen`, so there is no separate field.
 
 # Build plan
 
@@ -143,12 +157,12 @@ Rowan generates the bindings for the types above first, unchanged, so Ash's stub
   - **Rest of `maze-core`:** `trace.rs`, plus its exports in `lib.rs`.
   - **The app:**
     - `view.rs`: extract `entry_view`, add `explore`;
-    - `maze.rs`: the trace mapping;
+    - `maze.rs`: the trace mapping, with each factor's `entry` from `view::entry_view`;
     - `state.rs` and `lib.rs`: the two commands;
     - `ipc.rs`: the types, `Stale`, and their entries in the bindings list.
   - **Tests:**
     - **Identity:** for seeds 0 to 199 at 24 × 16, and a few seeds at 1 × 1 and 64 × 64, `generate` returns the same `Generation` as `generate_observed` with an observer that records every cell. The recorded pick for each cell equals `cells`, and every cell collapses exactly once, at steps 1 to width × height. Run the same check on DR-0028's always-contradicting fixture: the results are equal and failed, and only the last attempt is recorded.
-    - **Factors:** for every cell of several seeds, `tileWeight × Π factor == score`, checked as exact f64 equality. Shares sum to 1 within 1e-9, and the chosen tile is one of the candidates. Each settled neighbour is that neighbour's final tile and collapsed earlier, and each unsettled neighbour inside the grid collapsed later.
+    - **Factors:** for every cell of several seeds, `tileWeight × Π factor == score`, checked as exact f64 equality. Shares sum to 1 within 1e-9, candidates are in rule 6's order, the chosen tile is one of them, and `candidates.length + ruledOut` is the variant count. Each `counted` neighbour collapsed earlier and each `later` one collapsed later, both carrying the neighbour's final tile, and `edge` appears exactly where the cell is on the border. Each factor's `entry` equals `table_view`'s entry for that pair.
     - **Explore agrees with the table:** for all 29 pairs and four directions, `neighbours` plus `zeros` are exactly that row's `EntryView`s from `table_view`. `neighbours` all have weight above 0, in rule 3's order. `zeros` all have weight 0, in table order. `centreSide` is the centre's side.
     - **Trace matches the maze:** for a few seeds, every cell's `collapse.chosen` equals the cell `generate_maze` returned.
     - **Errors:** each of rule 7's cases. A failed maze's open cell gives `collapse: null`. An unknown explore pair is `bad_request`.

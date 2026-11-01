@@ -181,6 +181,10 @@ Rowan generates the bindings for the types above first, unchanged, so Ash's stub
     - `stale`, handled as DR-0033 says.
   - **Vitest:** arms render in the order given, with "+ N can't go here" from `zeros.length`. The trace display renders from a stub. The `stale` path is tested.
 
+# Amendments
+
+- **2026-11-01, [DR-0038](/decisions/0038-editing-core-toml-and-compare.md) (proposed; applies once it is accepted):** the trace gains opening pressure ([DR-0036](/decisions/0036-growth-from-open-endpoints.md) rule 9) as its own factor. `CandidateScore` gains `pressure`, and `CollapseStep` gains `pressure: &'a [f64]`, parallel to `scores`, which the trace passes through. Pressure is applied last, so the identity becomes `(tileWeight × Π factor) × pressure == score`, still exact, and the factor test runs at a pressure below 1 too. Nothing else in this contract changes.
+
 # Links
 
 - Explore view: [DR-0026](/decisions/0026-explore-one-tile-design.md); the explanation panel: [DR-0025](/decisions/0025-table-view-design.md)

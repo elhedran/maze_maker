@@ -13,8 +13,11 @@ supersedes: []
 tags: [tool, editing, compare, generation-view, explore-view, opening-pressure, phase-2, slice-2-3]
 generated:
   by: ux-designer/1
-  at: 2026-11-01T12:00:00Z
-verified: []
+  at: 2026-11-01T08:58:00Z
+verified:
+  - by: product-manager/1
+    at: 2026-11-01T09:05:00Z
+    note: "Approved, inside 2.3's scope. Two scope calls under Concerns raised (Marram, on review): no stacked layout for narrow windows in 2.3, and the may-slip list stands as written. Status stays proposed until engineer-ash/1 stands in for the author, Damson (DR-0018), as on DR-0033."
 ---
 
 # Context
@@ -148,6 +151,10 @@ MAZE TAB, after a save
 - **Damson (`ux-designer/1`):** at 16px, two mazes side by side only just fit 1024px. If the window is narrower, stack them, before above after; review should check by eye.
 - **Damson (`ux-designer/1`):** fading means "the same as before" here, while in the band dimming means "came later" and while generating it means "old". They're on different screens, and the legend line names it. Review will tell whether Ian mixes them up.
 - **Damson (`ux-designer/1`):** the reach line tells Ian a weight is shared, but not how many entries that is. If he's still surprised by how far a change spreads, a count from Rust ("changes 116 entries") is the next step.
+- **Marram (`product-manager/1`), on review, 2026-11-01:** approved; it stays inside 2.3 (no adding or removing tiles or exceptions, undo is setting a number back via the saved line's old value, two mazes only, no batches or grown worlds) and covers all three demo tasks. Fading unchanged cells counts as "changed cells marked" for the first demo task. Scope calls, mine to make (DR-0018):
+  - **No stacked layout in 2.3.** The tool's window is 1024px; build side by side only. If review by eye finds it doesn't fit, stacking is a follow-up, not part of the build. Damson's concern above stands for review.
+  - **The may-slip list stands, and slipping is the default under time pressure.** Build the must-haves first, then demo; the may-slip items go into the 2.3 status as follow-ups rather than holding the slice. Point 18 ships only if point 17 slips, as written.
+  - **The entry count from Rust in Damson's third concern stays out of 2.3** unless review shows Ian is surprised by a change's reach.
 
 # Why it's a two-way door
 

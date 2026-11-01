@@ -383,6 +383,24 @@ describe("adjacency-table", () => {
       expect(countText(el)).toContain("Columns: Corridor corner or Hedge.");
     });
 
+    test("exactly one tile type is named in the corner sentence; two fall back to the kinds", async () => {
+      backend();
+      const el = await mount();
+      const rowType = (id: string) =>
+        bar(el).querySelector<HTMLInputElement>(`[data-group="row"] [data-facet="type"] input[data-value="${id}"]`)!;
+
+      rowType("corridor_corner").click();
+      await vi.waitFor(() => expect(rowGlyphs(el)).toEqual(["┐"]));
+      expect(cornerText(el)).toContain("Corridor corner tile, then its neighbour to the EAST");
+
+      toggle(el, "column", "kind", "room").click();
+      await vi.waitFor(() => expect(cornerText(el)).toContain("Corridor corner tile, then its Room neighbour to the EAST"));
+
+      rowType("corridor_straight").click();
+      await vi.waitFor(() => expect(rowGlyphs(el)).toEqual(["─", "┐"]));
+      expect(cornerText(el)).toContain("Row tile, then its Room neighbour to the EAST");
+    });
+
     test("Tag toggles come from the tile set", async () => {
       const ipc = backend();
       const el = await mount();

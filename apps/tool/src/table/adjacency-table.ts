@@ -346,9 +346,13 @@ export class AdjacencyTable extends LitElement {
       // DR-0027 point 7: the grid gives way; the count line and Clear all stay in the bar.
       return html`<p class="empty">No tiles match these filters</p>`;
     }
-    const kinds = (f: TileFilter) => f.kinds.map((k) => KIND_LABEL[k]).join(" or ");
-    const rowWord = kinds(this.viewFilters.rowFilter) || "Row";
-    const columnWord = kinds(this.viewFilters.columnFilter);
+    // One tile type names it ("Corridor corner tile, then…"); otherwise the kinds, if any (DR-0027 point 1).
+    const groupWord = (f: TileFilter) => {
+      const only = f.tileIds.length === 1 ? v.tiles.find((t) => t.id === f.tileIds[0]) : undefined;
+      return only ? only.name : f.kinds.map((k) => KIND_LABEL[k]).join(" or ");
+    };
+    const rowWord = groupWord(this.viewFilters.rowFilter) || "Row";
+    const columnWord = groupWord(this.viewFilters.columnFilter);
     const corner = `${rowWord} tile, then its ${columnWord ? `${columnWord} ` : ""}neighbour to the ${dirWord}`;
 
     return html`<div class="body">

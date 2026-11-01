@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { eastFiller, failureText, hoverText, parseSeed, randomSeed, restartText, statusText } from "./maze-text.ts";
-import type { GeneratedMaze } from "./maze-types.ts";
+import type { GeneratedMaze } from "../bindings/GeneratedMaze.ts";
 
 const maze = (overrides: Partial<GeneratedMaze> = {}): GeneratedMaze => ({
   revision: 1,

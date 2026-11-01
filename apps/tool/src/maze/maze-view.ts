@@ -4,7 +4,7 @@ import { errorText, generateMaze, tableView, tilesOnlyRequest } from "../ipc.ts"
 import { themeStyles } from "../table/draw-tile.ts";
 import { tileLabel, tileLook } from "../table/tile-glyphs.ts";
 import type { TileView } from "../bindings/TileView.ts";
-import type { GeneratedMaze } from "./maze-types.ts";
+import type { GeneratedMaze } from "../bindings/GeneratedMaze.ts";
 import {
   MAZE_HEIGHT,
   MAZE_WIDTH,

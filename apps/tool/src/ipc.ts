@@ -7,7 +7,8 @@ import type { ReloadResult } from "./bindings/ReloadResult.ts";
 import type { TableView } from "./bindings/TableView.ts";
 import type { TableViewRequest } from "./bindings/TableViewRequest.ts";
 import type { ToolError } from "./bindings/ToolError.ts";
-import type { GenerateRequest, GeneratedMaze } from "./maze/maze-types.ts";
+import type { GenerateRequest } from "./bindings/GenerateRequest.ts";
+import type { GeneratedMaze } from "./bindings/GeneratedMaze.ts";
 
 export const COMMANDS = {
   coreVersion: "core_version",

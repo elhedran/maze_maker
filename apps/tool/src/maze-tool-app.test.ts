@@ -3,7 +3,7 @@ import { clearMocks, mockIPC } from "@tauri-apps/api/mocks";
 import { COMMANDS } from "./ipc.ts";
 import "./maze-tool-app.ts";
 import type { MazeToolApp } from "./maze-tool-app.ts";
-import type { GenerateRequest } from "./maze/maze-types.ts";
+import type { GenerateRequest } from "./bindings/GenerateRequest.ts";
 import type { TableView } from "./bindings/TableView.ts";
 import type { TileView } from "./bindings/TileView.ts";
 import type { ToolError } from "./bindings/ToolError.ts";

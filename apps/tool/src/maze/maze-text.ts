@@ -1,7 +1,7 @@
 // Text and drawing rules for the generation view (DR-0029). Pure functions,
 // so the wording and the two-character cells are tested without a DOM.
 
-import type { GeneratedMaze } from "./maze-types.ts";
+import type { GeneratedMaze } from "../bindings/GeneratedMaze.ts";
 
 /** The first size (DR-0028 rule 7). A tool setting, not a core rule. */
 export const MAZE_WIDTH = 24;

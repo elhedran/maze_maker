@@ -158,7 +158,7 @@ export class MazeToolApp extends LitElement {
   private afterLoad() {
     this.table?.refresh();
     this.explore?.refresh();
-    this.mazeView?.regenerateAfterReload();
+    this.mazeView?.showChange();
     this.renderRoot.querySelector("world-view")?.tileSetReloaded();
   }
 

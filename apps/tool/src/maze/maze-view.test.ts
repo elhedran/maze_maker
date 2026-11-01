@@ -91,6 +91,12 @@ function backend(): Backend {
       if (state.fails) throw state.fails;
       return mazeFor(request, { revision: state.revision, ...state.next });
     }
+    if (cmd === COMMANDS.compareMazes) {
+      // No previous load in these tests: before is null, so the maze just regenerates.
+      const request = (payload as { request: GenerateRequest }).request;
+      state.generated.push(request);
+      return { before: null, after: mazeFor(request, { revision: state.revision, ...state.next }), changed: [], edits: [] };
+    }
     if (cmd === COMMANDS.tableView) {
       state.tableCalls++;
       return tablePayload(state.revision);
@@ -307,7 +313,7 @@ describe("maze-view", () => {
     await generated(el);
     typeSeed(el, "99");
 
-    el.regenerateAfterReload();
+    el.showChange();
     await vi.waitFor(() => expect($(el, "#status").textContent).toContain("regenerated after reload"));
     expect(ipc.generated.map((r) => r.seed)).toEqual([48213, 48213]);
     expect($(el, "#status").textContent).toContain("Seed 48213 · regenerated after reload");
@@ -385,7 +391,7 @@ describe("maze-view", () => {
 
       ipc.revision = 2;
       ipc.next = { cells: [0, 1, 4, 3, 2, 0] };
-      el.regenerateAfterReload();
+      el.showChange();
       await vi.waitFor(() => expect($(el, "#status").textContent).toContain("regenerated after reload"));
       expect(cell(el, 2, 1).classList).toContain("selected");
       expect($(el, "#selected").textContent).toBe("Selected: ─ Corridor straight, E–W · col 2, row 1");
@@ -403,7 +409,7 @@ describe("maze-view", () => {
   test("a reload with no maze shown generates nothing", async () => {
     const ipc = backend();
     const el = await mount();
-    el.regenerateAfterReload();
+    el.showChange();
     await el.updateComplete;
     expect(ipc.generated).toHaveLength(0);
   });

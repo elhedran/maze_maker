@@ -81,16 +81,16 @@ And Ian (`human:ian`), verbatim, 2026-11-01, on what he meant:
 
 ## Now and next
 
-Updated 2026-11-01 by Marram, when Ian asked to start 2.6 (see 2.6 below), and again for Ian's steering on improving the mazes (see "Steering 2026-11-01" above).
+Updated 2026-11-01 by Marram, after 2.2 landed and [DR-0036](/decisions/0036-growth-from-open-endpoints.md) gave 2.6 its new shape. Ian wants work to keep going today, so both tracks run now.
 
-- **Done:** Phase 1 is closed. 1.1, 1.3 and 2.1 (the first sample maze) are on `main`. 1.2's design is settled ([DR-0026](/decisions/0026-explore-one-tile-design.md)) and gets built in 2.2. [Q-0008](/questions/open/0008-global-maze-properties.md)'s first part is settled by [DR-0030](/decisions/0030-measures-for-2-1.md); the rest stays open for 2.5 and the game.
+- **Done:** Phase 1 is closed. 1.1, 1.3, 2.1 and 2.2 (which includes 1.2) are on `main`. Ian, verbatim, on 2.2: "I looked at the 2.2 demo, its approved and can land on main". [DR-0035](/decisions/0035-the-world-is-stored.md) (the world is stored) and [DR-0036](/decisions/0036-growth-from-open-endpoints.md) (growth from open endpoints) are accepted. [Q-0008](/questions/open/0008-global-maze-properties.md)'s first part is settled by [DR-0030](/decisions/0030-measures-for-2-1.md); the rest stays open for 2.5 and the game.
 - **Now, two tracks in parallel** (Marram's call; Ian, 2026-11-01: "Happy to use tokens faster if we can doo more work concurrently"):
-  - **Tool track: 2.2 is done and on `main`** (Ian approved its demo on 2026-11-01).
-  - **Engine track: 2.6 step 1**, the chunk generator in `maze-core`, with no window. It pauses at its next green point, after Ian's steering, keeping the per-cell starting masks and the completeness check.
+  - **Tool track: 2.3 Tune and compare.** Its two gates first, side by side: Damson's design record for compare and edit (DR-0037) and Yew's record on editing `core.toml` (DR-0038). The engineers can build against stubs while they settle.
+  - **Engine track: 2.6 step 1**, built as `a813a73` on `rowan/2.6-chunks` and being rebased onto `main` by Rowan. Then its no-window demo for Ian, and it lands with his OK. Step 2, the measures, starts as soon as the rebase is green.
 - **Next:**
-  - engine track: waits on Yew's record replacing [DR-0031](/decisions/archive/0031-endless-generation-approach.md) (expected DR-0036), which gives 2.6 its new shape; the facilitator briefs what follows once Yew has ruled;
-  - tool track: 2.3 once 2.2 lands, with opening pressure in it (Ian's steering);
-  - then 2.4 and 2.5.
+  - engine track: 2.6 step 3, the view of a growing world with a walk, once step 1 has landed. Damson writes its small design record straight after DR-0037;
+  - then 2.5 Judge many samples, then 2.4 Watch it collapse (see "Later in Phase 2" for why that order);
+  - then the game, starting with G.1.
 
 ## How it works
 
@@ -220,9 +220,9 @@ Moved by Marram on 2026-11-01, a two-way door. It is built as part of 2.2, which
   - The view can be opened from anywhere, so that 2.2 can open it from a spot in a maze (Damson).
 - **Done when:** it works for every tile and orientation in the core set, and agrees with the 1.1 table.
 - **Waits on:** Damson's design for exploring, which is brought together with the 1.1 table design (Damson and Marram).
-- **Status:** not started; comes with 2.2. Its design gate is met: [DR-0026](/decisions/0026-explore-one-tile-design.md) accepted (2026-10-31).
+- **Status:** done (2026-11-01), built and landed as part of 2.2. Its design gate was met: [DR-0026](/decisions/0026-explore-one-tile-design.md) accepted (2026-10-31).
 
-### 1.3 Filter the table (in progress, in parallel with 2.1)
+### 1.3 Filter the table (done)
 
 Moved to later by Marram on 2026-11-01, then brought back the same day to run in parallel with 2.1, after Ian said he was happy to spend tokens faster for more concurrent work (see "Update 2026-11-01" above). Both moves are two-way doors. Nothing in Phase 2 waits on it.
 
@@ -242,8 +242,7 @@ Moved to later by Marram on 2026-11-01, then brought back the same day to run in
   - **Verified:** 52 Rust tests and 36 Vitest tests pass, and the build passes. The facilitator drove the real Tauri window by script: corridor corners next to rooms shows 4 of 29 rows, 13 of 29 columns; the demo (Room rows, Corridor columns, East) shows 13 of 29 rows, 15 of 29 columns; side labels follow the switcher; the empty state and Clear all work. Damson checked it against DR-0027 and passed it, with no overrules.
   - **Ian, 2026-11-01, verbatim:** "new filters look good".
   - **Bug found in the live check, and fixed:** two filter changes made before the bar redrew lost the first one. Ash fixed it, with a test that fails without the fix; the facilitator rechecked it in the live window (8 of 8 runs correct). After the fix: 52 Rust and 37 Vitest tests pass, and the build passes.
-  - **Follow-ups (Damson, not blockers):** make the shade legend look less like pressed buttons; when exactly one tile type is chosen, name it in the corner sentence ("Corridor corner tile, then…").
-  - **Next:** Ian's OK to land; then the facilitator rebases onto `main` (2.1 may have landed by then), reruns the build and tests, and fast-forwards `main`.
+  - **Follow-ups (Damson, not blockers):** make the shade legend look less like pressed buttons; when exactly one tile type is chosen, name it in the corner sentence ("Corridor corner tile, then…"). Both landed with 2.2.
 
 ### 1.4 Table checks (dropped)
 
@@ -279,13 +278,13 @@ The original definition, kept for reference:
 
 - **Editing probabilities in the tool:** in Phase 2, at 2.3 ([Q-0010](/questions/resolved/0010-where-editing-goes.md)). Until then, you change probabilities by editing the tile set data and reloading it.
 - Generating mazes (that's Phase 2), and anything in the game.
-- Since 2026-11-01: exploring one tile (now in 2.2) and full tile set v1 (dropped). Filtering (1.3) runs in parallel with 2.1.
+- Since 2026-11-01: exploring one tile (now in 2.2) and full tile set v1 (dropped). Filtering (1.3) ran in parallel with 2.1 and is done.
 
 ## Phase 2: sample mazes
 
 **Done when** Wren and Ian can judge the maps the table makes ([DR-0008](/decisions/0008-adjacency-tool-first.md)), and Ian can trace a problem he sees in a maze back to the probabilities behind it ([Q-0005](/questions/resolved/0005-what-to-find-out-from-the-table.md)).
 
-**Status:** in progress. 2.1 is done and on `main`. 2.2 and 2.6's first step run in parallel (since 2026-11-01). 2.6 step 1 pauses at its next green point after Ian's steering, and 2.6's new shape waits on Yew's record (see "Steering 2026-11-01").
+**Status:** in progress. 2.1 and 2.2 are done and on `main`. Two tracks run in parallel: 2.3 Tune and compare (tool track) starts with its gates, and 2.6 (engine track) is redrawn for [DR-0036](/decisions/0036-growth-from-open-endpoints.md), with step 1 built and being rebased onto `main`. Then 2.5, then 2.4.
 
 ### 2.1 First sample maze
 
@@ -359,53 +358,93 @@ The original definition, kept for reference:
   - **Build:** Rowan does the Rust side: the observer hook in `wfc.rs`, the trace, the `explore_tile` and `trace_cell` commands, and the bindings. Ash does the frontend: the Explore tab, the link and the band. Each works in their own worktree (`rowan/2.2-cell-why`, `ash/2.2-explore-view`), against DR-0034's types.
   - **Alongside 2.6** (Marram's call): 2.2 holds `README.md`, and its shape wins if the two clash in `wfc.rs`.
 
-### 2.6 Beyond the edge (paused; new shape waits on Yew's record)
+### 2.3 Tune and compare (now, tool track)
+
+Readied by Marram on 2026-11-01, to start now. Ian, 2026-11-01: "There is such a thing as polishing too much before moving on." So 2.3 is kept small: edit a number, see the same seed change side by side, and try opening pressure. Scope and sequencing are Marram's calls, two-way doors ([DR-0018](/decisions/0018-one-way-doors-go-to-ian.md)).
+
+- **Goal:** Ian's loop in one place ([Q-0005](/questions/resolved/0005-what-to-find-out-from-the-table.md)): he sees a problem in a maze, changes the probability behind it in the tool, and compares the same seed before and after. Editing comes in here ([Q-0010](/questions/resolved/0010-where-editing-goes.md)), and so does Ian's opening pressure (see "Steering 2026-11-01").
+- **Demo tasks** (Ian, without help):
+  - Ian generates a maze, opens "Why is this here?" on a bit he doesn't like, changes the number behind one of its factors in the tool, and saves. The same seed regenerates beside the old maze, the changed cells are marked, and he points at what changed and how the two measures moved.
+  - Ian sets opening pressure to 0.5 in the tool, regenerates the same seed, and sees the reachable share and separate areas ([DR-0030](/decisions/0030-measures-for-2-1.md)) move. "Why is this here?" on a cell shows opening pressure as its own factor.
+  - Ian opens `data/tile-sets/core.toml` in an editor, sees his edits in place with the file's comments kept, and finds the record of what he changed, from what to what. He sets one number back, and the maze returns.
+- **What's in it:**
+  - **Editing the numbers the tile set already has:** the weights and exceptions that 1.1's explanation already shows ([DR-0022](/decisions/0022-weight-model.md)), and the `opening_pressure` key ([DR-0036](/decisions/0036-growth-from-open-endpoints.md) rule 9). Editing opens from a number in the explanation panel, wherever it already appears (table, explore, the "why" band). Where exactly is Damson's design.
+  - **Saving writes `core.toml`** through Rust ([DR-0005](/decisions/0005-tauri-rust-backend-lit-frontend.md)), then reloads it through the existing load path. So an edit the loader refuses, such as one that fails the completeness check (DR-0036 rule 7), is refused with the loader's reason and the file is left as it was. Each saved edit is recorded, as DR-0038 says.
+  - **Compare:** the same seed before and after the last save, side by side, with changed cells marked and both sets of measures. Rust works out which cells changed and the measures; the frontend draws them.
+  - **Opening pressure in the single maze.** 2.6 step 1 builds the factor into the engine for world growth only. 2.3 brings it into the tool's single-maze path, where a side past the maze's edge counts as new (DR-0036 rule 9), and into the "why" trace: [DR-0034](/decisions/0034-data-contract-for-why-is-this-here.md)'s contract gains the factor (Ash's note on DR-0036: the trace needs a pressure field once the pressure isn't 1).
+  - **The band refreshes in place after a save,** instead of clearing (Damson's 2.2 follow-up). Editing makes reloads constant, so this is in, not a follow-up.
+  - **Wren's tuning pass:** Wren tries opening pressure against tuning idea 4, damping corner-into-corner ([2.1 review](/plans/2.1-maze-review.md)), side by side in the tool, and sets the first `opening_pressure` value in `core.toml`. A game-design call (Wren, approved by Wren and Marram), written up in a short review note.
+- **Not in it:** adding or removing tiles, sides or exceptions in the tool; undo beyond setting a number back; comparing more than two mazes, or batches (2.5); grown worlds (2.6 step 3); zones; "what would fit here now" (2.4); the ruled-out list (2.4).
+- **Done when:**
+  - a saved edit is written to `core.toml` by Rust, keeps the file's comments and layout, loads, and is recorded as DR-0038 says;
+  - an edit the loader refuses changes nothing on disk and says why, with a test;
+  - the same seed and the same numbers give the same maze; with no `opening_pressure` key, 2.1's pinned seeds are unchanged, with a test;
+  - weight × factors still equals the solver's score exactly, with opening pressure included, over 200 seeds at a pressure below 1; values outside 0 < value ≤ 1 are refused at load;
+  - compare's changed cells and measures come from Rust, with a test;
+  - Damson has reviewed the view against DR-0037, and Wren's tuning note is written;
+  - bindings regenerated; Rust tests, Vitest, clippy and the build are clean; the demo steps are in the README, and the slice is on `main` with a line in `/log.md`.
+- **Waits on** two gates, both two-way doors unless Yew judges otherwise, settled at the start of the build by the roles named, with no planning round:
+  1. **Compare and edit design, DR-0037** (Damson, approved by Damson and Marram), kept small like [DR-0029](/decisions/0029-generation-view-design.md): where editing opens and how a number is changed; the before-and-after layout and how changed cells are marked; where the opening-pressure control sits; and what a refused edit looks like.
+  2. **How the tool edits `core.toml` and keeps a record of it, DR-0038** (Yew, approved by Yew and one engineer): writing the file without losing comments and layout; what the edit record is and where it lives; the edit and compare commands and their bindings ([DR-0023](/decisions/0023-rust-typescript-types-in-step.md)); and opening pressure in the single-maze path, with the factor added to DR-0034's trace contract. Yew judges whether any part is a one-way door; if one is, it goes to Ian.
+  - **Also uses 2.6 step 1's** `opening_pressure` key and factor. If step 1 hasn't landed when 2.3 needs them, 2.3 builds editing and compare first and picks up the factor when step 1 lands. Nothing in 2.3 waits on it to start.
+- **Beside 2.6** (Marram's call): separate sessions and worktrees. 2.3 holds the tool's views and `README.md`; on a clash in `wfc.rs`, whichever lands second adapts.
+- **Status:** ready to start (2026-11-01). Its gates are next.
+
+### 2.6 Beyond the edge (engine track; redrawn for DR-0036)
 
 Started 2026-11-01. Ian (`human:ian`), verbatim:
 
 > Start slice 2.6's chunk generator in crates/maze-core, built to DR-0031. Start with the order-independence and way-onward tests, plus the completeness check when the tile set loads. It's pure Rust and needs no window.
 
-**Paused, 2026-11-01, and its approach may change.** After Ian's steering (see "Steering 2026-11-01" above: growth follows the player's path, and the world is stored), Yew is re-checking DR-0031 and is likely to supersede it (expected as DR-0036). Step 1 pauses at its next green point, keeping what survives: the per-cell starting masks and the completeness check. 2.6's new shape, and the sequencing of what follows, wait on Yew's record. The steps below are 2.6 as planned under DR-0031, kept for reference until then.
+Then Ian steered how mazes grow (see "Steering 2026-11-01"), verbatim: "and yes I mean growth follows the players path". [DR-0035](/decisions/0035-the-world-is-stored.md) stores the world, and [DR-0036](/decisions/0036-growth-from-open-endpoints.md), accepted, replaces DR-0031's seam-first chunks with patches grown from open endpoints. Marram redrew 2.6 for it on 2026-11-01 (a two-way door). Order independence no longer applies: the world depends on the walk, so step 1 proves replay instead. The steps stay in the same order, and 2.6 still ends on screen (step 3).
 
-Marram's calls, all sequencing and scope, so two-way doors ([DR-0018](/decisions/0018-one-way-doors-go-to-ian.md)): 2.6 runs as an engine track beside 2.2, in three steps, and moves ahead of 2.4 and 2.5. Steps 1 and 2 are `maze-core` only, with no design gate and no window, so they take nothing from 2.2. As a whole, 2.6 still ends on screen (step 3).
+Marram's calls, all sequencing and scope, so two-way doors ([DR-0018](/decisions/0018-one-way-doors-go-to-ian.md)): 2.6 runs as an engine track beside 2.3. Steps 1 and 2 are `maze-core` only, with no design gate and no window.
 
-- **Goal:** grow a maze past its edge in chunks, to test where new areas meet old ones. Seam-first chunks on 2.1's generator ([DR-0031](/decisions/archive/0031-endless-generation-approach.md)); the measures and definition of done are in [Endless WFC](/plans/endless-wfc-research.md).
-- **Step 1, the chunk generator (now).**
-  - **In it:** DR-0031 rules 1 to 6: border labels and gates from each border's canonical key, per-cell starting masks, the gate check, the spine, the fallback run with the spine, and the fixed attempt order. A chunk's result reports attempts, spine and fallback, and carries its gate positions and spine cells (Ash's DR-0031 note), so step 3 needs no core change. S = 16; R is the engineers' call.
+- **Goal:** grow a stored world from open endpoints along the player's path, keep a way onward, and show it in the tool, walked and replayed. The technical definition of done is DR-0036's.
+- **Step 1, the stored world and patch growth (built).**
+  - **In it:** DR-0036 rules 1 to 10. A paged sparse world of palette indices (DR-0035); growth at the nearest anchor within r, by patches, with the keep flood; the outward check, the spine and the fallback; opening pressure as an optional key, default 1; a growth log with replay; and the completeness check at load, citing DR-0036 rule 7. P = 16, r = 8, R = 3.
   - **Not in it:** the measures (step 2); any view, IPC or window (step 3); new dependencies.
   - **Done when:**
-    - order independence passes as tests (measure 1): a chunk made alone and after its neighbours in three shuffled orders comes out identical; each border's labels match from both its chunks; one chunk's tiles are pinned;
-    - a way onward passes as tests (measure 2): the gates are joined in each of 1,000 chunks, and every gate in a 9 × 9 window is reachable from the origin's gate;
-    - the spine and the fallback run are each forced in a test, and each gives a complete chunk with its gates joined;
-    - the completeness check (DR-0031 rule 6) runs on table entries when a tile set loads, as an error. `core.toml` passes. A missing variant, a `passage_passage` or `hedge_hedge` base of 0, or a straight-to-straight multiplier of 0 fails, with a message that says what is missing and that endless mazes need it. It runs where the tool already loads the tile set, so Reload's banner shows it with no tool change;
-    - 2.1 is unchanged: its tests pass as they are, and its seeds give the same mazes as on `main` today;
+    - **replay:** the same seed and the same walk give the same world, and a patch regenerated from the world before it comes out the same;
+    - over 100 seeded random walks of 1,000 steps: the frontier rule (DR-0036 rule 1) holds after every patch; stored cells never change; every pair of neighbouring stored cells has an entry weight above 0; every stored cell is joined to the origin; there is an outward endpoint after every patch;
+    - the spine and the fallback are each forced in a test;
+    - the completeness check runs when a tile set loads, as an error, and its messages cite DR-0036 rule 7. `core.toml` passes; a `passage_passage` of 0 fails, and so does a doorway-against-passage weight of 0 (rule 7's new clause), each saying what is missing;
+    - with no `opening_pressure` key, 2.1's pinned seeds are unchanged, and 2.1's and 2.2's tests pass as they are;
     - clippy and the build are clean.
+  - **Status:** built by Rowan as `a813a73` on `rowan/2.6-chunks`. 134 Rust tests pass, at about 1 ms a patch in release. Rowan is rebasing it onto `main`, where its `wfc.rs` change to `collapse` meets 2.2's observer hook (2.6 adapts).
   - **Demo, no new window:**
     - Ian runs `cargo test -p maze-core` and reads the 2.6 tests passing, named for what they check.
-    - Ian sets `passage_passage` to 0 in `core.toml` and presses Reload: the tool refuses the set and says why. He puts it back, and Reload works. This is the one change he can see: a tile set that breaks the guarantee no longer loads, in any view.
-  - **Landing (Marram's call):** step 1 can land on `main` before the rest of 2.6, with Ian's OK after the demo. It is additive and leaves 2.1's path alone, and landing early keeps the `wfc.rs` rebase against 2.2 small. 2.6 isn't done until step 3.
-  - **Beside 2.2:** 2.6 changes `wfc.rs` only for the starting masks, and keeps the chunk code in its own files. Either can land first; on a clash in `wfc.rs`, 2.6 adapts. Its demo steps go in its report, and into `README.md` when it lands.
-- **Step 2, the measures (next, still no window).** Measures 3 to 7 from the research note, from a release build, written into the 2.6 records: fallback rate, restarts and spines, seam statistics, room sizes at S = 16 and 32, and time per chunk (median, 99th percentile, the forced worst case). Ian reads them as a short report from one command. It starts once step 1 is green, without waiting for it to land. A miss is answered by one of the research note's recorded choices (tune the seam labels, raise S, or layered blocks), not by open-ended rework. 2.5 reuses the room-size measure.
-- **Step 3, the view and the review (after 2.2 lands, alongside 2.3).**
-  - **In it:** the research note's "Beyond the edge" view: a world seed, a 5 × 5 window of chunks, panning, a chunk-grid overlay, and restarts, spine and fallback on hover. Plus the chunk command and its ts-rs bindings, with `i64` coordinates typed as `number` (Ash's DR-0031 note).
-  - **Waits on** a small design gate: Damson's short record for the view, approved by Damson and Marram, like [DR-0029](/decisions/0029-generation-view-design.md). Damson can settle it once 2.2's link design is done, so the build starts as soon as 2.2 lands.
-  - **Then** Wren and Damson review seams and rooms: measure 5's "can't reliably point out borders", and judging measures 4 and 6.
-  - **Demo, which closes 2.6:** Ian pans a world, toggles the overlay, regenerates in a different order and sees the same world.
-  - **Why after 2.2:** it shares the tool's shell and maze drawing with 2.2, and Damson's design time goes to 2.2 first.
+    - Ian sets `passage_passage` to 0 in `core.toml` and presses Reload: the tool refuses the set and says why. He puts it back, and Reload works.
+  - **Landing (Marram's call):** step 1 can land on `main` before the rest of 2.6, with Ian's OK after the demo, once the rebase is green. It is additive and leaves 2.1's path alone while the pressure is 1. 2.6 isn't done until step 3.
+- **Step 2, the measures (next, still no window).** DR-0036's list, re-cut for patches, from a release build:
+  - per patch: the restart, spine and fallback rates;
+  - the frontier (open and outward endpoints) over a walk, with pressure at 1 and at Wren's value from 2.3;
+  - room sizes at P = 16 and P = 32, and whether rooms avoid the edges of patches (Yew's concern 1);
+  - time per patch (median, 99th percentile and the forced worst case), and how the rule 6 check's time grows with the explored area (Yew's concern 2);
+  - memory per 1,000 stored cells (DR-0035).
+
+  Ian reads them as a short report from one command, and they are written into the 2.6 records. It starts as soon as step 1's rebase is green, without waiting for it to land. A miss gets one of the recorded answers, not open-ended rework: a larger P for rooms that avoid patch edges (DR-0036), an incremental rule 6 check for growth time (the engineers' call), or a new pressure value for a closing frontier (Wren). 2.5 reuses the frontier and room-size measures.
+- **Step 3, the view and the review (after step 1 lands, alongside 2.3).**
+  - **In it:** DR-0036's view: a world seed and a walker (a seeded random walk, or click to walk), with overlays for stored cells, the frontier and the last patch, and a way to replay the walk. Unsettled cells are drawn as solid hedge. Plus the world commands and their ts-rs bindings, with what Ash listed on DR-0036: a frontier accessor, per-patch deltas over IPC, and `i64` positions typed as `number`.
+  - **Waits on** a small design gate: Damson's short record for the view, approved by Damson and Marram, like [DR-0029](/decisions/0029-generation-view-design.md). It takes the next free number after 2.3's records. Damson writes it straight after DR-0037, so it is ready when step 1 lands.
+  - **Then** Wren and Damson review it: rooms against patch edges, the frontier, and Yew's concern 3 (a cell drawn solid that later opens).
+  - **Demo, which closes 2.6:** Ian walks a world in the tool, watches it grow from open endpoints with the frontier overlay on, then replays the walk and sees the same world.
+  - **Why after step 1 lands, not after step 2:** it needs only step 1's core, and step 2's measures don't change the view.
 
 ### Later in Phase 2 (outline)
 
-- **2.3 Tune and compare:** Ian's loop. Change probabilities, reload, regenerate with the same seed and compare (Wren's loop, moved up for Ian).
-  - Demo: Ian changes a probability, regenerates the same seed, and points at what changed.
-  - Editing probabilities in the tool comes in here ([Q-0010](/questions/resolved/0010-where-editing-goes.md)). If the weight model ever became weights set by hand on every pair, Marram and Yew would move editing earlier.
-  - Opening pressure comes in here too (Ian's steering of 2026-11-01, change 2; see "Steering 2026-11-01" above). It is one more factor in the solver's score, tuned in the same loop and shown in 2.2's trace. Yew and Wren settle the how at the start of the build.
-- **2.4 Watch it collapse:** step through generation, seeing each cell's possibilities and where contradictions happen.
+**Order, Marram's call (a two-way door): 2.5, then 2.4.** 2.5 is what closes Phase 2's "done when", judging the maps the table makes, and it should judge mazes with opening pressure in (2.3) and grown worlds' measures (2.6 step 2). 2.4 is a deeper debugging view, and 2.2's "why" trace already answers most of what it was for. **Revisit after 2.5:** whether 2.4 is still needed, or shrinks to the ruled-out list.
+
+- **2.3 Tune and compare:** now; see 2.3 above.
 - **2.5 Judge many samples:** generate a batch from seeds. Samples are big enough to judge pacing over a walk, not just one screen (Wren). Measures are taken from the player's side, not just as tile counts (Wren), and follow [Q-0008](/questions/open/0008-global-maze-properties.md):
   - reachable cells;
   - dead ends per area;
   - corridor run lengths;
   - room sizes and spacing.
-- **2.6 Beyond the edge:** started early; see 2.6 above.
+
+  DR-0030's two measures don't apply to grown worlds (DR-0036), so Wren settles at the start of the build whether 2.5 judges single mazes, walked worlds, or both. It reuses 2.6 step 2's frontier and room-size measures.
+- **2.4 Watch it collapse:** step through generation, seeing each cell's possibilities and where contradictions happen. The ruled-out list from 2.2 waits here.
+- **2.6 Beyond the edge:** on the engine track now; see 2.6 above.
 
 ## The game (outline)
 
@@ -413,11 +452,14 @@ The game is its own app (`apps/game/`, [DR-0012](/decisions/0012-code-layout-and
 
 - **Waits on:**
   - the full decision on how code is shared with the tool (Yew, with an engineer);
-  - persistence, meaning whether the world is kept when the player walks back. This is being settled by Ian's decision that the world is stored ("we want to know where the player has been, we will add loot"), recorded as DR-0035, pending Ian's approval of its wording;
-  - how the global maze properties are enforced ([Q-0008](/questions/open/0008-global-maze-properties.md));
+  - **persistence is settled:** the world is stored ([DR-0035](/decisions/0035-the-world-is-stored.md), Ian: "we want to know where the player has been, we will add loot"). What's left is how the game writes saves to disk, its own record when the game starts, and it gates G.2 only. Yew re-checks DR-0036's frontier rule (rule 1) before the game first saves a world;
+  - how the rest of the global maze properties are enforced ([Q-0008](/questions/open/0008-global-maze-properties.md)); the way onward is guaranteed by DR-0036 rule 6;
   - game-design records from Wren on what the player does;
   - possibly technology choices. Any that change the tech stack are Ian's ([DR-0018](/decisions/0018-one-way-doors-go-to-ian.md)).
-- **Smallest first slice:** a player walks through a maze generated around them. After Ian's steering of 2026-11-01, the maze grows from open endpoints and follows the player's path (see "Steering 2026-11-01" above); how is Yew's record. After that comes keeping the world when the player walks back, then a debug mode with the tool's views.
+- **Game slices,** numbered G.1 onwards so they don't clash with Phase 2's numbers (Marram's call, a two-way door). Like Phase 2's, numbers are stable once given.
+  - **G.1 Walk a growing world:** a player walks through a world grown around them from open endpoints along their path ([DR-0036](/decisions/0036-growth-from-open-endpoints.md)), and walking back finds it as it was. Keeping the world is no longer its own slice: DR-0035 stores it in `maze-core`, so G.1 gets it for free.
+  - **G.2 Save and load:** the world and the player survive closing the game. Waits on the save-format record (DR-0035 leaves it to the game). This is where the one-way part of DR-0035 starts to bite, so its record may go to Ian.
+  - **G.3 Debug mode:** the tool's views (the "why" trace, overlays) inside the game.
 
 ## Later (not scheduled, nothing decided)
 
@@ -464,7 +506,7 @@ Already settled:
 | Tile set file format | architecture | Yew; Yew and one engineer | no | done ([DR-0024](/decisions/0024-tile-set-file-format.md)) |
 | Phase 1 plan | plan | Yew | no | done ([Phase 1 plan](/plans/phase-1.md)) |
 | Design for exploring, openable from anywhere | design | Damson; Damson and Marram | no | done ([DR-0026](/decisions/0026-explore-one-tile-design.md)); used in 2.2 |
-| Design for filtering | design | Damson; Damson and Marram | no | done ([DR-0027](/decisions/0027-filter-table-design.md)); 1.3 in progress |
+| Design for filtering | design | Damson; Damson and Marram | no | done ([DR-0027](/decisions/0027-filter-table-design.md)); 1.3 done |
 | Tiles added beyond the core set | game design, [DR-0016](/decisions/0016-wren-designs-the-tile-set.md) | Wren; Wren and Marram | no | nothing scheduled; when sample mazes show the need (1.5 dropped) |
 | Paging and transport | architecture | Yew; Yew and one engineer | no | nothing scheduled; when the table grows (1.5 dropped) |
 | The WFC approach for 2.1: collapse, how neighbour weights combine, contradiction handling, determinism (seeds), the maze's edge | DR-0007, [DR-0013](/decisions/0013-table-entries-from-tile-sides.md), [DR-0022](/decisions/0022-weight-model.md) | Yew, with Wren on determinism; Yew and one engineer | no, unless Yew judges a part one-way | 2.1 (settled at the start of the build) |

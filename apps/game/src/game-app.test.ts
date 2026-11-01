@@ -115,6 +115,18 @@ describe("game-app", () => {
     expect(map[5].classList.contains("visited")).toBe(false);
   });
 
+  test("the map has no whitespace text between its tags, so no blank bands", async () => {
+    backend();
+    const el = await mount();
+    const map = q(el, ".map")!;
+    const blankText = (node: Node): boolean =>
+      [...node.childNodes].some(
+        (n) => (n.nodeType === Node.TEXT_NODE && /^\s*$/.test(n.textContent!) && n.textContent !== "" && !(n.parentElement?.classList.contains("cell"))) || blankText(n),
+      );
+    expect(blankText(map)).toBe(false);
+    expect(map.textContent!.includes("\n")).toBe(false);
+  });
+
   test("draws the player at the centre as a bold @, not by colour alone", async () => {
     backend();
     const el = await mount();

@@ -44,7 +44,7 @@ export class GameApp extends LitElement {
       :host {
         /* DR-0045's own tokens: the unknown haze (point 7) and the trail (point 6). */
         --unknown: #d5d9df;
-        --trail: rgba(0, 0, 0, 0.07);
+        --trail: rgba(160, 120, 40, 0.1);
         display: flex;
         flex-direction: column;
         gap: 1rem;
@@ -57,7 +57,7 @@ export class GameApp extends LitElement {
       @media (prefers-color-scheme: dark) {
         :host {
           --unknown: #0b0c0f;
-          --trail: rgba(255, 255, 255, 0.08);
+          --trail: rgba(242, 166, 90, 0.08);
         }
       }
       .status { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem 1rem; }
@@ -89,18 +89,26 @@ export class GameApp extends LitElement {
       .cell.room { color: var(--room-line); }
       .cell.hedge { color: var(--hedge-glyph); background-color: var(--hedge-bg); }
       .cell.unknown { background-color: var(--unknown); }
+      /*
+       * Floor tint (DR-0017 rule 4). A cell is two characters and a wall glyph
+       * sits on the first, so the tint covers the glyph's floor side of it:
+       * a quarter of the cell west of a ║, three quarters east of one. The
+       * game draws this differently from the tool (Damson, DR-0045 review).
+       */
       .cell[class*="tint-"] { background-image: linear-gradient(var(--room-tint), var(--room-tint)); }
       .tint-full { background-size: 100% 100%; }
       .tint-lower { background-size: 100% 50%; background-position: bottom; }
       .tint-upper { background-size: 100% 50%; background-position: top; }
-      .tint-left { background-size: 50% 100%; background-position: left; }
-      .tint-right { background-size: 50% 100%; background-position: right; }
-      .tint-lower-left { background-size: 50% 50%; background-position: left bottom; }
-      .tint-upper-left { background-size: 50% 50%; background-position: left top; }
-      .tint-upper-right { background-size: 50% 50%; background-position: right top; }
-      .tint-lower-right { background-size: 50% 50%; background-position: right bottom; }
+      .tint-left { background-size: 25% 100%; background-position: left; }
+      .tint-right { background-size: 75% 100%; background-position: right; }
+      .tint-lower-left { background-size: 25% 50%; background-position: left bottom; }
+      .tint-upper-left { background-size: 25% 50%; background-position: left top; }
+      .tint-upper-right { background-size: 75% 50%; background-position: right top; }
+      .tint-lower-right { background-size: 75% 50%; background-position: right bottom; }
       /* The trail: an inset shadow paints over the background and tint, under the glyph. */
       .cell.visited { box-shadow: inset 0 0 0 100vmax var(--trail); }
+      /* Rooms keep their floor tint clean: the trail is for corridors. */
+      .cell.room.visited { box-shadow: none; }
       /* The player: a bold @ in the text colour (DR-0045 point 4). */
       .at { display: inline-block; color: var(--text); font-weight: bold; }
       .at.nudge-north { animation: nudge-north 120ms ease-out; }
@@ -235,9 +243,10 @@ export class GameApp extends LitElement {
   }
 
   private renderMap(view: GameView) {
-    return html`<div class="map" role="img" aria-label="World around you">
-      ${layoutGrid(view).map((row) => html`<span class="row">${row.map((c) => this.renderCell(c))}</span>`)}
-    </div>`;
+    // Flush against the tags: the map is white-space: pre, so any newline
+    // or indent here would draw as a blank band (Damson's DR-0045 review).
+    const rows = layoutGrid(view).map((row) => html`<span class="row">${row.map((c) => this.renderCell(c))}</span>`);
+    return html`<div class="map" role="img" aria-label="World around you">${rows}</div>`;
   }
 
   private renderCell(c: ScreenCell) {

@@ -388,7 +388,7 @@ Readied by Marram on 2026-11-01, to start now. Ian, 2026-11-01: "There is such a
   2. **How the tool edits `core.toml` and keeps a record of it, DR-0038** (Yew, approved by Yew and one engineer): writing the file without losing comments and layout; what the edit record is and where it lives; the edit and compare commands and their bindings ([DR-0023](/decisions/0023-rust-typescript-types-in-step.md)); and opening pressure in the single-maze path, with the factor added to DR-0034's trace contract. Yew judges whether any part is a one-way door; if one is, it goes to Ian.
   - **Also uses 2.6 step 1's** `opening_pressure` key and factor. If step 1 hasn't landed when 2.3 needs them, 2.3 builds editing and compare first and picks up the factor when step 1 lands. Nothing in 2.3 waits on it to start.
 - **Beside 2.6** (Marram's call): separate sessions and worktrees. 2.3 holds the tool's views and `README.md`; on a clash in `wfc.rs`, whichever lands second adapts.
-- **Status:** ready to start (2026-11-01). Its gates are next.
+- **Status:** built and checked on `claude/slice-2-3-tune-compare`, waiting for Ian's demo (2026-11-01). DR-0037 and DR-0038 accepted; Wren set `opening_pressure = 0.5` ([tuning review](/plans/2.3-tuning-review.md), approved by Marram); Damson's review of the build passes with follow-ups (DR-0037, Concerns raised). Follow-ups, cut as may-slip: [Show in table] (DR-0026 point 11), editing from the band's cells, a [Set back] button; focus back to the number after Save or Cancel; a confirmation when saving pressure with no maze shown.
 
 ### 2.6 Beyond the edge (engine track; redrawn for DR-0036)
 

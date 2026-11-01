@@ -44,6 +44,25 @@ Ian (`human:ian`), verbatim, 2026-11-01:
 
 So Marram brought 1.3 back, a sequencing call and a two-way door ([DR-0018](/decisions/0018-one-way-doors-go-to-ian.md)). It runs now, alongside 2.1, in its own session and worktrees, with separate sessions of Rowan (Rust: DR-0027's `sides` filter, with tests) and Ash (the Lit filter bar, with Vitest tests). It takes no people or sessions from 2.1; the cost is tokens and a rebase against 2.1. It touches only the table view, its command and the filter code, to keep that rebase small. 2.1 stays first in line: if the two clash, 1.3 rebases. Its demo counts once it lands on `main` ([DR-0019](/decisions/0019-parallel-work-in-one-checkout.md)).
 
+## Steering 2026-11-01: improving the mazes
+
+Ian (`human:ian`), verbatim, 2026-11-01, as steering for the product manager for future phases:
+
+> Ok, on that not I have some future steering for the product manager for future phases around improving the mazes.  I'd like two changes - the first is we only generate based of "open" endpoints, endpoints connected to existing maze.  This basically means looking for where a path ends, a room door opens etc rather than just every space next to where the player has been, within the bounds of the player space radius.  The second change is to add some pressure to bias towards an opening maze.  that means that if a piece that goes down would only connect to already closed maze, that should get a reduced probability.
+
+**The reading this placement rests on** is the facilitator's, given to Ian. It is a proposal, not Ian's words, and Ian may still correct it. The full reading is in [Q-0008](/questions/open/0008-global-maze-properties.md).
+
+- **Change 1:** the maze only grows beside an open side (a passage end, a door) of something already generated, and what's never reached stays solid. To fit [DR-0031](/decisions/0031-endless-generation-approach.md) with no stored world, each chunk grows from its gates, and a neighbouring chunk is generated only when an open gate within the player's radius leads to it.
+- **Change 2:** a candidate whose open sides all face settled cells, so that it adds no new open endpoint, gets a multiplier below 1 in [DR-0028](/decisions/0028-wfc-approach-for-2-1.md) rule 3's score.
+
+**Where Marram puts it.** This is sequencing, a two-way door and Marram's call ([DR-0018](/decisions/0018-one-way-doors-go-to-ian.md)).
+
+- **Nothing in flight changes.** 2.2 and 2.6 step 1 go ahead as planned, and so does 2.6 step 2. Step 2's numbers, taken on chunks filled the way they are today, become the baseline both changes are judged against.
+- **Change 2, opening pressure, goes in 2.3 Tune and compare.** It is one tunable factor, it works on today's single maze, and 2.3's demo already fits it: Ian changes the pressure, regenerates the same seed, and sees the reachable share and separate areas ([DR-0030](/decisions/0030-measures-for-2-1.md)) move. 2.2's "why" trace shows it as a factor. It goes after the same pockets as Wren's tuning idea 4, damping corner-into-corner ([2.1 review](/plans/2.1-maze-review.md)), so 2.3 tries the two side by side. **Revisit before 2.3's build starts**, when 2.2 lands.
+- **Change 1, growing from open endpoints, goes in 2.6 step 3**, with chunks growing from their gates. Its `maze-core` part needs no window, so it runs on the engine track as soon as step 2's report is in, while 2.2 finishes. Step 3's view and seam review then run on grown chunks and are judged against step 2's numbers. The player's-radius half needs a player, so it goes to the game's first slice. **Revisit when 2.6 step 2's report is in.**
+- **Not 2.5:** it judges batches, so both changes should be in before it, and its measures should judge the maze they make.
+- **The how is settled at pickup, not now.** There's no planning round and no record yet. Yew settles the fit with DR-0028 and DR-0031 and whether any reading is a one-way door; if one is, it goes to Ian. Wren settles what the player feels, and the tuning. If Ian meant growth that depends on where the player has walked, that is the "one growing wave" DR-0031 rejected, and it brings back a stored world: Yew judges that before anything is built on it.
+
 ## Now and next
 
 Updated 2026-11-01 by Marram, when Ian asked to start 2.6 (see 2.6 below).
@@ -53,8 +72,8 @@ Updated 2026-11-01 by Marram, when Ian asked to start 2.6 (see 2.6 below).
   - **Tool track: 2.2**, its design gates and then the build.
   - **Engine track: 2.6 step 1**, the chunk generator in `maze-core`, with no window.
 - **Next:**
-  - engine track: 2.6 step 2, the measures, straight after step 1;
-  - tool track: 2.3 once 2.2 lands, with 2.6 step 3 (its view and the seam review) alongside it;
+  - engine track: 2.6 step 2, the measures, straight after step 1; then growing chunks from their gates, the engine part of 2.6 step 3 (Ian's steering, see "Steering 2026-11-01");
+  - tool track: 2.3 once 2.2 lands, with opening pressure in it (Ian's steering), and with 2.6 step 3 (its view and the seam review) alongside it;
   - then 2.4 and 2.5.
 
 ## How it works
@@ -346,6 +365,7 @@ Marram's calls, all sequencing and scope, so two-way doors ([DR-0018](/decisions
 - **Step 2, the measures (next, still no window).** Measures 3 to 7 from the research note, from a release build, written into the 2.6 records: fallback rate, restarts and spines, seam statistics, room sizes at S = 16 and 32, and time per chunk (median, 99th percentile, the forced worst case). Ian reads them as a short report from one command. It starts once step 1 is green, without waiting for it to land. A miss is answered by one of the research note's recorded choices (tune the seam labels, raise S, or layered blocks), not by open-ended rework. 2.5 reuses the room-size measure.
 - **Step 3, the view and the review (after 2.2 lands, alongside 2.3).**
   - **In it:** the research note's "Beyond the edge" view: a world seed, a 5 × 5 window of chunks, panning, a chunk-grid overlay, and restarts, spine and fallback on hover. Plus the chunk command and its ts-rs bindings, with `i64` coordinates typed as `number` (Ash's DR-0031 note).
+  - **Also in it: growing from gates** (Ian's steering of 2026-11-01, change 1; see "Steering 2026-11-01" above). Chunks grow only from open endpoints, starting at their gates, and what's never reached stays solid. Its `maze-core` part starts on the engine track once step 2's report is in, before 2.2 lands. The view and the review then run on grown chunks, against step 2's numbers. Yew and Wren settle the how at pickup.
   - **Waits on** a small design gate: Damson's short record for the view, approved by Damson and Marram, like [DR-0029](/decisions/0029-generation-view-design.md). Damson can settle it once 2.2's link design is done, so the build starts as soon as 2.2 lands.
   - **Then** Wren and Damson review seams and rooms: measure 5's "can't reliably point out borders", and judging measures 4 and 6.
   - **Demo, which closes 2.6:** Ian pans a world, toggles the overlay, regenerates in a different order and sees the same world.
@@ -356,6 +376,7 @@ Marram's calls, all sequencing and scope, so two-way doors ([DR-0018](/decisions
 - **2.3 Tune and compare:** Ian's loop. Change probabilities, reload, regenerate with the same seed and compare (Wren's loop, moved up for Ian).
   - Demo: Ian changes a probability, regenerates the same seed, and points at what changed.
   - Editing probabilities in the tool comes in here ([Q-0010](/questions/resolved/0010-where-editing-goes.md)). If the weight model ever became weights set by hand on every pair, Marram and Yew would move editing earlier.
+  - Opening pressure comes in here too (Ian's steering of 2026-11-01, change 2; see "Steering 2026-11-01" above). It is one more factor in the solver's score, tuned in the same loop and shown in 2.2's trace. Yew and Wren settle the how at the start of the build.
 - **2.4 Watch it collapse:** step through generation, seeing each cell's possibilities and where contradictions happen.
 - **2.5 Judge many samples:** generate a batch from seeds. Samples are big enough to judge pacing over a walk, not just one screen (Wren). Measures are taken from the player's side, not just as tile counts (Wren), and follow [Q-0008](/questions/open/0008-global-maze-properties.md):
   - reachable cells;
@@ -374,7 +395,7 @@ The game is its own app (`apps/game/`, [DR-0012](/decisions/0012-code-layout-and
   - how the global maze properties are enforced ([Q-0008](/questions/open/0008-global-maze-properties.md));
   - game-design records from Wren on what the player does;
   - possibly technology choices. Any that change the tech stack are Ian's ([DR-0018](/decisions/0018-one-way-doors-go-to-ian.md)).
-- **Smallest first slice:** a player walks through a maze generated around them. After that comes keeping the world when the player walks back, then a debug mode with the tool's views.
+- **Smallest first slice:** a player walks through a maze generated around them. A neighbouring chunk is generated only when an open gate within the player's radius leads to it (Ian's steering of 2026-11-01, change 1; see "Steering 2026-11-01" above). After that comes keeping the world when the player walks back, then a debug mode with the tool's views.
 
 ## Later (not scheduled, nothing decided)
 
@@ -429,7 +450,7 @@ Already settled:
 | Design for the generation view (small, settled during the 2.1 build) and the link from maze to table | design | Damson; Damson and Marram | no | 2.1, 2.2 |
 | Research into infinite WFC | DR-0007 | Yew | no | done ([DR-0031](/decisions/0031-endless-generation-approach.md)); 2.6 tests it |
 | Persistence | DR-0007 | Yew, with Wren | no; Yew re-checks before the game builds on it | the game (generation needs none, DR-0031) |
-| How global properties are enforced | [Q-0008](/questions/open/0008-global-maze-properties.md) | Yew, with Wren | no, unless Yew judges it one-way | the game |
+| How global properties are enforced | [Q-0008](/questions/open/0008-global-maze-properties.md) | Yew, with Wren | no, unless Yew judges it one-way | Ian's steering of 2026-11-01: opening pressure in 2.3, growing from gates in 2.6 step 3; the rest, the game |
 | How code is shared with the game, in full | DR-0008, [DR-0012](/decisions/0012-code-layout-and-core-crate.md) | Yew; Yew and one engineer | no | the game |
 | Replacing WFC as the generation approach, only if 2.6 finds WFC can't do endless mazes after all (the research found it can, DR-0031) | [DR-0007](/decisions/0007-wave-function-collapse.md) | Yew | **yes**: it changes the tech stack and throws away the generator built in Phase 2 | 2.6; the game |
 | Technology for the game beyond Tauri v2, Rust and Lit, if any is needed | [DR-0005](/decisions/0005-tauri-rust-backend-lit-frontend.md) | Yew | **yes**: it changes the tech stack, and the game would be built on it | the game |

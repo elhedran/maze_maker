@@ -66,7 +66,7 @@ The facilitator's proposals (Ian can strike any of them):
 
 Marram (`product-manager/1`), on approving, 2026-11-01:
 
-1. **Clashes in `maze-core`.** Three tracks now touch it (2.3, 2.6 steps 2 to 3, the game). Item 5 says the game raises changes first; Marram adds that G.1 should use the World through what step 1 already exposes, and anything it must add is additive. On a clash with the tool's tracks, the game adapts, so Phase 2 isn't held up. Yew's DR-0043 can override this.
+1. **Clashes in `maze-core`.** Three tracks now touch it (2.3, 2.6 steps 2 to 3, the game). Item 5 says the game raises changes first; Marram adds that G.1 should use the World through what step 1 already exposes, and anything it must add is additive. On a clash with the tool's tracks, the game adapts, so Phase 2 isn't held up. Yew's DR-0043 can override this. **Reversed by Marram later on 2026-11-01**, after Ian, verbatim: "please prioritize the actual game now - we will only do new work on the tool to support issues we find in the game from now on." The game now wins clashes, and the tool's tracks adapt (roadmap, "Now and next").
 2. **G.1 stays thin.** The risk in starting the game is a long build with nothing to show. G.1 is one window, one walk, no saves, no debug views, no loot (see the roadmap's G.1). Anything else waits for G.2 onwards.
 3. **Ian runs G.1's demo himself, on Windows.** The game is a new window that cloud sessions can't drive, as with 2.2. The README steps must work from the repo root in PowerShell without help.
 

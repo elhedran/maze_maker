@@ -85,15 +85,21 @@ Updated 2026-11-01 by Marram, when 2.6 step 1 landed and the game started ([DR-0
 
 > That said - this should not hold up attempting the actual game now - the tooling shows we are "good enough" to work on the game while we improve the tool
 
+Then, later the same day, verbatim:
+
+> please prioritize the actual game now - we will only do new work on the tool to support issues we find in the game from now on.
+
+**So the game is the priority.** New tool work now comes only from issues the game finds. Marram's reading, a sequencing call and a two-way door ([DR-0018](/decisions/0018-one-way-doors-go-to-ian.md)): work already in flight finishes and lands rather than being thrown away; nothing new starts on the tool unless the game asks for it.
+
 - **Done:** Phase 1 is closed. 1.1, 1.3, 2.1, 2.2 (which includes 1.2) and 2.6 step 1 are on `main`. Ian, verbatim, on 2.2: "I looked at the 2.2 demo, its approved and can land on main". [DR-0035](/decisions/0035-the-world-is-stored.md) (the world is stored) and [DR-0036](/decisions/0036-growth-from-open-endpoints.md) (growth from open endpoints) are accepted. [Q-0008](/questions/open/0008-global-maze-properties.md)'s first part is settled by [DR-0030](/decisions/0030-measures-for-2-1.md); the rest stays open for 2.5 and later game slices.
 - **Now, three tracks in parallel** (Marram's call, a two-way door; Ian, 2026-11-01: "Happy to use tokens faster if we can doo more work concurrently"):
   - **Tool track: 2.3 Tune and compare,** with its gates DR-0037 and DR-0038.
-  - **Engine track: 2.6 step 2** (the measures, DR-0040), **step 2b** (the random walker) and **step 3** (the tool's World tab, DR-0039 and DR-0041), each in its own session.
-  - **Game track: G.1 Walk a growing world** ([DR-0042](/decisions/0042-the-game-starts-now.md)). Its three gates are written side by side now: DR-0043 (Yew, code sharing and any new tech), DR-0044 (Wren, what the player does and sees) and DR-0045 (Damson, the game screen). Rowan and Ash build `apps/game/` against a stub while they settle. See G.1 below.
-  - **Who gives way:** none of the three pauses for another. In `maze-core`, the game adapts to the tool's tracks on a clash (Marram, DR-0042 concern 1).
+  - **Engine track: 2.6 step 2** (the measures, DR-0040), **step 2b** (the random walker) and **step 3** (the tool's World tab, DR-0039 and DR-0041), each in its own session. These are in flight, so they finish and land; after them, engine work comes only from issues the game finds (such as Wren's fun review asking for a generator change).
+  - **Game track, the priority: G.1 Walk a growing world** ([DR-0042](/decisions/0042-the-game-starts-now.md)). Its three gates are written side by side now: DR-0043 (Yew, code sharing and any new tech), DR-0044 (Wren, what the player does and sees) and DR-0045 (Damson, the game screen). Rowan and Ash build `apps/game/` against a stub while they settle. See G.1 below.
+  - **Who gives way:** since Ian's "please prioritize the actual game now", the game wins. On a clash in `maze-core`, the tool's tracks adapt to the game, reversing DR-0042 concern 1 (Marram's call). Sessions and tokens go to the game first.
 - **Next:**
-  - 2.5 Judge many samples, then 2.4 Watch it collapse (see "Later in Phase 2" for why that order);
-  - on the game track, G.2 Save and load once G.1 lands, unless G.1's fun review points somewhere more urgent.
+  - the game: the next game slice once G.1's demo is done (G.2 Save and load, unless G.1's fun review points somewhere more urgent). Its gates start in parallel with G.1's build;
+  - the tool: only what the game's issues need. 2.5 Judge many samples and 2.4 Watch it collapse are on hold until the game asks for them (they are kept, not dropped).
 
 ## How it works
 
@@ -508,7 +514,7 @@ Sliced by Marram on 2026-11-01, as the smallest thing that is the game: one wind
   - Wren's fun review is written, with a verdict, and Damson has reviewed the screen against DR-0045;
   - bindings regenerated; Rust tests, Vitest, clippy and the build are clean; the demo steps are in the README; the slice is on `main` with a line in `/log.md`. Ian runs the demo in the window himself, since cloud sessions can't drive it (as with 2.2).
 - **Waits on:** DR-0043, DR-0044 and DR-0045 (see above), settled at the start of the build, with no planning round. The engineers build against the stub meanwhile. If DR-0043 finds G.1 needs new technology, that one part goes to Ian.
-- **Beside Phase 2** (Marram's call): its own sessions and worktrees. G.1 holds `apps/game/` and adds to `maze-core` only if it must, additively; on a clash, the game adapts (DR-0042 concern 1).
+- **Beside Phase 2** (Marram's call): its own sessions and worktrees. G.1 holds `apps/game/` and adds to `maze-core` only if it must, additively. On a clash, the game wins, since Ian made it the priority (see "Now and next").
 
 ### Later game slices (outline)
 
